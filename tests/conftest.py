@@ -11,10 +11,10 @@ part relevant to it):
   scaled by sqrt(|C(find(vertex))|)), field.key(dsu, u, v, sigma)
   (p0 + fieldValue(dsu, v, u, sigma) + fieldValue(dsu, u, v, sigma), a
   sum, not a max)
-- algorithm.candidatePairs(allVertices) -> set[frozenset]
-- algorithm.growEdges(allVertices, specialSubset, r, sigma, rng=None)
+- algorithm._candidatePairs(allVertices) -> set[frozenset]
+- algorithm.growEdges(allVertices, specialSubset, r, sigma)
   -> object with .edges (set[frozenset]) and .dsu (DSU)
-- algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma, rng=None)
+- algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma)
   -> iterator of accepted edges in acceptance order
 
 Fixtures build fresh objects per test (function scope), so no mutable

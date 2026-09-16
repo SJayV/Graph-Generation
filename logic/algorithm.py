@@ -1,7 +1,6 @@
 """Greedy, field-priority-driven edge growth over a fixed vertex set."""
 import heapq
 import math
-import random
 from itertools import combinations
 from typing import Iterator, NamedTuple
 
@@ -23,23 +22,16 @@ def _targetEdgeCount(vertexCount: int, r: float) -> int:
     return min(math.floor(r * vertexCount), maxEdges)
 
 
-def _buildInitialHeap(
-    allVertices: list, structure: dsu.DSU, sigma: float
-) -> list:
+def _buildInitialHeap(allVertices: list, structure: dsu.DSU, sigma: float) -> list:
     heap = []
-    for pair in candidatePairs(allVertices):
+    for pair in _candidatePairs(allVertices):
         u, v = tuple(pair)
         priority = field.key(structure, u, v, sigma)
         heapq.heappush(heap, (-priority, u, v))
     return heap
 
 
-def _acceptedEdges(
-    allVertices: list,
-    structure: dsu.DSU,
-    r: float,
-    sigma: float,
-) -> Iterator[frozenset]:
+def _acceptedEdges(allVertices: list, structure: dsu.DSU, r: float, sigma: float) -> Iterator[frozenset]:
     targetEdgeCount = _targetEdgeCount(len(allVertices), r)
     heap = _buildInitialHeap(allVertices, structure, sigma)
 
@@ -56,33 +48,21 @@ def _acceptedEdges(
             heapq.heappush(heap, (-currentPriority, u, v))
 
 
-# ===== PUBLIC INTERFACE =====
-
-def candidatePairs(allVertices: list) -> set[frozenset]:
+def _candidatePairs(allVertices: list) -> set[frozenset]:
     """All unordered pairs {u, v} with u != v drawn from allVertices."""
     return {frozenset(pair) for pair in combinations(allVertices, 2)}
 
 
-def growEdgesStepwise(
-    allVertices: list,
-    specialSubset: list,
-    r: float,
-    sigma: float,
-    rng: random.Random | None = None,
-) -> Iterator[frozenset]:
+# ===== PUBLIC INTERFACE =====
+
+def growEdgesStepwise(allVertices: list, specialSubset: list, r: float, sigma: float) -> Iterator[frozenset]:
     """Yield accepted edges one at a time, in acceptance order."""
     structure = dsu.DSU(allVertices, specialSubset)
     yield from _acceptedEdges(allVertices, structure, r, sigma)
 
 
-def growEdges(
-    allVertices: list,
-    specialSubset: list,
-    r: float,
-    sigma: float,
-    rng: random.Random | None = None,
-) -> GrowthResult:
+def growEdges(allVertices: list, specialSubset: list, r: float, sigma: float) -> GrowthResult:
     """Grow edges greedily by field priority until the target count is reached."""
     structure = dsu.DSU(allVertices, specialSubset)
     edges = set(_acceptedEdges(allVertices, structure, r, sigma))
-    return GrowthResult(edges=edges, dsu=structure)
+    return GrowthResult(edges = edges, dsu = structure)

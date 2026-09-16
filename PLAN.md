@@ -46,23 +46,6 @@ $$
 
 ## User Stories
 
-### User Story 1: Priority-Weighted Edge Growth
-
-As a researcher studying network connectivity, I want to generate a graph on $n$ uniquely-positioned vertices by greedily adding edges in order of a Gaussian-field-based priority score until $m=\lfloor rn\rfloor$ edges exist, so that I can inspect the resulting edge set and component structure for a given $r$.
-
-**Acceptance criteria**
-1. Accepted when vertex generation produces exactly $n$ vertices with pairwise-distinct integer coordinates in $\{0,\dots,L\}^2$.
-2. Accepted when the special subset $S$ is a subset of $V$ of the requested size, with no duplicate members.
-3. Accepted when the generated graph has $|E|=\min(m,\binom n2)$.
-4. Accepted when every edge in $E$ connects two distinct vertices and no unordered pair appears more than once.
-5. Accepted when, after termination, the DSU's component partition matches the connected components actually induced by $E$.
-6. Accepted when, for every root $\rho$, the DSU's tracked $|C(\rho)|$ equals the number of $S$-vertices whose current root is $\rho$.
-7. Accepted when every accepted edge's key was recomputed against the DSU state immediately before acceptance (no edge is accepted on a stale, pre-union key).
-
-**Resolved**
-- if $r$ implies $m>\binom n2$: no error — $|E|$ silently caps at $\binom n2$ (criterion 3 becomes $|E|=\min(m,\binom n2)$)
-- $\sigma=L/10$ fixed default (reproducible; not a caller-supplied parameter unless a later story needs it)
-
 ### User Story 2 (deferred): S-Fragmentation Observation across r
 
 As a researcher, I want to run User Story 1's generator across a range of $r$ values and record whether $S$ collapses into a single component, so that I can characterize the fragmentation phenomenon empirically.
@@ -94,7 +77,7 @@ As a researcher, I want to run User Story 1's generator across a range of $r$ va
 **Field**
 - A15: $\sigma=L/10$, fixed for the duration of a run (not recomputed, not caller-supplied)
 - A16: $F_{\rho(v)}(x)$ is a pure function of $x$ and the current component state of $\rho(v)$ — same inputs always yield the same value
-- A17: $F_{\rho(v)}(x)\ge 0$ for all $x$ (nonnegative strength times nonnegative Gaussian density)
+- A17: $F_{\rho(v)}(x)\ge 0$ for all $x$ (nonnegative strength times nonnegative Gaussian density sum)
 - A18: $F_{\rho(v)}(x)=0$ for all $x$ iff $|C(\rho(v))|=0$ (component contains no $S$-members)
 - A19: $\text{key}(\{u,v\})=\text{key}(\{v,u\})$ (symmetric under argument swap)
 - A20: $\text{key}(\{u,v\})$ depends only on the current component state of $u$ and $v$, not on the history of how that state was reached

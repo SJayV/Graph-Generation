@@ -1,13 +1,13 @@
 """Tests for the edge-selection algorithm.
 
 Assumed interface:
-    algorithm.candidatePairs(allVertices: list) -> set[frozenset]
+    algorithm._candidatePairs(allVertices: list) -> set[frozenset]
         All unordered pairs {u, v} with u != v.
-    algorithm.growEdges(allVertices, specialSubset, r, sigma, rng=None) -> GrowthResult
+    algorithm.growEdges(allVertices, specialSubset, r, sigma) -> GrowthResult
         GrowthResult.edges: set[frozenset]   # accepted edges
         GrowthResult.dsu: dsu.DSU            # final DSU state
         Terminates with len(edges) == min(floor(r * len(allVertices)), C(n, 2)).
-    algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma, rng=None)
+    algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma)
         -> Iterator[frozenset]
         Yields accepted edges one at a time, in acceptance order.
 
@@ -18,7 +18,7 @@ during the run. If the implementation binds the function locally at
 import time, that one test will need adjusting to match.
 """
 import math
-import random
+from itertools import chain, combinations, repeat
 
 import algorithm
 
@@ -30,19 +30,19 @@ def makeVertices(n):
 class TestCandidatePoolInitialization:
     def test_candidatePairs_has_size_n_choose_2(self):
         allVertices = makeVertices(6)
-        pairs = algorithm.candidatePairs(allVertices)
+        pairs = algorithm._candidatePairs(allVertices)
         assert len(pairs) == math.comb(len(allVertices), 2)
 
     def test_candidatePairs_excludes_self_pairs(self):
         allVertices = makeVertices(5)
-        pairs = algorithm.candidatePairs(allVertices)
+        pairs = algorithm._candidatePairs(allVertices)
         for pair in pairs:
             u, v = tuple(pair)
             assert u != v
 
     def test_candidatePairs_contains_only_unordered_pairs(self):
         allVertices = makeVertices(4)
-        pairs = algorithm.candidatePairs(allVertices)
+        pairs = algorithm._candidatePairs(allVertices)
         for pair in pairs:
             assert len(pair) == 2
 
@@ -55,7 +55,7 @@ class TestAcceptedEdgesAreNeverReconsidered:
 
         emittedSoFar = set()
         for edge in algorithm.growEdgesStepwise(
-            allVertices, special, r=1.5, sigma=sigma, rng=random.Random(3)
+            allVertices, special, r=1.5, sigma=sigma
         ):
             assert edge not in emittedSoFar
             emittedSoFar.add(edge)
@@ -67,11 +67,11 @@ class TestAcceptedEdgesAreNeverReconsidered:
 
         emittedSoFar = set(
             algorithm.growEdgesStepwise(
-                allVertices, special, r=1.5, sigma=sigma, rng=random.Random(3)
+                allVertices, special, r=1.5, sigma=sigma
             )
         )
         result = algorithm.growEdges(
-            allVertices, special, r=1.5, sigma=sigma, rng=random.Random(3)
+            allVertices, special, r=1.5, sigma=sigma
         )
         assert emittedSoFar.issubset(result.edges)
 
@@ -88,7 +88,7 @@ class TestTermination:
         assert m < maxEdges  # sanity check on the chosen scenario
 
         result = algorithm.growEdges(
-            allVertices, special, r=r, sigma=sigma, rng=random.Random(11)
+            allVertices, special, r=r, sigma=sigma
         )
         assert len(result.edges) == min(m, maxEdges)
 
@@ -103,7 +103,7 @@ class TestTermination:
         assert m > maxEdges  # sanity check: r is deliberately oversized
 
         result = algorithm.growEdges(
-            allVertices, special, r=r, sigma=sigma, rng=random.Random(11)
+            allVertices, special, r=r, sigma=sigma
         )
         assert len(result.edges) == maxEdges
 
@@ -114,7 +114,7 @@ class TestTermination:
 
         # Regression guard: this call must return rather than hang.
         result = algorithm.growEdges(
-            allVertices, special, r=1_000_000.0, sigma=sigma, rng=random.Random(5)
+            allVertices, special, r=1_000_000.0, sigma=sigma
         )
         assert len(result.edges) == math.comb(len(allVertices), 2)
 
@@ -124,7 +124,7 @@ class TestNoSelfLoopsOrDuplicates:
         allVertices = makeVertices(6)
         special = allVertices[:2]
         result = algorithm.growEdges(
-            allVertices, special, r=2.0, sigma=1.0, rng=random.Random(9)
+            allVertices, special, r=2.0, sigma=1.0
         )
         for edge in result.edges:
             u, v = tuple(edge)
@@ -134,7 +134,7 @@ class TestNoSelfLoopsOrDuplicates:
         allVertices = makeVertices(6)
         special = allVertices[:2]
         result = algorithm.growEdges(
-            allVertices, special, r=2.0, sigma=1.0, rng=random.Random(9)
+            allVertices, special, r=2.0, sigma=1.0
         )
         assert len(result.edges) == len(set(result.edges))
 
@@ -156,10 +156,79 @@ class TestKeyRecomputationBeforeAcceptance:
 
         monkeypatch.setattr(field, "key", spyKey)
         algorithm.growEdges(
-            allVertices, special, r=2.0, sigma=sigma, rng=random.Random(9)
+            allVertices, special, r=2.0, sigma=sigma
         )
 
-        # An algorithm that never (re)computes field.key would trivially
-        # fail this guard; it does not by itself prove staleness handling,
-        # only that recomputation is observably wired in.
         assert len(callLog) > 0
+
+
+def _connectedComponentLabels(vertices, edges):
+    """Plain BFS over the edge set, independent of any DSU implementation."""
+    adjacency = {vertex: set() for vertex in vertices}
+    for edge in edges:
+        u, v = tuple(edge)
+        adjacency[u].add(v)
+        adjacency[v].add(u)
+
+    labels = {}
+    nextLabel = 0
+    for start in vertices:
+        if start in labels:
+            continue
+        stack = [start]
+        labels[start] = nextLabel
+        while stack:
+            node = stack.pop()
+            for neighbor in adjacency[node]:
+                if neighbor not in labels:
+                    labels[neighbor] = nextLabel
+                    stack.append(neighbor)
+        nextLabel += 1
+    return labels
+
+
+class TestDsuPartitionMatchesConnectedComponents:
+    def test_dsu_grouping_agrees_with_edge_connected_components(self):
+        allVertices = makeVertices(5)
+        special = [allVertices[0], allVertices[1]]
+        sigma = 1.0
+
+        result = algorithm.growEdges(
+            allVertices, special, r=1.5, sigma=sigma
+        )
+        maxEdges = math.comb(len(allVertices), 2)
+        assert 0 < len(result.edges) < maxEdges  # sanity: a non-trivial partial graph
+
+        labels = _connectedComponentLabels(allVertices, result.edges)
+
+        for u, v in combinations(allVertices, 2):
+            sameComponent = labels[u] == labels[v]
+            sameDsuGroup = result.dsu.find(u) == result.dsu.find(v)
+            assert sameComponent == sameDsuGroup
+
+
+class TestStaleKeyIsRejectedNotAccepted:
+    def test_edge_is_deferred_until_recomputed_key_matches_popped_priority(self, monkeypatch):
+        import field
+
+        allVertices = makeVertices(2)
+        special = []
+        sigma = 1.0
+
+        scriptedValues = chain([10.0, 5.0, 5.0], repeat(5.0))
+        callLog = []
+
+        def mockKey(structure, u, v, sig):
+            value = next(scriptedValues)
+            callLog.append(value)
+            return value
+
+        monkeypatch.setattr(field, "key", mockKey)
+        result = algorithm.growEdges(allVertices, special, r=2.0, sigma=sigma)
+
+        assert len(callLog) >= 3
+        assert callLog[1] != callLog[0]  # recomputation disagreed with the popped key
+        assert callLog[2] == callLog[1]  # recomputation on the reinserted key agreed
+
+        edge = frozenset((allVertices[0], allVertices[1]))
+        assert edge in result.edges  # eventually accepted, not silently dropped
