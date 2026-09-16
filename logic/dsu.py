@@ -10,8 +10,7 @@ class DSU:
     """
 
     def __init__(self, allVertices: list, specialSubset: list) -> None:
-        self.specialSubset: list = list(specialSubset)
-        specialAsSet = set(self.specialSubset)
+        specialAsSet = set(specialSubset)
 
         self._parent: dict[Hashable, Hashable] = {vertex: vertex for vertex in allVertices}
         self._size: dict[Hashable, int] = {vertex: 1 for vertex in allVertices}
@@ -40,9 +39,7 @@ class DSU:
         if rootA == rootB:
             return rootA
 
-        smallerRoot, largerRoot = sorted(
-            (rootA, rootB), key=lambda root: self._size[root]
-        )
+        smallerRoot, largerRoot = sorted((rootA, rootB), key=lambda root: self._size[root])
 
         self._parent[smallerRoot] = largerRoot
         self._size[largerRoot] += self._size[smallerRoot]

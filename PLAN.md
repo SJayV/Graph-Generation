@@ -18,14 +18,16 @@ $$
 \text{str}(v)=\sqrt{|C(\rho(v))|}
 $$
 $$
-F_{\rho(v)}(x)=\text{str}(v)\cdot\sum_{s\in C(\rho(v))} N(x\mid \mu_s,\sigma^2),\qquad \sigma \sim O(L)\text{-scaled, }\mu_s\text{ fixed}
+F_{\rho(v)}(x)=\text{str}(v)\cdot N(x\mid \mu_v,\sigma^2),\qquad \sigma \sim O(L)\text{-scaled, }\mu_v\text{ fixed}
 $$
+- single Gaussian bump centered on $v$ itself (not a sum over $C(\rho(v))$), scaled by $v$'s current component strength
 
 **Priority score** (symmetric, unclamped)
 $$
-\text{key}(\{u,v\}) = p_0+\max\big(F_{\rho(v)}(u),\,F_{\rho(u)}(v)\big)
+\text{key}(\{u,v\}) = p_0+\big(F_{\rho(v)}(u)+F_{\rho(u)}(v)\big)
 $$
-- no $\min(1,\cdot)$ — pure ranking value, ties broken naturally since real-valued Gaussian sums rarely collide exactly (drop the earlier tie-break concern)
+- sum, not max — collapses to $p_0+N(u,v)\cdot(\text{str}(u)+\text{str}(v))$ since $N(u\mid\mu_v,\sigma^2)=N(v\mid\mu_u,\sigma^2)$
+- no $\min(1,\cdot)$ — pure ranking value
 
 **Algorithm**
 - candidates: all $\{u,v\}\in\binom V2$, $u\neq v$
@@ -92,7 +94,7 @@ As a researcher, I want to run User Story 1's generator across a range of $r$ va
 **Field**
 - A15: $\sigma=L/10$, fixed for the duration of a run (not recomputed, not caller-supplied)
 - A16: $F_{\rho(v)}(x)$ is a pure function of $x$ and the current component state of $\rho(v)$ — same inputs always yield the same value
-- A17: $F_{\rho(v)}(x)\ge 0$ for all $x$ (nonnegative strength times nonnegative Gaussian density sum)
+- A17: $F_{\rho(v)}(x)\ge 0$ for all $x$ (nonnegative strength times nonnegative Gaussian density)
 - A18: $F_{\rho(v)}(x)=0$ for all $x$ iff $|C(\rho(v))|=0$ (component contains no $S$-members)
 - A19: $\text{key}(\{u,v\})=\text{key}(\{v,u\})$ (symmetric under argument swap)
 - A20: $\text{key}(\{u,v\})$ depends only on the current component state of $u$ and $v$, not on the history of how that state was reached

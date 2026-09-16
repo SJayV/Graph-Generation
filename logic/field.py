@@ -11,23 +11,19 @@ def gaussian(x: tuple[float, float], mu: tuple[float, float], sigma: float) -> f
     return math.exp(-squaredDistance / (2 * sigma * sigma))
 
 
-def fieldValue(dsu: Any, root: Any, x: tuple[float, float], sigma: float) -> float:
-    """Strength-weighted sum of Gaussian densities from special members of
-    the component rooted at `root`, evaluated at point x.
+def fieldValue(dsu: Any, vertex: Any, x: tuple[float, float], sigma: float) -> float:
+    """Strength-scaled Gaussian bump centred on `vertex` itself, evaluated at
+    point x. The strength is sqrt of the special-subset count of vertex's current component.
     """
-    specialCount = dsu.sCount(root)
+    specialCount = dsu.sCount(dsu.find(vertex))
     if specialCount == 0:
         return 0.0
 
-    specialMembersAtRoot = (
-        member for member in dsu.specialSubset if dsu.find(member) == root
-    )
-    gaussianSum = sum(gaussian(x, member, sigma) for member in specialMembersAtRoot)
-    return math.sqrt(specialCount) * gaussianSum
+    return math.sqrt(specialCount) * gaussian(x, vertex, sigma)
 
 
 def key(dsu: Any, u: Any, v: Any, sigma: float) -> float:
     """Symmetric priority score for the unordered pair {u, v}."""
-    fieldOfUAtV = fieldValue(dsu, dsu.find(u), v, sigma)
-    fieldOfVAtU = fieldValue(dsu, dsu.find(v), u, sigma)
-    return PRIORITY_OFFSET + max(fieldOfUAtV, fieldOfVAtU)
+    fieldOfVAtU = fieldValue(dsu, v, u, sigma)
+    fieldOfUAtV = fieldValue(dsu, u, v, sigma)
+    return PRIORITY_OFFSET + fieldOfVAtU + fieldOfUAtV

@@ -6,8 +6,11 @@ part relevant to it):
 - vertices.selectSpecialSubset(allVertices, k, rng) -> list[tuple[int, int]]
 - dsu.DSU(allVertices, specialSubset) with .find(v), .union(a, b),
   .sCount(root), .componentCount()
-- field.gaussian(x, mu, sigma), field.fieldValue(dsu, root, x, sigma),
-  field.key(dsu, u, v, sigma)
+- field.gaussian(x, mu, sigma), field.fieldValue(dsu, vertex, x, sigma)
+  (a single Gaussian bump centred on `vertex`'s own fixed position,
+  scaled by sqrt(|C(find(vertex))|)), field.key(dsu, u, v, sigma)
+  (p0 + fieldValue(dsu, v, u, sigma) + fieldValue(dsu, u, v, sigma), a
+  sum, not a max)
 - algorithm.candidatePairs(allVertices) -> set[frozenset]
 - algorithm.growEdges(allVertices, specialSubset, r, sigma, rng=None)
   -> object with .edges (set[frozenset]) and .dsu (DSU)
