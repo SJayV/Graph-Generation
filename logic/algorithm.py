@@ -5,19 +5,18 @@ import random
 from itertools import combinations
 from typing import Iterator, NamedTuple
 
-import dsu as dsu_module
+import dsu
 import field
 
 
-def candidatePairs(allVertices: list) -> set[frozenset]:
-    """All unordered pairs {u, v} with u != v drawn from allVertices."""
-    return {frozenset(pair) for pair in combinations(allVertices, 2)}
-
+# ===== TYPES =====
 
 class GrowthResult(NamedTuple):
     edges: set[frozenset]
-    dsu: dsu_module.DSU
+    dsu: dsu.DSU
 
+
+# ===== HELPER FUNCTIONS - EDGE GROWTH =====
 
 def _targetEdgeCount(vertexCount: int, r: float) -> int:
     maxEdges = math.comb(vertexCount, 2)
@@ -25,7 +24,7 @@ def _targetEdgeCount(vertexCount: int, r: float) -> int:
 
 
 def _buildInitialHeap(
-    allVertices: list, structure: dsu_module.DSU, sigma: float
+    allVertices: list, structure: dsu.DSU, sigma: float
 ) -> list:
     heap = []
     for pair in candidatePairs(allVertices):
@@ -37,7 +36,7 @@ def _buildInitialHeap(
 
 def _acceptedEdges(
     allVertices: list,
-    structure: dsu_module.DSU,
+    structure: dsu.DSU,
     r: float,
     sigma: float,
 ) -> Iterator[frozenset]:
@@ -57,6 +56,13 @@ def _acceptedEdges(
             heapq.heappush(heap, (-currentPriority, u, v))
 
 
+# ===== PUBLIC INTERFACE =====
+
+def candidatePairs(allVertices: list) -> set[frozenset]:
+    """All unordered pairs {u, v} with u != v drawn from allVertices."""
+    return {frozenset(pair) for pair in combinations(allVertices, 2)}
+
+
 def growEdgesStepwise(
     allVertices: list,
     specialSubset: list,
@@ -65,7 +71,7 @@ def growEdgesStepwise(
     rng: random.Random | None = None,
 ) -> Iterator[frozenset]:
     """Yield accepted edges one at a time, in acceptance order."""
-    structure = dsu_module.DSU(allVertices, specialSubset)
+    structure = dsu.DSU(allVertices, specialSubset)
     yield from _acceptedEdges(allVertices, structure, r, sigma)
 
 
@@ -77,6 +83,6 @@ def growEdges(
     rng: random.Random | None = None,
 ) -> GrowthResult:
     """Grow edges greedily by field priority until the target count is reached."""
-    structure = dsu_module.DSU(allVertices, specialSubset)
+    structure = dsu.DSU(allVertices, specialSubset)
     edges = set(_acceptedEdges(allVertices, structure, r, sigma))
     return GrowthResult(edges=edges, dsu=structure)

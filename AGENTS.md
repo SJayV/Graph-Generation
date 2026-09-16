@@ -43,8 +43,8 @@ An application to randomly create graphs parametrized in node count and sparsity
 
 ### Implementation
 - delegate to `implementer` subagent
-- ask user when / if a user story is finished
-- on refactors complete: commit `[feature - user story]: refactor for user story complete`
+- on first draft passing and complete: commit `[feature - user story]: code passes tests`
+- on refactors complete: commit `[feature - user story]: refactor complete`
 
 ### Documentation
 - delegate to `documenter` subagent
@@ -60,7 +60,10 @@ An application to randomly create graphs parametrized in node count and sparsity
         - extract section from `PLAN.md` → `userStories/[feature - user story].md`
         - commit `[feature - user story]: story complete, archived`
     - feature
-        - once all user stories archived: delete `PLAN.md`
+        - once all user stories archived
+            - delegate to `documenter` subagent
+            - extract important formalizations to README.md
+            - delete feature section from `PLAN.md`
         - commit `[feature]: complete`
 
 ## Rules
