@@ -44,8 +44,6 @@ An application to randomly create graphs parametrized in node count and sparsity
 ### Implementation
 - delegate to `implementer` subagent
 - ask user when / if a user story is finished
-- throughout implementation
-    - when acceptance criteria meets Definition of Done: commit `[feature - user story]: [acceptance criterion] complete`
 - on refactors complete: commit `[feature - user story]: refactor for user story complete`
 
 ### Documentation
