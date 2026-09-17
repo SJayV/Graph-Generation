@@ -7,7 +7,6 @@ from typing import Iterator, NamedTuple
 import dsu
 import field
 
-
 # ===== TYPES =====
 
 class GrowthResult(NamedTuple):

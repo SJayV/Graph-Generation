@@ -117,5 +117,5 @@ class TestMonotonicComponentCount:
         structure.union((0, 0), (2, 0))
         history.append(structure.componentCount())
 
-        for earlierCount, laterCount in zip(history, history[1:]):
+        for earlierCount, laterCount in zip(history, history[1:], strict=False):
             assert laterCount <= earlierCount
