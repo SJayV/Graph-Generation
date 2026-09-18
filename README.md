@@ -27,7 +27,7 @@ priority score shaped by a special subset $S$.
   - cap for $m > \binom n2$
 
 - **Special subset**
-  $$S\subseteq V,\quad |S|=k$$
+  $$S\subseteq V,\quad |S|=k,\quad 0\le k\le n$$
   - control of edge placement
 
 ### Components
@@ -56,6 +56,7 @@ priority score shaped by a special subset $S$.
   - Gaussian bump around vertex, scaled with amount of connected special members
   - $\sigma$ scaled to $L$, fixed per run
   - $\mu_v$ = $v$'s fixed grid position
+  - $F_{\rho(v)}(x)\ge 0$ always
 
 ### Priority score
 
