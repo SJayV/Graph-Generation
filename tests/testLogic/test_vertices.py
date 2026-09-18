@@ -17,7 +17,6 @@ import random
 import pytest
 import vertices
 
-
 # ===== SAMPLE VERTICES =====
 
 class TestVertexCount:
