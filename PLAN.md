@@ -78,6 +78,10 @@ As a viewer of a generated graph, I want its vertices and edges rendered on a gr
    elapsed time between edge `i-1` becoming visible and edge `i` becoming visible is the same
    fixed constant for every consecutive pair in the sequence, regardless of how long the
    Python algorithm actually took to compute each edge in the original run.
+7. Accepted when given the parsed content of the exported JSON
+   (`{ vertices: [[x,y],...], edgeSequence: [[startIndex,endIndex],...] }`), a loader function
+   returns `vertices` and `edgeSequence` in the exact shape required by
+   `computeRenderState`/`createRenderer`, with no transformation of values.
 
 **Explicitly not covered by this story:** glow/recency highlighting (Story 2).
 
@@ -155,3 +159,8 @@ choice, not a fixed contract.
   only, no timestamps.
 - A13: The pacing constant is fixed for a given rendering run — it does not vary with vertex
   count, edge count, or the content of the vertices/edges themselves.
+
+### JSON data loading
+- A14: Given the exported JSON's parsed content, the loader returns `vertices` and
+  `edgeSequence` values usable directly by `computeRenderState`/`createRenderer` — no
+  reordering, scaling, or other transformation of the values.

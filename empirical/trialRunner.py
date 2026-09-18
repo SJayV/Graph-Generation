@@ -6,7 +6,7 @@ import random
 import algorithm
 import vertices
 
-SIGMA_DIVISOR = 10.0
+SIGMA_DIVISOR = 30.0
 
 
 def _trialOutcome(r: float, n: int, L: int, k: int, rng: random.Random) -> bool:

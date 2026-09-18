@@ -25,6 +25,7 @@ An application to randomly create graphs parametrized in node count and sparsity
 - repo map
     - logic (all py files)
     - rendering (all WebGL, js files)
+    - export (python glue script(s): logic layer's graph data)
 - data flow: logic → rendering
     - logic layer exports a static JSON file (vertices, ordered edge-addition sequence)
     - rendering layer reads that JSON directly
