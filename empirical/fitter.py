@@ -52,11 +52,7 @@ def _hessian(dataPoints: list[tuple[float, float]], k: float, r0: float) -> Hess
 
 # ===== HELPER FUNCTIONS - NEWTON STEP =====
 
-def _newtonStep(
-    hessian: HessianMatrix,
-    gradientWithRespectToK: float,
-    gradientWithRespectToR0: float,
-) -> tuple[float, float]:
+def _newtonStep(hessian: HessianMatrix, gradientWithRespectToK: float, gradientWithRespectToR0: float) -> tuple[float, float]:
     (hessianKK, hessianKR0), (hessianR0K, hessianR0R0) = hessian
     determinant = hessianKK * hessianR0R0 - hessianKR0 * hessianR0K
     if abs(determinant) < SINGULAR_HESSIAN_THRESHOLD:
