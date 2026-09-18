@@ -46,28 +46,6 @@ $$
 
 ## User Stories
 
-### User Story 2: S-Fragmentation Observation across r
-
-As a researcher, I want to run User Story 1's generator across a range of $r$ values and record whether $S$ collapses into a single component, so that I can characterize the fragmentation phenomenon empirically.
-
-**Acceptance criteria**
-1. Accepted when, given $r$, trial count $N$, vertex count $n$, grid size $L$, and special-subset size $k$, the study runs $N$ independent trials — each with its own fresh RNG-seeded vertex sampling, special-subset selection, and `growEdges` call at that $r$ — and returns the proportion of trials in which every member of the special subset shares the same DSU root.
-2. Accepted when $N$, $n$, $L$, $k$, and the list of $r$ values to sweep are all caller-supplied parameters, with no hardcoded defaults.
-3. Accepted when, given a list of $(r,\text{proportion})$ data points, the sigmoid-fitting function returns fitted parameters $(k_{\text{fit}}, r_0)$ for $p(r)=1/(1+e^{-k_{\text{fit}}(r-r_0)})$, computed via a hand-rolled optimization (no new third-party dependency).
-4. Accepted when, given synthetic $(r,\text{proportion})$ data generated from a known ground-truth $r_0$ (with bounded noise) over a chosen $r$-range, the fitting function recovers that $r_0$ within $10\%$ of the span of that range: $|\hat r_0-r_0|\le 0.1\cdot(\max(r)-\min(r))$.
-5. Accepted when the full sweep-and-fit study, given a list of $r$ values plus $n,L,k,N$, returns both the fitted $(k_{\text{fit}}, r_0)$ and the raw list of per-$r$ $(r,\text{proportion})$ data points it was fit from.
-
-**Resolved**
-- trial count $N=30$ recommended default, but caller-configurable, not hardcoded
-- $r$-sweep is a caller-supplied list, not a hardcoded range
-- $n$, $L$, $k$ are all caller-supplied, no defaults
-- sigmoid fit is hand-rolled via 2D Newton-Raphson on the squared-error loss $L(k,r_0)=\sum_i\big(p(r_i;k,r_0)-\text{proportion}_i\big)^2$, iterating $(k,r_0)$ until $\nabla L\approx 0$ (using $L$'s Hessian for the update step) — no scipy/numpy dependency added
-- AC4's tolerance is relative to the tested $r$-range span (not an absolute constant), so it stays meaningful across different scales
-- $k=0$ or $k=1$ trivially make "$S$ collapsed" vacuously/immediately true (proportion $=1.0$ every trial) — allowed, no special-casing/validation added
-- $\sigma$ is not a separate caller-supplied parameter here — the trial-runner derives it internally as $\sigma=L/10$ (per A15) before calling `growEdges`, same as Story 1's fixed convention
-- Newton-Raphson fitting: initial guess $r_0=\text{midpoint of the tested }r\text{-range}$, $k_{\text{fit}}=1.0$; iterate until $\lVert\nabla L\rVert<\varepsilon$ or a max-iteration cap is hit (return whatever $(k_{\text{fit}},r_0)$ it has at that point, no exception raised); $k_{\text{fit}}$ is constrained $>0$ during iteration
-- the $N$ trials share one caller-supplied `random.Random` instance, advanced sequentially across all $N$ trials (one seed reproduces the whole batch)
-
 ## Assumptions
 
 **Vertices**
@@ -118,12 +96,11 @@ As a researcher, I want to run User Story 1's generator across a range of $r$ va
 - A42: if $r=0$ (equivalently $E=\emptyset$) and $k\ge 2$, the trial's outcome is necessarily false — every special member remains its own singleton component
 
 **Sigmoid fit (User Story 2)**
-- A34: given any non-empty list of $(r,\text{proportion})$ pairs, the fit always terminates and returns some $(k_{\text{fit}}, r_0)$ pair
-- A35: the returned $k_{\text{fit}}>0$, regardless of what the data would otherwise imply
+- A34: given any non-empty list of $(r,\text{proportion})$ pairs, the fit always terminates and returns some $(k_{\text{fit}}, r_0)$ pair, with $k_{\text{fit}}$ unconstrained in sign
 - A36: given synthetic data generated from a genuine sigmoid with a known $r_0$ and $k>0$ plus bounded noise, the fitted $r_0$ recovers the true $r_0$ within a tolerance proportional to the span of the tested $r$-range (not a fixed absolute tolerance)
 - A37: the fit is a pure function of its input data list — the same list of $(r,\text{proportion})$ pairs always yields the same $(k_{\text{fit}},r_0)$
 - A43: the returned $(k_{\text{fit}}, r_0)$ is intended to (locally) minimize the squared loss $L$ over the given data — a stationary point of $L$, not an arbitrary pair; where $L$ has multiple local minima, only local (not necessarily global) optimality is guaranteed
-- A44: when every input proportion equals the same constant (e.g. all $1$, which is exactly what A30 implies whenever the trial-runner's special-subset size is $0$ or $1$), $L$ has no finite global minimizer — it strictly decreases as $k_{\text{fit}}\to\infty$ — so the fit must still terminate per A34 rather than diverge, returning some large-but-finite $k_{\text{fit}}$ at the iteration cap
+- A44: when every input proportion equals the same constant (e.g. all $1$, which is exactly what A30 implies whenever the trial-runner's special-subset size is $0$ or $1$), $L$ has no finite global minimizer — it strictly decreases as $|k_{\text{fit}}|\to\infty$ — so the fit must still terminate per A34 rather than diverge, returning some large-but-finite $k_{\text{fit}}$ at the iteration cap
 
 **Sweep-and-fit orchestrator (User Story 2)**
 - A38: given a list of $r$ values plus $n,L,k,N$ and an RNG, the orchestrator calls the trial-runner once per $r$ value, using the same $(n,L,k,N)$ each time, continuing to advance the same shared RNG across the entire sweep

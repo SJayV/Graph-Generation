@@ -4,12 +4,13 @@ Assumed interface:
     fitter.fitSigmoid(dataPoints: list[tuple[float, float]]) -> tuple[float, float]
         Given a non-empty list of (r, proportion) pairs, returns (kFit, r0)
         for p(r) = 1 / (1 + exp(-kFit * (r - r0))), obtained via a
-        hand-rolled 2D Newton-Raphson minimization of the squared-error
-        loss L(k, r0) = sum((p(r_i; k, r0) - proportion_i) ** 2), starting
+        hand-rolled minimization of the squared-error loss
+        L(k, r0) = sum((p(r_i; k, r0) - proportion_i) ** 2), starting
         from r0 = midpoint of the r-values in dataPoints and k = 1.0,
-        iterating until the gradient is near zero or an iteration cap is
-        hit. kFit is always > 0 and the function always terminates and
-        returns a finite pair, even on degenerate/non-converging data.
+        iterating until convergence or an iteration cap is hit. kFit is
+        unconstrained in sign (it may be positive, negative, or ~0) and the
+        function always terminates and returns a finite pair, even on
+        degenerate/non-converging data.
 """
 import math
 import random
@@ -46,23 +47,6 @@ class TestTerminatesAndReturnsAPairOfFloats:
         kFit, r0 = fitter.fitSigmoid(dataPoints)
         assert math.isfinite(kFit)
         assert math.isfinite(r0)
-
-
-class TestKFitIsAlwaysPositive:
-    def test_kFit_positive_for_increasing_data(self):
-        dataPoints = [(0.0, 0.05), (1.0, 0.5), (2.0, 0.95)]
-        kFit, _ = fitter.fitSigmoid(dataPoints)
-        assert kFit > 0
-
-    def test_kFit_positive_even_for_decreasing_trend_data(self):
-        dataPoints = [(0.0, 0.95), (1.0, 0.5), (2.0, 0.05)]
-        kFit, _ = fitter.fitSigmoid(dataPoints)
-        assert kFit > 0
-
-    def test_kFit_positive_for_flat_data(self):
-        dataPoints = [(0.0, 0.5), (1.0, 0.5), (2.0, 0.5)]
-        kFit, _ = fitter.fitSigmoid(dataPoints)
-        assert kFit > 0
 
 
 class TestRecoversGroundTruthR0FromNoisySyntheticData:
@@ -113,4 +97,35 @@ class TestDegenerateConstantData:
         kFit, r0 = fitter.fitSigmoid(dataPoints)
         assert math.isfinite(kFit)
         assert math.isfinite(r0)
-        assert kFit > 0
+
+
+class TestFitRecoversVisibleTrendNotADegenerateTrap:
+    """Regression test for a real bug found by running the full study.
+
+    This data set was produced by an actual study run (not synthetic noise
+    generated for testing) and shows a clearly visible sigmoid-shaped rise
+    from ~0.03 at r=0.2 up to 1.0 at r=2.0. The current Newton-Raphson
+    fitter collapses to a near-flat fit (kFit approximately 0) centered far
+    outside the tested r-range (r0 approx 10.3, well beyond the max tested
+    r of 2.0), which is a degenerate local trap, not a reasonable fit to
+    this data.
+    """
+
+    dataPoints = [
+        (0.2, 0.033), (0.4, 0.100), (0.6, 0.167), (0.8, 0.433),
+        (1.0, 0.667), (1.2, 0.833), (1.5, 0.933), (2.0, 1.000),
+    ]
+
+    def test_fitted_r0_falls_within_the_tested_r_range(self):
+        kFit, r0 = fitter.fitSigmoid(self.dataPoints)
+        rValuesOnly = [r for r, _ in self.dataPoints]
+        assert min(rValuesOnly) <= r0 <= max(rValuesOnly)
+
+    def test_fitted_kFit_is_not_collapsed_to_near_zero(self):
+        kFit, _ = fitter.fitSigmoid(self.dataPoints)
+        assert abs(kFit) > 0.1
+
+    def test_fitted_loss_is_meaningfully_small(self):
+        kFit, r0 = fitter.fitSigmoid(self.dataPoints)
+        loss = sumSquaredLoss(self.dataPoints, kFit, r0)
+        assert loss < 0.5
