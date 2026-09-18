@@ -1,0 +1,13 @@
+{
+  "name": "graph-visualization",
+  "private": true,
+  "type": "module",
+  "description": "JS side (rendering layer) of the Graph Visualization feature. See AGENTS.md / PLAN.md at repo root.",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.1"
+  }
+}

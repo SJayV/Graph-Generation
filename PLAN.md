@@ -122,4 +122,36 @@ choice, not a fixed contract.
 
 ## Assumptions
 
-_(to be filled in as later steps surface them)_
+### Vertex rendering
+- A1: Every vertex in the input list appears exactly once as a dot in the render state.
+- A2: A dot's rendered position equals its input vertex's position exactly — no
+  transformation or recomputed layout.
+
+### Stepwise edge visibility
+- A3: For a step index `i` (`0 <= i <= length of sequence`), the visible-edge count equals
+  `i` exactly.
+- A4: Visible edges preserve the input sequence's order — the first `i` visible edges
+  correspond index-for-index to the first `i` entries of the sequence.
+- A5: `i = 0` yields an empty visible-edge list; vertex dots remain present regardless.
+- A6: `i = length of sequence` yields a visible-edge list equal to the entire sequence.
+- A7: Visibility is monotonic in `i` — an edge visible at step `i` remains visible at every
+  step `i' >= i`.
+- A8: Every visible edge's two endpoints reference vertex dots that exist in the same render
+  state (no dangling edge endpoints).
+
+### Render function / helper relationship
+- A9: The top-level render function's displayed output is fully determined by the
+  render-state helper's return value for the current step — no independent rendering logic
+  bypasses the helper.
+- A10: The render-state helper is callable and queryable independently of the top-level
+  render function — its result is not hidden internal state only reachable through the full
+  render pipeline.
+
+### Playback pacing
+- A11: During auto-advance, the elapsed time between edge `i-1` becoming visible and edge `i`
+  becoming visible is the same fixed constant for every consecutive pair.
+- A12: This pacing constant does not depend on any per-edge timing from the original Python
+  computation — no such timing is available, since the exported data carries edge order
+  only, no timestamps.
+- A13: The pacing constant is fixed for a given rendering run — it does not vary with vertex
+  count, edge count, or the content of the vertices/edges themselves.

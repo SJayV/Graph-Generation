@@ -12,6 +12,7 @@ An application to randomly create graphs parametrized in node count and sparsity
 ### Tech Stack & Versions
 - python for logic
 - WebGL for rendering
+- Vitest for JS testing
 
 ### Architecture Map
 - python core logic
