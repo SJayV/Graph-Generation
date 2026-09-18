@@ -5,7 +5,7 @@ priority score shaped by a special subset $S$.
 
 ## Functionality
 
-**Graph**
+### Graph
 
 - **Vertices**
   $$V\subseteq\{0,\dots,L\}^2\cap\mathbb N^2,\quad |V|=n$$
@@ -30,7 +30,7 @@ priority score shaped by a special subset $S$.
   $$S\subseteq V,\quad |S|=k$$
   - control of edge placement
 
-**Components**
+### Components
 
 - **Root**
   $$\rho(v)$$
@@ -44,7 +44,7 @@ priority score shaped by a special subset $S$.
   $$C(\rho_{\text{new}}) = C(\rho_1)\cup C(\rho_2)$$
   - on `union`
 
-**Field**
+### Field
 
 - **Field strength**
   $$\text{str}(v) = \sqrt{|C(\rho(v))|}$$
@@ -57,7 +57,7 @@ priority score shaped by a special subset $S$.
   - $\sigma$ scaled to $L$, fixed per run
   - $\mu_v$ = $v$'s fixed grid position
 
-**Priority score**
+### Priority score
 
 - **Priority score**
   $$
@@ -69,3 +69,15 @@ priority score shaped by a special subset $S$.
   $$
   - symmetric
   - unbounded priority contribution / ranking value
+
+### Fragmentation study
+
+- **Trial proportion**
+  $$\hat p(r) = \frac1N\sum_{i=1}^N \mathbb 1\big[\rho(s)\text{ equal }\forall s\in S\big]_i$$
+  - across $N$ independent trials at fixed $r$
+  - trial true iff all of $S$ shares one root
+
+- **Sigmoid fit**
+  $$p(r) = \frac1{1+e^{-k(r-r_0)}}$$
+  - fit to $(r,\hat p(r))$ points by minimizing $\sum_i\big(p(r_i)-\hat p(r_i)\big)^2$
+  - $r_0$ = estimated fragmentation threshold
