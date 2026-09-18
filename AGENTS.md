@@ -24,6 +24,15 @@ An application to randomly create graphs parametrized in node count and sparsity
 - repo map
     - logic (all py files)
     - rendering (all WebGL, js files)
+- data flow: logic → rendering
+    - logic layer exports a static JSON file (vertices, ordered edge-addition sequence)
+    - rendering layer reads that JSON directly
+    - one-directional: rendering never calls back into logic
+- rendering layer interface
+    - exposes a minimal programmatic entry point: a function
+        - taking a vertex / edge-sequence
+        - returning a queryable render state
+    - behavior is assertable without visual inspection
 
 ## Workflow Phases
 - primitives are features and user stories
