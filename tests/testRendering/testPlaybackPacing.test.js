@@ -1,23 +1,6 @@
 /**
- * Tests for User Story 1 ("Grid Rendering of Vertices and Edges"),
- * category "Playback pacing" (PLAN.md Assumptions A11-A13, Acceptance
- * Criterion 6).
- *
- * Assumed interface: see testRenderHelperRelationship.test.js for
- * createRenderer/Renderer. Auto-advance is assumed to be driven by the
- * platform timer (setInterval/setTimeout) internally, at a fixed interval
- * exported as the ALL_CAPS constant `EDGE_PACING_MILLISECONDS` (per
- * AGENTS.md naming conventions: "constants as close as possible to their
- * shared use").
- *
- * Per PLAN.md: "The pacing between edges appearing on screen shall be
- * owned by the rendering layer, not derived from the Python algorithm's
- * real computation time" — and indeed no per-edge timing data is exported
- * from Python at all (A12), so there is nothing to derive pacing from
- * besides this rendering-layer constant.
- *
- * Timers are faked (vi.useFakeTimers()) so these tests are deterministic
- * and do not rely on real wall-clock waits.
+ * rendering/renderer.js: createRenderer auto-advance, EDGE_PACING_MILLISECONDS
+ * fake timers (vi.useFakeTimers) for determinism
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { vi } from "vitest";

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Graph Rendering Demo</title>
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      overflow: hidden;
+      background: #000;
+    }
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="graphCanvas"></canvas>
+
+  <script type="module">
+    import { startDemo } from "./main.js";
+
+    const canvasElement = document.getElementById("graphCanvas");
+
+    function resizeCanvasToWindow() {
+      canvasElement.width = window.innerWidth;
+      canvasElement.height = window.innerHeight;
+    }
+
+    resizeCanvasToWindow();
+    window.addEventListener("resize", resizeCanvasToWindow);
+
+    try {
+      startDemo(canvasElement);
+    } catch (error) {
+      console.error(error);
+    }
+  </script>
+</body>
+</html>

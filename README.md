@@ -37,22 +37,32 @@ priority score shaped by a special subset $S$.
   - Distinct-Set-Union root of $v$
 
 - **Special subset**
-  $$C(\rho) = S\cap\text{component}(\rho)$$
-  - special members of $\rho$'s component
+  $$C(\rho) = \{v\in V\mid\text{parent}(v)=\rho\}$$
+  - members of $\rho$'s component
 
 - **Merge**
   $$C(\rho_{\text{new}}) = C(\rho_1)\cup C(\rho_2)$$
-  - on `union`
 
 ### Field
 
 - **Field strength**
-  $$\text{str}(v) = \sqrt{|C(\rho(v))|}$$
+  $$\lambda(v,x) = \begin{cases}
+  \lambda & \text{component}(v) = \text{component}(x)\\
+  1 & \text{otherwise}
+  \end{cases}$$
+  - dampening factor
+  $$\text{str}(v,x) = \sqrt{\lambda(v,x)\cdot|C(v)|}$$
   - diminishing returns as component absorbs more of $S$
   - $C(\rho(v))=\emptyset$ = strength $0$ = no contribution
 
 - **Field value**
-  $$F_{\rho(v)}(x) = \text{str}(v)\cdot \mathcal{N}(x\mid \mu_v,\sigma^2)$$
+  $$\kappa(v) \begin{cases}
+  \kappa & v\in S\\
+  1 & \text{otherwise}
+  \end{cases}
+  $$
+  - strengthening factor
+  $$F_{\rho(v)}(x) = \kappa(v)\cdot\text{str}(v,x)\cdot \mathcal{N}(x\mid \mu_v,\sigma^2)$$
   - Gaussian bump around vertex, scaled with amount of connected special members
   - $\sigma$ scaled to $L$, fixed per run
   - $\mu_v$ = $v$'s fixed grid position
@@ -63,9 +73,9 @@ priority score shaped by a special subset $S$.
 - **Priority score**
   $$
   \begin{aligned}
-  \text{key}(\{u,v\}) &= p_0 + F_{\rho(v)}(u) + F_{\rho(u)}(v) \\
-  &= p_0 + \text{str}(v)\cdot\mathcal{N}(u\mid \mu_v,\sigma^2) + \text{str}(u)\cdot\mathcal{N}(v\mid\mu_u,\sigma^2) \\
-  &= p_0 + \mathcal{N}(u\mid\mu_v,\sigma^2)\cdot\big(\text{str}(v)+\text{str}(u)\big)
+  \text{key}(\{u,v\}) &= F_{\rho(v)}(u) + F_{\rho(u)}(v) \\
+  &= \text{str}(v)\cdot\mathcal{N}(u\mid \mu_v,\sigma^2) + \text{str}(u)\cdot\mathcal{N}(v\mid\mu_u,\sigma^2) \\
+  &= \mathcal{N}(u\mid\mu_v,\sigma^2)\cdot\big(\text{str}(v)+\text{str}(u)\big)
   \end{aligned}
   $$
   - symmetric

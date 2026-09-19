@@ -1,22 +1,6 @@
 /**
- * Tests for User Story 1 ("Grid Rendering of Vertices and Edges"),
- * category "Vertex rendering" (PLAN.md Assumptions A1-A2, Acceptance
- * Criterion 1).
- *
- * Assumed interface under test:
- *
- *   rendering/renderState.js
- *     computeRenderState(vertices, edgeSequence, stepIndex) -> RenderState
- *
- *   RenderState := {
- *     dots: Array<{ position: [number, number] }>,   // one per input vertex,
- *                                                    // same order as input
- *     visibleEdges: Array<{ startIndex: number, endIndex: number }>,
- *   }
- *
- * `dots[i].position` must equal `vertices[i]` exactly (A2): no
- * transformation, scaling, or recomputed layout is applied by the
- * render-state helper.
+ * rendering/renderState.js: computeRenderState(vertices, edgeSequence, stepIndex)
+ * dots[i].position === vertices[i], no transform
  */
 import { describe, expect, it } from "vitest";
 

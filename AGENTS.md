@@ -10,25 +10,29 @@ An application to randomly create graphs parametrized in node count and sparsity
 - visualize graph growth
 
 ### Tech Stack & Versions
-- python for logic
+- JavaScript for logic + rendering
 - WebGL for rendering
 - Vitest for JS testing
 
 ### Architecture Map
-- python core logic
+- core logic
     - graph primitive generation
     - data structure + field handling
     - algorithm for edge selection, based on the other two modules
+- empirical study
 - layers
     - logic layer
     - rendering / visual layer (view on model)
 - repo map
-    - logic (all py files)
-    - rendering (all WebGL, js files)
-    - export (python glue script(s): logic layer's graph data)
-- data flow: logic → rendering
-    - logic layer exports a static JSON file (vertices, ordered edge-addition sequence)
-    - rendering layer reads that JSON directly
+    - logic (js files)
+    - empirical (js files)
+    - rendering (WebGL, js files)
+    - index.html (root-level demo entry point)
+    - main.js (root-level orchestrator)
+- rng
+    - seedable PRNG utility
+- data flow: logic → rendering (target end-state)
+    - generation runs client-side in-browser; data passed in-memory
     - one-directional: rendering never calls back into logic
 - rendering layer interface
     - exposes a minimal programmatic entry point: a function

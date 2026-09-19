@@ -1,13 +1,4 @@
-__pycache__/
-*.pyc
-.venv/
-venv/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-*.egg-info/
 dist/
 build/
 .env
 node_modules/
-export/graph.json

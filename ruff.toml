@@ -1,7 +1,0 @@
-line-length = 120
-target-version = "py313"
-
-[lint]
-# pep8-naming ("N") is deliberately not selected: this project uses camelCase
-# for functions/variables per AGENTS.md's Code Quality rules, not snake_case.
-select = ["E", "F", "W", "B", "SIM", "I"]

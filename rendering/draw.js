@@ -1,55 +1,16 @@
-/**
- * Minimal raw-WebGL drawing of a render state.
- */
+/** Minimal raw-WebGL drawing of a render state. */
+import { createCircleProgram, createSolidColorProgram } from "./shaderProgram.js";
 
-const DOT_VERTEX_SHADER_SOURCE = `
-  attribute vec2 aPosition;
-  uniform float uPointSize;
-  void main() {
-    gl_PointSize = uPointSize;
-    gl_Position = vec4(aPosition, 0.0, 1.0);
-  }
-`;
-
-const SOLID_COLOR_FRAGMENT_SHADER_SOURCE = `
-  precision mediump float;
-  uniform vec4 uColor;
-  void main() {
-    gl_FragColor = uColor;
-  }
-`;
+// CONSTANTS
 
 const DOT_COLOR = [0.1, 0.6, 1.0, 1.0];
 const SPECIAL_DOT_COLOR = [1.0, 0.55, 0.0, 1.0];
-const EDGE_COLOR = [0.8, 0.8, 0.8, 1.0];
-const DOT_POINT_SIZE_PIXELS = 8.0;
+const EDGE_COLOR = [0.0, 0.5, 0.9, 1.0];
+const DOT_POINT_SIZE_PIXELS = 4.0;
+const SCREEN_MARGIN_FRACTION = 0.15;
+const CONTENT_CLIP_BOUND = 1 - 2 * SCREEN_MARGIN_FRACTION;
 
-function _compileShader(gl, shaderType, sourceCode) {
-  const shader = gl.createShader(shaderType);
-  gl.shaderSource(shader, sourceCode);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    const infoLog = gl.getShaderInfoLog(shader);
-    gl.deleteShader(shader);
-    throw new Error(`Shader compilation failed: ${infoLog}`);
-  }
-  return shader;
-}
-
-function _createProgram(gl, vertexShaderSource, fragmentShaderSource) {
-  const vertexShader = _compileShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-  const fragmentShader = _compileShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
-  const program = gl.createProgram();
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-  gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-    const infoLog = gl.getProgramInfoLog(program);
-    gl.deleteProgram(program);
-    throw new Error(`Program linking failed: ${infoLog}`);
-  }
-  return program;
-}
+// HELPER FUNCTIONS - COORDINATE MAPPING
 
 function _computeAxisBounds(dots) {
   const xValues = dots.map((dot) => dot.position[0]);
@@ -66,13 +27,16 @@ function _axisToClipSpace(value, minValue, maxValue) {
   if (maxValue === minValue) {
     return 0;
   }
-  return ((value - minValue) / (maxValue - minValue)) * 2 - 1;
+  const normalized = (value - minValue) / (maxValue - minValue);
+  return normalized * (2 * CONTENT_CLIP_BOUND) - CONTENT_CLIP_BOUND;
 }
 
 function _positionToClipSpace([x, y], axisBounds) {
   const { minX, maxX, minY, maxY } = axisBounds;
   return [_axisToClipSpace(x, minX, maxX), _axisToClipSpace(y, minY, maxY)];
 }
+
+// HELPER FUNCTIONS - DRAWING
 
 function _uploadClipSpacePositions(gl, program, clipSpacePositions) {
   const positionAttributeLocation = gl.getAttribLocation(program, "aPosition");
@@ -87,14 +51,18 @@ function _uploadClipSpacePositions(gl, program, clipSpacePositions) {
   gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 }
 
+function _setColorUniform(gl, program, color) {
+  const colorUniformLocation = gl.getUniformLocation(program, "uColor");
+  gl.uniform4fv(colorUniformLocation, color);
+}
+
 function _drawDotGroup(gl, program, dots, axisBounds, color) {
   if (dots.length === 0) {
     return;
   }
   const clipSpacePositions = dots.map((dot) => _positionToClipSpace(dot.position, axisBounds));
   _uploadClipSpacePositions(gl, program, clipSpacePositions);
-  const colorUniformLocation = gl.getUniformLocation(program, "uColor");
-  gl.uniform4fv(colorUniformLocation, color);
+  _setColorUniform(gl, program, color);
   const pointSizeUniformLocation = gl.getUniformLocation(program, "uPointSize");
   gl.uniform1f(pointSizeUniformLocation, DOT_POINT_SIZE_PIXELS);
   gl.drawArrays(gl.POINTS, 0, clipSpacePositions.length);
@@ -116,26 +84,28 @@ function _drawEdges(gl, program, renderState, axisBounds) {
     _positionToClipSpace(renderState.dots[edge.endIndex].position, axisBounds),
   ]);
   _uploadClipSpacePositions(gl, program, clipSpacePositions);
-  const colorUniformLocation = gl.getUniformLocation(program, "uColor");
-  gl.uniform4fv(colorUniformLocation, EDGE_COLOR);
+  _setColorUniform(gl, program, EDGE_COLOR);
   gl.drawArrays(gl.LINES, 0, clipSpacePositions.length);
 }
 
+// PUBLIC INTERFACE
+
 export function drawRenderState(gl, renderState) {
-  const program = _createProgram(
-    gl,
-    DOT_VERTEX_SHADER_SOURCE,
-    SOLID_COLOR_FRAGMENT_SHADER_SOURCE,
-  );
-  gl.useProgram(program);
+  const lineProgram = createSolidColorProgram(gl);
+  const circleProgram = createCircleProgram(gl);
 
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
   gl.clearColor(0.05, 0.05, 0.05, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   const axisBounds = _computeAxisBounds(renderState.dots);
-  _drawEdges(gl, program, renderState, axisBounds);
-  _drawDots(gl, program, renderState, axisBounds);
 
-  gl.deleteProgram(program);
+  gl.useProgram(lineProgram);
+  _drawEdges(gl, lineProgram, renderState, axisBounds);
+
+  gl.useProgram(circleProgram);
+  _drawDots(gl, circleProgram, renderState, axisBounds);
+
+  gl.deleteProgram(lineProgram);
+  gl.deleteProgram(circleProgram);
 }

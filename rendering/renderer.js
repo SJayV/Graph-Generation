@@ -1,17 +1,14 @@
 /**
- * Top-level rendering entry point.
- *
- * `createRenderer` is a factory for:
- *   - the current step index into the edge sequence
- *   - auto-advance playback
- *
- * It delegates all render-state derivation to `renderState.js`'s
- * `computeRenderState`, which remains independently callable/queryable
- * (A9-A10).
+ * Top-level rendering entry point. `createRenderer` is a factory for the
+ * current step index into the edge sequence and auto-advance playback.
  */
 import * as renderStateModule from "./renderState.js";
 
-export const EDGE_PACING_MILLISECONDS = 500;
+// CONSTANTS
+
+export const EDGE_PACING_MILLISECONDS = 20;
+
+// PUBLIC INTERFACE
 
 export function createRenderer(vertices, edgeSequence) {
   let stepIndex = 0;

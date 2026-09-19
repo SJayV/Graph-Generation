@@ -1,14 +1,6 @@
 /**
- * Tests for User Story 1 ("Grid Rendering of Vertices and Edges"),
- * category "Stepwise edge visibility" (PLAN.md Assumptions A3-A8,
- * Acceptance Criteria 2-4).
- *
- * Assumed interface: see testVertexRendering.test.js for the
- * computeRenderState / RenderState shapes. `edgeSequence` is the ordered
- * edge-addition sequence produced by the logic layer's
- * `growEdgesStepwise` (exported as JSON, order-only, no timestamps), where
- * each entry is `[startIndex, endIndex]` referring to indices into
- * `vertices`.
+ * rendering/renderState.js: computeRenderState, stepwise edge visibility
+ * edgeSequence entries: [startIndex, endIndex] into vertices
  */
 import { describe, expect, it } from "vitest";
 
