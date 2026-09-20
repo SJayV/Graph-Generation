@@ -1,5 +1,6 @@
 /** Root-level orchestrator: generates a graph in-memory and renders it. */
 import { growEdgesStepwise } from "./logic/algorithm.js";
+import { sigmaFromGridSize } from "./logic/field.js";
 import { createSeededRng } from "./logic/rng.js";
 import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/vertices.js";
 import { drawRenderState } from "./rendering/draw.js";
@@ -9,7 +10,6 @@ const VERTEX_COUNT = 400;
 const GRID_SIZE = 1000;
 const SPECIAL_SUBSET_SIZE = 6;
 const SPARSITY = 1.5;
-export const SIGMA_DIVISOR = 15.0;
 
 // HELPER FUNCTIONS - GRAPH GENERATION
 
@@ -31,7 +31,7 @@ function _generateGraph() {
   const rng = createSeededRng(_createEntropySeed());
   const allVertices = sampleVertices(VERTEX_COUNT, GRID_SIZE, rng);
   const specialSubset = selectSpecialSubset(allVertices, SPECIAL_SUBSET_SIZE, rng);
-  const sigma = GRID_SIZE / SIGMA_DIVISOR;
+  const sigma = sigmaFromGridSize(GRID_SIZE);
 
   const vertexPairs = [...growEdgesStepwise(allVertices, specialSubset, SPARSITY, sigma)];
 

@@ -1,5 +1,9 @@
 /** Vertex sampling, canonical keying, and special-subset selection on a discrete grid. */
-import { sampleWithoutReplacement } from "./rng.js";
+import { gaussian, sampleWithoutReplacement, weightedSampleWithoutReplacement } from "./rng.js";
+
+// CONSTANTS
+
+const GAUSSIAN_SIGMA_DIVISOR = 3.0;
 
 // HELPER FUNCTIONS
 
@@ -20,7 +24,8 @@ export function vertexKey(vertex) {
 }
 
 /**
- * Samples n pairwise-distinct integer coordinates from {0,...,L}^2.
+ * Samples n pairwise-distinct integer coordinates from {0,...,L}^2, biased
+ * toward the grid center by a Gaussian weight (roughly normally distributed).
  * Throws when n exceeds the grid's capacity, (L + 1) ** 2.
  */
 export function sampleVertices(n, L, rngSource) {
@@ -31,7 +36,9 @@ export function sampleVertices(n, L, rngSource) {
   }
 
   const allGridPoints = _buildGridPoints(gridSideLength);
-  return sampleWithoutReplacement(rngSource, allGridPoints, n);
+  const center = [L / 2, L / 2];
+  const sigma = gridSideLength / GAUSSIAN_SIGMA_DIVISOR;
+  return weightedSampleWithoutReplacement(rngSource, allGridPoints, n, (point) => gaussian(point, center, sigma));
 }
 
 /**

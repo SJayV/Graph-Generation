@@ -17,7 +17,7 @@ function _buildVisibleEdges(edgeSequence, stepIndex, currentTime, computeGlow, e
     }
     const becameVisibleAt = edgeIndex * edgePacingMilliseconds;
     const glow = computeGlow(currentTime - becameVisibleAt, edgePacingMilliseconds);
-    return {...edge, becameVisibleAt, glow};
+    return { ...edge, becameVisibleAt, glow };
   });
 }
 

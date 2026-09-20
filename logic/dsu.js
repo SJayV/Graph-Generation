@@ -66,6 +66,15 @@ export class DSU {
     return this._size.get(vertexKey(this.find(vertex))) ?? 0;
   }
 
+  connected(a, b) {
+    const rootA = this.find(a);
+    const rootB = this.find(b);
+    if (rootA === undefined || rootB === undefined) {
+      return false;
+    }
+    return vertexKey(rootA) === vertexKey(rootB);
+  }
+
   componentCount() {
     return this._componentCount;
   }

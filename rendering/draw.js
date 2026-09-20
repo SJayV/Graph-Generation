@@ -1,120 +1,8 @@
-/** Minimal raw-WebGL drawing of a render state. */
+/** Top-level draw orchestrator: wires shader programs and dot/edge drawing into one frame. */
+import { computeAxisBounds } from "./glPrimitives.js";
+import { drawDots } from "./drawDots.js";
+import { drawEdges } from "./drawEdges.js";
 import { createCircleProgram, createColorProgram } from "./shaderProgram.js";
-
-// CONSTANTS
-
-const DOT_COLOR = [0.1, 0.6, 1.0, 1.0];
-const SPECIAL_DOT_COLOR = [1.0, 0.55, 0.0, 1.0];
-const EDGE_COLOR = [0.0, 0.5, 0.9, 1.0];
-const WHITE = [1.0, 1.0, 1.0, 1.0];
-const DOT_POINT_SIZE_PIXELS = 2.0;
-const SCREEN_MARGIN_FRACTION = 0.15;
-const CONTENT_CLIP_BOUND = 1 - 2 * SCREEN_MARGIN_FRACTION;
-
-// HELPER FUNCTIONS - COORDINATE MAPPING
-
-function _computeAxisBounds(dots) {
-  const xValues = dots.map((dot) => dot.position[0]);
-  const yValues = dots.map((dot) => dot.position[1]);
-  return {
-    minX: Math.min(...xValues),
-    maxX: Math.max(...xValues),
-    minY: Math.min(...yValues),
-    maxY: Math.max(...yValues),
-  };
-}
-
-function _axisToClipSpace(value, minValue, maxValue) {
-  if (maxValue === minValue) {
-    return 0;
-  }
-  const normalized = (value - minValue) / (maxValue - minValue);
-  return normalized * (2 * CONTENT_CLIP_BOUND) - CONTENT_CLIP_BOUND;
-}
-
-function _positionToClipSpace([x, y], axisBounds) {
-  const { minX, maxX, minY, maxY } = axisBounds;
-  return [_axisToClipSpace(x, minX, maxX), _axisToClipSpace(y, minY, maxY)];
-}
-
-// HELPER FUNCTIONS - COLOR
-
-function _mixColor(baseColor, targetColor, weight) {
-  return baseColor.map((channel, index) => channel + (targetColor[index] - channel) * weight);
-}
-
-function _edgeGlowColor(edge) {
-  return _mixColor(EDGE_COLOR, WHITE, edge.glow ?? 0);
-}
-
-// HELPER FUNCTIONS - DRAWING
-
-function _uploadClipSpacePositions(gl, program, clipSpacePositions) {
-  const positionAttributeLocation = gl.getAttribLocation(program, "aPosition");
-  const positionBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(clipSpacePositions.flat()),
-    gl.STATIC_DRAW,
-  );
-  gl.enableVertexAttribArray(positionAttributeLocation);
-  gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
-}
-
-function _uploadVertexColors(gl, program, vertexColors) {
-  const colorAttributeLocation = gl.getAttribLocation(program, "aColor");
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(vertexColors.flat()),
-    gl.STATIC_DRAW,
-  );
-  gl.enableVertexAttribArray(colorAttributeLocation);
-  gl.vertexAttribPointer(colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
-}
-
-function _setColorUniform(gl, program, color) {
-  const colorUniformLocation = gl.getUniformLocation(program, "uColor");
-  gl.uniform4fv(colorUniformLocation, color);
-}
-
-function _drawDotGroup(gl, program, dots, axisBounds, color) {
-  if (dots.length === 0) {
-    return;
-  }
-  const clipSpacePositions = dots.map((dot) => _positionToClipSpace(dot.position, axisBounds));
-  _uploadClipSpacePositions(gl, program, clipSpacePositions);
-  _setColorUniform(gl, program, color);
-  const pointSizeUniformLocation = gl.getUniformLocation(program, "uPointSize");
-  gl.uniform1f(pointSizeUniformLocation, DOT_POINT_SIZE_PIXELS);
-  gl.drawArrays(gl.POINTS, 0, clipSpacePositions.length);
-}
-
-function _drawDots(gl, program, renderState, axisBounds) {
-  const specialDots = renderState.dots.filter((dot) => dot.position[2]);
-  const regularDots = renderState.dots.filter((dot) => !dot.position[2]);
-  _drawDotGroup(gl, program, regularDots, axisBounds, DOT_COLOR);
-  _drawDotGroup(gl, program, specialDots, axisBounds, SPECIAL_DOT_COLOR);
-}
-
-function _drawEdges(gl, program, renderState, axisBounds) {
-  if (renderState.visibleEdges.length === 0) {
-    return;
-  }
-  const clipSpacePositions = renderState.visibleEdges.flatMap((edge) => [
-    _positionToClipSpace(renderState.dots[edge.startIndex].position, axisBounds),
-    _positionToClipSpace(renderState.dots[edge.endIndex].position, axisBounds),
-  ]);
-  const vertexColors = renderState.visibleEdges.flatMap((edge) => {
-    const color = _edgeGlowColor(edge);
-    return [color, color];
-  });
-  _uploadClipSpacePositions(gl, program, clipSpacePositions);
-  _uploadVertexColors(gl, program, vertexColors);
-  gl.drawArrays(gl.LINES, 0, clipSpacePositions.length);
-}
 
 // PUBLIC INTERFACE
 
@@ -126,13 +14,13 @@ export function drawRenderState(gl, renderState) {
   gl.clearColor(0.05, 0.05, 0.05, 1.0);
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  const axisBounds = _computeAxisBounds(renderState.dots);
+  const axisBounds = computeAxisBounds(renderState.dots);
 
   gl.useProgram(edgeProgram);
-  _drawEdges(gl, edgeProgram, renderState, axisBounds);
+  drawEdges(gl, edgeProgram, renderState, axisBounds);
 
   gl.useProgram(circleProgram);
-  _drawDots(gl, circleProgram, renderState, axisBounds);
+  drawDots(gl, circleProgram, renderState, axisBounds);
 
   gl.deleteProgram(edgeProgram);
   gl.deleteProgram(circleProgram);

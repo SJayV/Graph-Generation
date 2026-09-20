@@ -1,11 +1,13 @@
 /**
- * logic/field.js: gaussian, fieldValue, key
+ * logic/field.js: fieldValue, key
+ * logic/rng.js: gaussian
  * priority key uses DSU (see testDsu.test.js) for find/isSpecial
  */
 import { describe, expect, it } from "vitest";
 
 import { DSU } from "../../logic/dsu.js";
-import { fieldValue, gaussian, key } from "../../logic/field.js";
+import { fieldValue, key } from "../../logic/field.js";
+import { gaussian } from "../../logic/rng.js";
 
 function buildDsu(allVertices, specialSubset) {
   return new DSU(allVertices, specialSubset);

@@ -1,6 +1,6 @@
 /** Repeated trials of the edge-growth algorithm. */
-import { SIGMA_DIVISOR } from "../main.js";
 import * as algorithm from "../logic/algorithm.js";
+import { sigmaFromGridSize } from "../logic/field.js";
 import * as verticesModule from "../logic/vertices.js";
 
 // HELPER FUNCTIONS
@@ -8,7 +8,7 @@ import * as verticesModule from "../logic/vertices.js";
 function _trialOutcome(r, n, L, k, rngSource) {
   const allVertices = verticesModule.sampleVertices(n, L, rngSource);
   const specialSubset = verticesModule.selectSpecialSubset(allVertices, k, rngSource);
-  const sigma = L / SIGMA_DIVISOR;
+  const sigma = sigmaFromGridSize(L);
   const { dsu } = algorithm.growEdges(allVertices, specialSubset, r, sigma);
 
   if (specialSubset.length <= 1) {

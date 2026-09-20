@@ -238,4 +238,62 @@ describe("DSU", () => {
       expect(structure.componentSize([0, 0])).toBe(2);
     });
   });
+
+  describe("connected", () => {
+    it("returns true for two vertices merged by union", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+      structure.union([0, 0], [1, 0]);
+
+      expect(structure.connected([0, 0], [1, 0])).toBe(true);
+    });
+
+    it("returns false for two vertices in different components", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+
+      expect(structure.connected([0, 0], [2, 0])).toBe(false);
+    });
+
+    it("returns true for a vertex compared with itself", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+
+      expect(structure.connected([0, 0], [0, 0])).toBe(true);
+    });
+
+    it("returns false for a vertex outside the DSU's vertex set", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+
+      expect(structure.connected([0, 0], [99, 99])).toBe(false);
+    });
+
+    it("is symmetric regardless of argument order", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+      structure.union([0, 0], [1, 0]);
+
+      expect(structure.connected([0, 0], [1, 0])).toBe(structure.connected([1, 0], [0, 0]));
+      expect(structure.connected([0, 0], [2, 0])).toBe(structure.connected([2, 0], [0, 0]));
+    });
+  });
 });

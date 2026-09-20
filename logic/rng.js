@@ -30,3 +30,20 @@ export function sampleWithoutReplacement(rngSource, population, count) {
 
   return result;
 }
+
+/** Efraimidis-Spirakis weighted sampling without replacement. */
+export function weightedSampleWithoutReplacement(rngSource, population, count, weightOf) {
+  const keyed = population.map((item) => {
+    const weight = weightOf(item);
+    const key = weight > 0 ? rngSource.random() ** (1 / weight) : 0;
+    return { item, key };
+  });
+  keyed.sort((a, b) => b.key - a.key);
+  return keyed.slice(0, count).map(({ item }) => item);
+}
+
+/** Unnormalized isotropic 2D Gaussian bump centred at mu. */
+export function gaussian(x, mu, sigma) {
+  const squaredDistance = (x[0] - mu[0]) ** 2 + (x[1] - mu[1]) ** 2;
+  return Math.exp(-squaredDistance / (2 * sigma * sigma));
+}
