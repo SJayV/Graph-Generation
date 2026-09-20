@@ -2,20 +2,23 @@
  * Top-level rendering entry point. `createRenderer` is a factory for the
  * current step index into the edge sequence and auto-advance playback.
  */
-import * as renderStateModule from "./renderState.js";
+import { computeRenderState } from "./renderState.js";
+import { computeGlow } from "./glow.js";
 
 // CONSTANTS
 
-export const EDGE_PACING_MILLISECONDS = 20;
+export const EDGE_PACING_MILLISECONDS = 30;
 
 // PUBLIC INTERFACE
 
 export function createRenderer(vertices, edgeSequence) {
   let stepIndex = 0;
   let intervalHandle = null;
+  let startTime = null;
 
   function getDisplayedState() {
-    return renderStateModule.computeRenderState(vertices, edgeSequence, stepIndex);
+    const currentTime = startTime === null ? undefined : Date.now() - startTime;
+    return computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, EDGE_PACING_MILLISECONDS);
   }
 
   function setStepIndex(nextStepIndex) {
@@ -26,6 +29,7 @@ export function createRenderer(vertices, edgeSequence) {
     if (intervalHandle !== null) {
       return;
     }
+    startTime = Date.now();
     intervalHandle = setInterval(() => {
       if (stepIndex >= edgeSequence.length) {
         stop();

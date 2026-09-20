@@ -7,7 +7,7 @@ import { createRenderer } from "./rendering/renderer.js";
 
 const VERTEX_COUNT = 400;
 const GRID_SIZE = 1000;
-const SPECIAL_SUBSET_SIZE = 2;
+const SPECIAL_SUBSET_SIZE = 6;
 const SPARSITY = 1.5;
 export const SIGMA_DIVISOR = 15.0;
 

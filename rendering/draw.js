@@ -1,12 +1,13 @@
 /** Minimal raw-WebGL drawing of a render state. */
-import { createCircleProgram, createSolidColorProgram } from "./shaderProgram.js";
+import { createCircleProgram, createColorProgram } from "./shaderProgram.js";
 
 // CONSTANTS
 
 const DOT_COLOR = [0.1, 0.6, 1.0, 1.0];
 const SPECIAL_DOT_COLOR = [1.0, 0.55, 0.0, 1.0];
 const EDGE_COLOR = [0.0, 0.5, 0.9, 1.0];
-const DOT_POINT_SIZE_PIXELS = 4.0;
+const WHITE = [1.0, 1.0, 1.0, 1.0];
+const DOT_POINT_SIZE_PIXELS = 2.0;
 const SCREEN_MARGIN_FRACTION = 0.15;
 const CONTENT_CLIP_BOUND = 1 - 2 * SCREEN_MARGIN_FRACTION;
 
@@ -36,6 +37,16 @@ function _positionToClipSpace([x, y], axisBounds) {
   return [_axisToClipSpace(x, minX, maxX), _axisToClipSpace(y, minY, maxY)];
 }
 
+// HELPER FUNCTIONS - COLOR
+
+function _mixColor(baseColor, targetColor, weight) {
+  return baseColor.map((channel, index) => channel + (targetColor[index] - channel) * weight);
+}
+
+function _edgeGlowColor(edge) {
+  return _mixColor(EDGE_COLOR, WHITE, edge.glow ?? 0);
+}
+
 // HELPER FUNCTIONS - DRAWING
 
 function _uploadClipSpacePositions(gl, program, clipSpacePositions) {
@@ -49,6 +60,19 @@ function _uploadClipSpacePositions(gl, program, clipSpacePositions) {
   );
   gl.enableVertexAttribArray(positionAttributeLocation);
   gl.vertexAttribPointer(positionAttributeLocation, 2, gl.FLOAT, false, 0, 0);
+}
+
+function _uploadVertexColors(gl, program, vertexColors) {
+  const colorAttributeLocation = gl.getAttribLocation(program, "aColor");
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(
+    gl.ARRAY_BUFFER,
+    new Float32Array(vertexColors.flat()),
+    gl.STATIC_DRAW,
+  );
+  gl.enableVertexAttribArray(colorAttributeLocation);
+  gl.vertexAttribPointer(colorAttributeLocation, 4, gl.FLOAT, false, 0, 0);
 }
 
 function _setColorUniform(gl, program, color) {
@@ -83,15 +107,19 @@ function _drawEdges(gl, program, renderState, axisBounds) {
     _positionToClipSpace(renderState.dots[edge.startIndex].position, axisBounds),
     _positionToClipSpace(renderState.dots[edge.endIndex].position, axisBounds),
   ]);
+  const vertexColors = renderState.visibleEdges.flatMap((edge) => {
+    const color = _edgeGlowColor(edge);
+    return [color, color];
+  });
   _uploadClipSpacePositions(gl, program, clipSpacePositions);
-  _setColorUniform(gl, program, EDGE_COLOR);
+  _uploadVertexColors(gl, program, vertexColors);
   gl.drawArrays(gl.LINES, 0, clipSpacePositions.length);
 }
 
 // PUBLIC INTERFACE
 
 export function drawRenderState(gl, renderState) {
-  const lineProgram = createSolidColorProgram(gl);
+  const edgeProgram = createColorProgram(gl);
   const circleProgram = createCircleProgram(gl);
 
   gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
@@ -100,12 +128,12 @@ export function drawRenderState(gl, renderState) {
 
   const axisBounds = _computeAxisBounds(renderState.dots);
 
-  gl.useProgram(lineProgram);
-  _drawEdges(gl, lineProgram, renderState, axisBounds);
+  gl.useProgram(edgeProgram);
+  _drawEdges(gl, edgeProgram, renderState, axisBounds);
 
   gl.useProgram(circleProgram);
   _drawDots(gl, circleProgram, renderState, axisBounds);
 
-  gl.deleteProgram(lineProgram);
+  gl.deleteProgram(edgeProgram);
   gl.deleteProgram(circleProgram);
 }

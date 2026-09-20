@@ -33,10 +33,9 @@ Rendering / visual layer (view on model), per AGENTS.md's Architecture Map, livi
    - The system shall visually highlight ("glow") an edge more strongly the more recently it
      was added to the graph.
    - The glow intensity for a given edge shall decay over time since that edge's creation,
-     following a fixed cooldown/duration that is the same constant for every edge (no
-     per-edge or per-graph variation), measured on the rendering layer's own timeline.
-   - Once an edge's cooldown has elapsed, its glow shall settle to the same baseline
-     appearance as any other non-recent edge.
+     following the same fixed decay curve for every edge (no per-edge or per-graph
+     variation), measured on the rendering layer's own timeline. There is no fixed cooldown
+     duration — the decay is asymptotic, approaching but never exactly reaching baseline.
 
 ### Non-Functional / Out-of-Scope Notes
 - No requirements have been raised (yet) for: camera controls, coloring beyond the glow
@@ -57,42 +56,45 @@ Rendering / visual layer (view on model), per AGENTS.md's Architecture Map, livi
 ### User Story 2: Recency Glow Decay on Edges
 
 As a viewer of a generated graph, I want each edge to glow strongest right when it appears and
-fade out over a fixed duration, so that I can visually tell recently-added edges apart from
+fade out asymptotically thereafter, so that I can visually tell recently-added edges apart from
 older ones.
 
 Builds on Story 1: the render-state helper is extended with a `currentTime` parameter (a
 single global elapsed-time value, in the rendering layer's own timeline — not derived from
 Python's real computation time); each visible edge additionally records the time it became
 visible, and the queried state carries a normalized glow intensity per edge derived from
-`currentTime` minus that edge's became-visible time. The cooldown duration is a fixed constant
-in the rendering layer, not a caller-supplied parameter.
+`currentTime` minus that edge's became-visible time. There is no fixed cooldown duration — the
+same decay curve applies to every edge, and glow approaches but never exactly reaches `0.0`.
 
 **Acceptance criteria**
 1. Accepted when, given a vertex list, edge sequence, step index, and a `currentTime` equal to
    the time an edge became visible, the render-state helper reports that edge's glow intensity
    as `1.0`.
-2. Accepted when `currentTime` is at or beyond an edge's became-visible time plus the fixed
-   cooldown duration, the render-state helper reports that edge's glow intensity as `0.0`.
-3. Accepted when `currentTime` is strictly between an edge's became-visible time and
-   became-visible time plus the cooldown duration, the render-state helper reports a glow
-   intensity strictly between `0.0` and `1.0`.
-4. Accepted when comparing two elapsed times both sufficiently close to the cooldown
-   duration (i.e. in the tail of the cooldown window, approaching expiry), the edge closer to
-   expiry has a glow intensity no greater than the other's — glow trends toward `0.0` as
-   expiry approaches, though no ordering is guaranteed elsewhere in the window.
+2. Accepted when `currentTime` is strictly after an edge's became-visible time, the render-state
+   helper reports a glow intensity strictly less than `1.0` and strictly greater than `0.0` —
+   glow approaches but never reaches an exact baseline of `0.0` for any finite elapsed time.
+3. Accepted when `currentTime` is far enough past an edge's became-visible time, the reported
+   glow intensity is arbitrarily close to `0.0` (below any given small threshold for a large
+   enough elapsed time).
+4. Accepted when comparing two elapsed times both sufficiently large (deep in the decay's
+   tail), the edge with the larger elapsed time has a glow intensity no greater than the
+   other's — glow trends toward `0.0` as elapsed time grows, though no ordering is guaranteed
+   for small elapsed times.
 5. Accepted when comparing any two visible edges, regardless of graph size or edge content,
-   the same fixed cooldown duration determines both edges' glow-intensity boundary (no
+   the same fixed decay curve determines both edges' glow intensity at equal elapsed times (no
    per-edge or per-graph variation).
-6. Accepted when an edge's glow intensity is `0.0`, that edge is still present in the
-   visible-edge list at its baseline (non-glowing) appearance — glow is a purely visual
-   property and never affects edge visibility, acceptance, or any other logic-layer data.
-7. Accepted when the full edge sequence is visible (step index at full length) and every
-   edge's cooldown has elapsed, the resulting state's set of visible edges matches Story 1's
+6. Accepted when an edge's glow intensity is negligibly close to `0.0`, that edge is still
+   present in the visible-edge list at its baseline (non-glowing) appearance — glow is a
+   purely visual property and never affects edge visibility, acceptance, or any other
+   logic-layer data.
+7. Accepted when the full edge sequence is visible (step index at full length) and
+   `currentTime` is far enough past every visible edge's became-visible time that glow is
+   negligible for all of them, the resulting state's set of visible edges matches Story 1's
    fully-grown state exactly, differing only in the added glow-intensity values.
 
 **Explicitly not covered by this story:** the exact decay curve shape (e.g. linear vs.
-non-linear) beyond the boundary/monotonicity guarantees above — left as an implementation
-choice, not a fixed contract.
+non-linear, or any specific distribution) beyond the boundary/monotonicity guarantees above —
+left as an implementation choice, not a fixed contract.
 
 ## Assumptions
 
@@ -134,16 +136,19 @@ choice, not a fixed contract.
 JSON bridge exists in the current architecture.
 
 ### Glow decay
-- A15: Glow intensity is bounded to `[0.0, 1.0]`, exactly `1.0` at the moment an edge becomes
-  visible and exactly `0.0` once its cooldown has fully elapsed.
-- A16: In the tail of the cooldown window (elapsed time sufficiently close to the cooldown
-  duration), glow intensity trends toward `0.0` as elapsed time increases — no ordering
-  guarantee elsewhere in the window (the curve need not be monotonic throughout).
-- A17: The cooldown duration is a single fixed constant, identical for every edge and every
-  graph — not caller-supplied, not derived from vertex count, edge count, or edge content.
-- A18: The glow effect is purely visual/presentational — it never affects which edges are
-  visible, edge acceptance, or any other logic-layer data; an edge at `0.0` glow remains in
-  the visible-edge list at baseline appearance.
-- A19: When every visible edge's cooldown has elapsed, the resulting vertex dots and
-  visible-edge list are identical to Story 1's state, aside from the added glow-intensity
-  values.
+- A15: Glow intensity is bounded to `(0.0, 1.0]` — exactly `1.0` at elapsed time `0`, and
+  strictly less than `1.0` (but never exactly `0.0`) for any finite positive elapsed time.
+- A16: Glow intensity approaches `0.0` in the limit as elapsed time grows without bound — for
+  any small threshold, some elapsed time exists beyond which glow stays below it.
+- A17: In the tail (elapsed time sufficiently large), glow intensity trends toward `0.0` as
+  elapsed time increases — no ordering guarantee for small elapsed times (the curve need not
+  be monotonic throughout).
+- A18: The decay curve is a single fixed function, identical for every edge and every graph —
+  not caller-supplied, not derived from vertex count, edge count, or edge content; there is no
+  fixed cooldown/duration constant.
+- A19: The glow effect is purely visual/presentational — it never affects which edges are
+  visible, edge acceptance, or any other logic-layer data; an edge with negligible glow
+  remains in the visible-edge list at baseline appearance.
+- A20: When elapsed time is large enough that glow is negligible for every visible edge, the
+  resulting vertex dots and visible-edge list are identical to Story 1's state, aside from the
+  added glow-intensity values.

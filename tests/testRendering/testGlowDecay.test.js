@@ -1,16 +1,22 @@
 /**
  * rendering/renderState.js: computeRenderState(vertices, edgeSequence, stepIndex, currentTime)
  * visibleEdges[i]: { startIndex, endIndex, becameVisibleAt, glow }
- * GLOW_COOLDOWN_MILLISECONDS: fixed cooldown constant
+ * No fixed cooldown: glow decays asymptotically, approaching but never reaching 0.0
  */
 import { describe, expect, it } from "vitest";
 
-import { computeRenderState, GLOW_COOLDOWN_MILLISECONDS } from "../../rendering/renderState.js";
+import { computeRenderState } from "../../rendering/renderState.js";
+import { computeGlow } from "../../rendering/glow.js";
+import { EDGE_PACING_MILLISECONDS } from "../../rendering/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
+
+const LARGE_ELAPSED = 5000;
+const LARGER_ELAPSED = 20000;
+const EPSILON = 0.01;
 
 // becameVisibleAt is a property of the edge, not of the query time
 function becameVisibleAtOf(vertices, edgeSequence, stepIndex, edgeIndex) {
-  const state = computeRenderState(vertices, edgeSequence, stepIndex, 0);
+  const state = computeRenderState(vertices, edgeSequence, stepIndex, 0, computeGlow, EDGE_PACING_MILLISECONDS);
   return state.visibleEdges[edgeIndex].becameVisibleAt;
 }
 
@@ -19,108 +25,73 @@ function stripGlowFields(visibleEdges) {
 }
 
 describe("Glow decay", () => {
-  describe("A15: glow bounded to [0.0, 1.0], 1.0 at became-visible time, 0.0 once cooldown elapsed", () => {
+  describe("A15: glow is 1.0 at elapsed time 0, strictly within (0.0, 1.0) otherwise", () => {
     it("reports glow 1.0 when currentTime equals the edge's became-visible time", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
       const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
 
-      const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt);
+      const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(state.visibleEdges[0].glow).toBe(1.0);
     });
 
-    it("reports glow 0.0 exactly at became-visible time plus cooldown", () => {
+    it("keeps glow strictly between 0.0 and 1.0 for any positive elapsed time", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
       const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
 
-      const state = computeRenderState(
-        vertices,
-        edgeSequence,
-        2,
-        becameVisibleAt + GLOW_COOLDOWN_MILLISECONDS,
-      );
-
-      expect(state.visibleEdges[0].glow).toBe(0.0);
-    });
-
-    it("reports glow 0.0 for any currentTime beyond became-visible time plus cooldown", () => {
-      const vertices = makeVertices(3);
-      const edgeSequence = makeLinearEdgeSequence(3);
-      const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
-
-      const state = computeRenderState(
-        vertices,
-        edgeSequence,
-        2,
-        becameVisibleAt + GLOW_COOLDOWN_MILLISECONDS * 10,
-      );
-
-      expect(state.visibleEdges[0].glow).toBe(0.0);
-    });
-
-    it("keeps glow strictly between 0.0 and 1.0 at arbitrary points inside the cooldown window", () => {
-      const vertices = makeVertices(3);
-      const edgeSequence = makeLinearEdgeSequence(3);
-      const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
-
-      [0.1, 0.5, 0.9].forEach((fraction) => {
-        const state = computeRenderState(
-          vertices,
-          edgeSequence,
-          2,
-          becameVisibleAt + GLOW_COOLDOWN_MILLISECONDS * fraction,
-        );
+      [1, 1000, LARGE_ELAPSED, LARGER_ELAPSED].forEach((elapsed) => {
+        const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + elapsed, computeGlow, EDGE_PACING_MILLISECONDS);
         expect(state.visibleEdges[0].glow).toBeGreaterThan(0.0);
         expect(state.visibleEdges[0].glow).toBeLessThan(1.0);
       });
     });
   });
 
-  describe("A16: in the cooldown's tail, glow trends toward 0.0 as elapsed time increases", () => {
-    it("reports glow no greater for the elapsed time closer to expiry, near the tail", () => {
+  describe("A16: glow gets arbitrarily close to 0.0 for large enough elapsed time", () => {
+    it("drops below a small threshold at a very large elapsed time", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
       const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
 
-      const nearerToExpiry = computeRenderState(
-        vertices,
-        edgeSequence,
-        2,
-        becameVisibleAt + GLOW_COOLDOWN_MILLISECONDS * 0.9,
-      );
-      const closerToExpiry = computeRenderState(
-        vertices,
-        edgeSequence,
-        2,
-        becameVisibleAt + GLOW_COOLDOWN_MILLISECONDS * 0.99,
-      );
+      const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(closerToExpiry.visibleEdges[0].glow).toBeLessThanOrEqual(
-        nearerToExpiry.visibleEdges[0].glow,
-      );
+      expect(state.visibleEdges[0].glow).toBeLessThan(EPSILON);
     });
   });
 
-  describe("A17: cooldown duration is a single fixed constant across edges/graphs", () => {
+  describe("A17: in the tail, glow trends toward 0.0 as elapsed time increases", () => {
+    it("reports glow no greater for the larger of two elapsed times, both deep in the tail", () => {
+      const vertices = makeVertices(3);
+      const edgeSequence = makeLinearEdgeSequence(3);
+      const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
+
+      const lessElapsed = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGE_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
+      const moreElapsed = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
+
+      expect(moreElapsed.visibleEdges[0].glow).toBeLessThanOrEqual(lessElapsed.visibleEdges[0].glow);
+    });
+  });
+
+  describe("A18: decay curve is a single fixed function across edges/graphs", () => {
     it("reports equal glow for two different edges at the same elapsed time", () => {
       const verticesA = makeVertices(3);
       const edgeSequenceA = makeLinearEdgeSequence(3);
       const verticesB = [[9, 9], [0, 0], [5, 3], [1, 1]];
       const edgeSequenceB = [[1, 0], [1, 3], [3, 2]];
-      const elapsed = GLOW_COOLDOWN_MILLISECONDS * 0.5;
+      const elapsed = LARGE_ELAPSED;
 
       const becameVisibleAtA = becameVisibleAtOf(verticesA, edgeSequenceA, 1, 0);
       const becameVisibleAtB = becameVisibleAtOf(verticesB, edgeSequenceB, 1, 0);
 
-      const stateA = computeRenderState(verticesA, edgeSequenceA, 1, becameVisibleAtA + elapsed);
-      const stateB = computeRenderState(verticesB, edgeSequenceB, 1, becameVisibleAtB + elapsed);
+      const stateA = computeRenderState(verticesA, edgeSequenceA, 1, becameVisibleAtA + elapsed, computeGlow, EDGE_PACING_MILLISECONDS);
+      const stateB = computeRenderState(verticesB, edgeSequenceB, 1, becameVisibleAtB + elapsed, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(stateA.visibleEdges[0].glow).toBe(stateB.visibleEdges[0].glow);
     });
 
-    it("does not shift the cooldown boundary with vertex/edge count", () => {
+    it("does not vary with vertex/edge count at the same elapsed time", () => {
       const smallVertices = makeVertices(3);
       const smallEdgeSequence = makeLinearEdgeSequence(3);
       const largeVertices = makeVertices(20);
@@ -133,35 +104,33 @@ describe("Glow decay", () => {
         smallVertices,
         smallEdgeSequence,
         1,
-        smallBecameVisibleAt + GLOW_COOLDOWN_MILLISECONDS,
+        smallBecameVisibleAt + LARGE_ELAPSED,
+        computeGlow,
+        EDGE_PACING_MILLISECONDS,
       );
       const largeState = computeRenderState(
         largeVertices,
         largeEdgeSequence,
         1,
-        largeBecameVisibleAt + GLOW_COOLDOWN_MILLISECONDS,
+        largeBecameVisibleAt + LARGE_ELAPSED,
+        computeGlow,
+        EDGE_PACING_MILLISECONDS,
       );
 
-      expect(smallState.visibleEdges[0].glow).toBe(0.0);
-      expect(largeState.visibleEdges[0].glow).toBe(0.0);
+      expect(smallState.visibleEdges[0].glow).toBe(largeState.visibleEdges[0].glow);
     });
   });
 
-  describe("A18: glow is purely visual, never affects the visible-edge set/order", () => {
-    it("keeps a fully cooled-down edge (glow 0.0) present in the visible-edge list", () => {
+  describe("A19: glow is purely visual, never affects the visible-edge set/order", () => {
+    it("keeps a negligible-glow edge present in the visible-edge list", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
       const becameVisibleAt = becameVisibleAtOf(vertices, edgeSequence, 2, 0);
 
-      const state = computeRenderState(
-        vertices,
-        edgeSequence,
-        2,
-        becameVisibleAt + GLOW_COOLDOWN_MILLISECONDS,
-      );
+      const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(state.visibleEdges).toHaveLength(2);
-      expect(state.visibleEdges[0].glow).toBe(0.0);
+      expect(state.visibleEdges[0].glow).toBeLessThan(EPSILON);
     });
 
     it("matches the Story 1 visible-edge set/order regardless of currentTime", () => {
@@ -169,8 +138,8 @@ describe("Glow decay", () => {
       const edgeSequence = makeLinearEdgeSequence(4);
 
       const story1State = computeRenderState(vertices, edgeSequence, 3);
-      const glowStateEarly = computeRenderState(vertices, edgeSequence, 3, 0);
-      const glowStateLate = computeRenderState(vertices, edgeSequence, 3, GLOW_COOLDOWN_MILLISECONDS * 100);
+      const glowStateEarly = computeRenderState(vertices, edgeSequence, 3, 0, computeGlow, EDGE_PACING_MILLISECONDS);
+      const glowStateLate = computeRenderState(vertices, edgeSequence, 3, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(stripGlowFields(glowStateEarly.visibleEdges)).toEqual(
         stripGlowFields(story1State.visibleEdges),
@@ -181,31 +150,29 @@ describe("Glow decay", () => {
     });
   });
 
-  describe("A19: fully-elapsed cooldown state matches Story 1's state aside from glow fields", () => {
-    it("matches dots exactly when every visible edge's cooldown has elapsed", () => {
+  describe("A20: negligible-glow state matches Story 1's state aside from glow fields", () => {
+    it("matches dots exactly at a very large currentTime", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
       const story1State = computeRenderState(vertices, edgeSequence, edgeSequence.length);
-      const farFutureTime = GLOW_COOLDOWN_MILLISECONDS * 1000;
-      const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, farFutureTime);
+      const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(glowState.dots).toEqual(story1State.dots);
     });
 
-    it("matches the visible-edge list exactly, aside from the added glow fields", () => {
+    it("matches the visible-edge list exactly, aside from negligible glow fields", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
       const story1State = computeRenderState(vertices, edgeSequence, edgeSequence.length);
-      const farFutureTime = GLOW_COOLDOWN_MILLISECONDS * 1000;
-      const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, farFutureTime);
+      const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(stripGlowFields(glowState.visibleEdges)).toEqual(
         stripGlowFields(story1State.visibleEdges),
       );
       glowState.visibleEdges.forEach((edge) => {
-        expect(edge.glow).toBe(0.0);
+        expect(edge.glow).toBeLessThan(EPSILON);
       });
     });
   });

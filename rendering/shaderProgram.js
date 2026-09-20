@@ -11,11 +11,21 @@ const POSITION_VERTEX_SHADER_SOURCE = `
   }
 `;
 
-const SOLID_COLOR_FRAGMENT_SHADER_SOURCE = `
-  precision mediump float;
-  uniform vec4 uColor;
+const COLOR_VERTEX_SHADER_SOURCE = `
+  attribute vec2 aPosition;
+  attribute vec4 aColor;
+  varying vec4 vColor;
   void main() {
-    gl_FragColor = uColor;
+    vColor = aColor;
+    gl_Position = vec4(aPosition, 0.0, 1.0);
+  }
+`;
+
+const COLOR_FRAGMENT_SHADER_SOURCE = `
+  precision mediump float;
+  varying vec4 vColor;
+  void main() {
+    gl_FragColor = vColor;
   }
 `;
 
@@ -59,10 +69,9 @@ function _linkProgram(gl, vertexShader, fragmentShader) {
 }
 
 // PUBLIC INTERFACE
-
-export function createSolidColorProgram(gl) {
-  const vertexShader = _compileShader(gl, gl.VERTEX_SHADER, POSITION_VERTEX_SHADER_SOURCE);
-  const fragmentShader = _compileShader(gl, gl.FRAGMENT_SHADER, SOLID_COLOR_FRAGMENT_SHADER_SOURCE);
+export function createColorProgram(gl) {
+  const vertexShader = _compileShader(gl, gl.VERTEX_SHADER, COLOR_VERTEX_SHADER_SOURCE);
+  const fragmentShader = _compileShader(gl, gl.FRAGMENT_SHADER, COLOR_FRAGMENT_SHADER_SOURCE);
   return _linkProgram(gl, vertexShader, fragmentShader);
 }
 
