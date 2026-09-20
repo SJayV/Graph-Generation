@@ -28,7 +28,6 @@ priority score shaped by a special subset $S$.
 
 - **Special subset**
   $$S\subseteq V,\quad |S|=k,\quad 0\le k\le n$$
-  - control of edge placement
 
 ### Components
 
@@ -71,20 +70,60 @@ priority score shaped by a special subset $S$.
 ### Priority score
 
 - **Priority score**
-  $$
-  \begin{aligned}
-  \text{key}(\{u,v\}) &= F_{\rho(v)}(u) + F_{\rho(u)}(v) \\
-  &= \text{str}(v)\cdot\mathcal{N}(u\mid \mu_v,\sigma^2) + \text{str}(u)\cdot\mathcal{N}(v\mid\mu_u,\sigma^2) \\
-  &= \mathcal{N}(u\mid\mu_v,\sigma^2)\cdot\big(\text{str}(v)+\text{str}(u)\big)
-  \end{aligned}
-  $$
+  $$\text{key}(\{u,v\}) = F_{\rho(v)}(u) + F_{\rho(u)}(v)$$
   - symmetric
   - unbounded priority contribution / ranking value
+
+## Implementation
+
+### Algorithm
+
+- **Priority list**
+  - candidate pool $\binom V2$, one entry per unordered vertex pair
+  - each entry ranked by its current $\text{key}(\{u,v\})$
+
+- **Greedy growth**
+  1. highest-ranked entry $\{u,v\}$ from the priority list
+  2. $\{u,v\}$ as edge, merge of $\rho(u)$ and $\rho(v)$
+  3. re-ranking of all remaining entries incident to $u$ or $v$
+  4. iteration until $|E|=m$ or the priority list is exhausted
+- **Invariants**
+  - accepted pairs are never revisited
+  - single edge accepted per iteration
+
+```mermaid
+graph LR
+  subgraph Graph
+    A((A))
+    B((B))
+    C((C))
+    D((D))
+    E((E))
+    F((F))
+    A --- B
+    B --- C
+    D --- E
+  end
+
+  subgraph "Priority List (top = highest key)"
+    P1["{C,D}: key=4.8"]
+    P2["{A,E}: key=3.1"]
+    P3["{E,F}: key=1.6"]
+    P1 --> P2 --> P3
+  end
+
+  C ~~~ P1
+
+  classDef special fill:#ff8c00,stroke:#333,color:#fff;
+  classDef normal fill:#1a99ff,stroke:#333,color:#fff;
+  class A,D special;
+  class B,C,E,F normal;
+```
 
 ### Fragmentation study
 
 - **Trial proportion**
-  $$\hat p(r) = \frac1N\sum_{i=1}^N \mathbb 1\big[\rho(s)\text{ equal }\forall s\in S\big]_i$$
+  $$\hat p(r) = \frac1N\sum_{i=1}^N \mathbb{I}\big[\rho(s)\text{ equal }\forall s\in S\big]_i$$
   - across $N$ independent trials at fixed $r$
   - trial true iff all of $S$ shares one root
 

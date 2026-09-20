@@ -4,7 +4,7 @@ import { vertexKey } from "./vertices.js";
 // CONSTANTS
 
 const DAMPENING_FACTOR = 0.1;
-const STRENGTHENING_FACTOR = 25.0;
+const STRENGTHENING_FACTOR = 10.0;
 
 // HELPER FUNCTIONS - STRENGTH CALCULATION
 
