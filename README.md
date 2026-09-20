@@ -1,4 +1,4 @@
-# Graph Generation — Priority-Weighted Edge Growth
+# Graph Generation
 
 Greedy edge growth on a fixed vertex set, ranked by a field-based
 priority score shaped by a special subset $S$.
