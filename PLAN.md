@@ -76,15 +76,16 @@ in the rendering layer, not a caller-supplied parameter.
 3. Accepted when `currentTime` is strictly between an edge's became-visible time and
    became-visible time plus the cooldown duration, the render-state helper reports a glow
    intensity strictly between `0.0` and `1.0`.
-4. Accepted when comparing two visible edges with different elapsed time since becoming
-   visible (both within the cooldown window), the more recently visible edge's reported glow
-   intensity is strictly greater (monotonically decreasing glow over elapsed time).
-5. Accepted when comparing any two visible edges at the same `currentTime`, both edges' glow
-   intensity is computed against the same fixed cooldown duration (no per-edge or per-graph
-   variation).
+4. Accepted when comparing two elapsed times both sufficiently close to the cooldown
+   duration (i.e. in the tail of the cooldown window, approaching expiry), the edge closer to
+   expiry has a glow intensity no greater than the other's — glow trends toward `0.0` as
+   expiry approaches, though no ordering is guaranteed elsewhere in the window.
+5. Accepted when comparing any two visible edges, regardless of graph size or edge content,
+   the same fixed cooldown duration determines both edges' glow-intensity boundary (no
+   per-edge or per-graph variation).
 6. Accepted when an edge's glow intensity is `0.0`, that edge is still present in the
-   visible-edge list at its baseline (non-glowing) appearance — glow reaching zero never
-   removes or hides an edge.
+   visible-edge list at its baseline (non-glowing) appearance — glow is a purely visual
+   property and never affects edge visibility, acceptance, or any other logic-layer data.
 7. Accepted when the full edge sequence is visible (step index at full length) and every
    edge's cooldown has elapsed, the resulting state's set of visible edges matches Story 1's
    fully-grown state exactly, differing only in the added glow-intensity values.
@@ -131,3 +132,18 @@ choice, not a fixed contract.
 
 **Superseded:** A14 (JSON data loading) is obsolete for the same reason as AC7 above — no
 JSON bridge exists in the current architecture.
+
+### Glow decay
+- A15: Glow intensity is bounded to `[0.0, 1.0]`, exactly `1.0` at the moment an edge becomes
+  visible and exactly `0.0` once its cooldown has fully elapsed.
+- A16: In the tail of the cooldown window (elapsed time sufficiently close to the cooldown
+  duration), glow intensity trends toward `0.0` as elapsed time increases — no ordering
+  guarantee elsewhere in the window (the curve need not be monotonic throughout).
+- A17: The cooldown duration is a single fixed constant, identical for every edge and every
+  graph — not caller-supplied, not derived from vertex count, edge count, or edge content.
+- A18: The glow effect is purely visual/presentational — it never affects which edges are
+  visible, edge acceptance, or any other logic-layer data; an edge at `0.0` glow remains in
+  the visible-edge list at baseline appearance.
+- A19: When every visible edge's cooldown has elapsed, the resulting vertex dots and
+  visible-edge list are identical to Story 1's state, aside from the added glow-intensity
+  values.
