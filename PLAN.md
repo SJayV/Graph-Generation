@@ -249,8 +249,9 @@ automated test, same as the existing render loop).
 ### Algorithm switching (Story 7)
 - A15: The ordered algorithm list is fixed for the lifetime of a running demo — switching does
   not add, remove, or reorder entries.
-- A16: Each Tab keydown event advances the active algorithm by exactly one step in the list (no
-  debouncing beyond the browser's native key-repeat behavior).
+- A16: Each physical Tab key press advances the active algorithm by exactly one step in the
+  list — holding the key down does not repeatedly advance via the browser's native key-repeat;
+  a new advance only occurs after the key has been released and pressed again.
 - A17: After a switch, the render state contains only vertex, edge, and glow data from the
   newly selected algorithm's newly generated graph — none from any previously active
   algorithm's graph.
