@@ -166,10 +166,12 @@ xychart-beta
   - each entry ranked by its current $\text{key}(\{u,v\})$
 
 - **Greedy growth**
-  1. highest-ranked entry $\{u,v\}$ from the priority list
-  2. $\{u,v\}$ as edge, merge of $\rho(u)$ and $\rho(v)$
-  3. re-ranking of all remaining entries incident to $u$ or $v$
-  4. iteration until $|E|=m$ or the priority list is exhausted
+1. highest-ranked entry $\{u,v\}$ from the priority list
+2. $\{u,v\}$ as edge, merge of $\rho(u)$ and $\rho(v)$
+3. re-ranking of all remaining entries incident to $u$ or $v$
+- **Stopping criteria**
+  - $|E|=m$, or
+  - the priority list is exhausted
 - **Invariants**
   - accepted pairs are never revisited
   - single edge accepted per iteration
@@ -185,19 +187,19 @@ xychart-beta
   - $k\leftarrow 1.0$
 
 - **Per-iteration update**
-  1. predicted value per point
+1. predicted value per point
 
 $$p(r_i) = \frac1{1+e^{-k(r_i-r_0)}}$$
 
-  2. error-slope term per point
+2. error-slope term per point
 
 $$g_i = 2\big(p(r_i)-\hat p(r_i)\big)\cdot p(r_i)\big(1-p(r_i)\big)$$
 
-  3. gradient accumulation over all $N$ points
+3. gradient accumulation over all $N$ points
 
 $$\nabla_k = \sum_i g_i\cdot(r_i-r_0), \quad \nabla_{r_0} = \sum_i g_i\cdot(-k)$$
 
-  4. parameter update, learning rate $\eta$ scaled by point count $N$
+4. parameter update, learning rate $\eta$ scaled by point count $N$
 
 $$k\leftarrow k-\frac{\eta}N\nabla_k, \quad r_0\leftarrow r_0-\frac{\eta}N\nabla_{r_0}$$
 

@@ -1,10 +1,10 @@
 /**
- * logic/algorithm.js: _candidatePairs, growEdges, growEdgesStepwise
+ * algorithms/generation.js: _candidatePairs, growEdges, growEdgesStepwise
  * edge-selection algorithm; edges keyed value-based via local edgeKey helper
  */
 import { describe, expect, it } from "vitest";
 
-import * as algorithm from "../../logic/algorithm.js";
+import * as algorithm from "../../algorithms/generation.js";
 
 function makeVertices(n) {
   return Array.from({ length: n }, (_, i) => [i, 0]);

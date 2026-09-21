@@ -1,5 +1,5 @@
 /** Root-level orchestrator: generates a graph in-memory and renders it. */
-import { growEdgesStepwise } from "./logic/algorithm.js";
+import { growEdgesStepwise } from "./algorithms/generation.js";
 import { sigmaFromGridSize } from "./logic/field.js";
 import { createSeededRng } from "./logic/rng.js";
 import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/vertices.js";

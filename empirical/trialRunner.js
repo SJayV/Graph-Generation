@@ -1,5 +1,5 @@
 /** Repeated trials of the edge-growth algorithm. */
-import * as algorithm from "../logic/algorithm.js";
+import * as algorithm from "../algorithms/generation.js";
 import { sigmaFromGridSize } from "../logic/field.js";
 import * as verticesModule from "../logic/vertices.js";
 

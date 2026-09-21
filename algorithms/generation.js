@@ -1,8 +1,8 @@
 /** Greedy, field-priority-driven edge growth over a fixed vertex set. */
-import { DSU } from "./dsu.js";
-import * as fieldModule from "./field.js";
-import { MinHeap } from "./minHeap.js";
-import { vertexKey } from "./vertices.js";
+import { DSU } from "../logic/dsu.js";
+import * as fieldModule from "../logic/field.js";
+import { MinHeap } from "../logic/minHeap.js";
+import { vertexKey } from "../logic/vertices.js";
 
 // HELPER FUNCTIONS - VERTEX KEYING
 

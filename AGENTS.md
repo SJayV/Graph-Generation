@@ -16,15 +16,21 @@ An application to randomly create graphs parametrized in node count and sparsity
 
 ### Architecture Map
 - core logic
-    - graph primitive generation
-    - data structure + field handling
-    - algorithm for edge selection, based on the other two modules
+    - shared mechanics / primitives
+        - graph primitive generation
+        - heuristics / metrics
+    - algorithms
 - empirical study
 - layers
-    - logic layer
+    - logic layer (mechanics + algorithms)
     - rendering / visual layer (view on model)
 - repo map
-    - logic (js files)
+    - logic (js files) — shared mechanics/primitives only
+    - algorithms (js files) — one complete algorithm per file, consumes `logic/`;
+      shares a common greedy priority-search skeleton (template method), each
+      algorithm file supplying its own priority function and termination
+      predicate; every algorithm file exposes the same external interface so
+      callers (e.g. `main.js`) can swap between them (strategy)
     - empirical (js files)
     - rendering (WebGL, js files)
     - index.html (root-level demo entry point)
