@@ -176,6 +176,39 @@ xychart-beta
   - accepted pairs are never revisited
   - single edge accepted per iteration
 
+### Shortest-Path Algorithms
+
+- **Priority list**
+  - same candidate heap as generation
+    - distance-based priority function
+    - connectivity-based termination predicate
+  - single-source
+    - one special vertex seeded as distance-0
+    - special vertices discovered as ordinary vertices once reached
+  - priority
+    - shortest known source distance to a candidate's unresolved endpoint
+    - A* only: heuristic estimate to unconnected specials
+  - optional hard restriction to a given edge set
+    - pairs outside it never accepted
+    - correctness relative to that set
+
+- **Greedy growth**
+1. nearest candidate popped from the heap
+2. if stale skipped
+3. else accepted
+
+- **Definition of stale**
+  - distance since improved
+  - endpoints already connected
+- **On acceptance**
+  - finalization of unresolved endpoint's distance
+  - push of endpoint's outward candidates
+- **Stopping criteria**
+  - every special vertex shares one DSU root
+- **Invariants**
+  - stale entries never accepted
+  - accepted pairs are never revisited
+
 ### Fragmentation Study
 
 - **Fit method**
@@ -206,5 +239,3 @@ $$k\leftarrow k-\frac{\eta}N\nabla_k, \quad r_0\leftarrow r_0-\frac{\eta}N\nabla
 - **Stopping criteria**
   - $\lVert(\nabla_k,\nabla_{r_0})\rVert<$ tolerance, or
   - fixed maximum iteration count reached
-</content>
-</invoke>
