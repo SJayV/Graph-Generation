@@ -13,6 +13,56 @@ function vertexKey([x, y]) {
   return `${x},${y}`;
 }
 
+function euclidean([ux, uy], [vx, vy]) {
+  return Math.hypot(ux - vx, uy - vy);
+}
+
+// shortest path weight reachable using only the accepted-edge subgraph
+function shortestPathInSubgraph(edges, source, target) {
+  const adjacency = new Map();
+  const ensureNode = (v) => {
+    if (!adjacency.has(vertexKey(v))) {
+      adjacency.set(vertexKey(v), []);
+    }
+  };
+  for (const [u, v] of edges) {
+    ensureNode(u);
+    ensureNode(v);
+    const w = euclidean(u, v);
+    adjacency.get(vertexKey(u)).push({ to: v, w });
+    adjacency.get(vertexKey(v)).push({ to: u, w });
+  }
+
+  const dist = new Map([[vertexKey(source), 0]]);
+  const unvisited = new Set(adjacency.keys());
+  while (unvisited.size > 0) {
+    let currentKey = null;
+    let currentDist = Infinity;
+    for (const key of unvisited) {
+      const d = dist.has(key) ? dist.get(key) : Infinity;
+      if (d < currentDist) {
+        currentDist = d;
+        currentKey = key;
+      }
+    }
+    if (currentKey === null) {
+      break;
+    }
+    unvisited.delete(currentKey);
+    if (currentKey === vertexKey(target)) {
+      break;
+    }
+    for (const { to, w } of adjacency.get(currentKey)) {
+      const toKey = vertexKey(to);
+      const candidate = currentDist + w;
+      if (candidate < (dist.has(toKey) ? dist.get(toKey) : Infinity)) {
+        dist.set(toKey, candidate);
+      }
+    }
+  }
+  return dist.get(vertexKey(target));
+}
+
 describe("astar", () => {
   describe("AC7: reaches full special-vertex connectivity", () => {
     it("connects every special into one DSU component, identically to Dijkstra's AC4", () => {
@@ -71,6 +121,43 @@ describe("astar", () => {
       const misledEdges = [...astar.growEdgesStepwise(allVertices, special, misleadingHeuristic)];
 
       expect(misledEdges.map((e) => e.map(vertexKey))).not.toEqual(zeroEdges.map((e) => e.map(vertexKey)));
+    });
+  });
+
+  describe("FR14: optional edgeSet restricts candidate pairs", () => {
+    it("omitting edgeSet still finds the complete-graph shortest path (direct edge)", () => {
+      const allVertices = [[0, 0], [10, 0], [0, 3], [10, 3]];
+      const special = [allVertices[0], allVertices[1]];
+
+      const { edges } = astar.growEdges(allVertices, special, ZERO_HEURISTIC);
+      const found = shortestPathInSubgraph(edges, special[0], special[1]);
+
+      expect(found).toBeCloseTo(10, 9);
+    });
+
+    it("given edgeSet excluding the direct edge, finds shortest path within edgeSet, not complete-graph optimum", () => {
+      const [a, b, c, d] = [[0, 0], [10, 0], [0, 3], [10, 3]];
+      const allVertices = [a, b, c, d];
+      const special = [a, b];
+      const edgeSet = [[a, c], [c, d], [d, b]]; // excludes direct a-b edge (weight 10)
+
+      const { edges, dsu } = astar.growEdges(allVertices, special, ZERO_HEURISTIC, edgeSet);
+
+      expect(dsu.connected(a, b)).toBe(true);
+      const found = shortestPathInSubgraph(edges, a, b);
+      expect(found).toBeCloseTo(16, 9); // 3 + 10 + 3, not the complete-graph optimum of 10
+    });
+
+    it("given a disconnecting edgeSet, terminates without hanging and leaves specials separate", () => {
+      const [a, b, c] = [[0, 0], [10, 0], [5, 5]];
+      const allVertices = [a, b, c];
+      const special = [a, b];
+      const edgeSet = [[a, c]]; // never reaches b
+
+      const { dsu } = astar.growEdges(allVertices, special, ZERO_HEURISTIC, edgeSet);
+
+      expect(dsu.connected(a, b)).toBe(false);
+      expect(dsu.componentCount()).toBeGreaterThan(1);
     });
   });
 });

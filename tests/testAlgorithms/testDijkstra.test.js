@@ -1,6 +1,8 @@
 /**
  * algorithms/dijkstra.js: growEdgesStepwise(allVertices, specialSubset), growEdges(allVertices, specialSubset)
- * multi-source Dijkstra: every special starts at distance 0, shared priority queue
+ * single-source Dijkstra: only specialSubset[0] starts at distance 0; every other special is
+ * discovered as an ordinary vertex once the single growing tree reaches it, using the same
+ * cumulative-distance-from-the-one-origin basis throughout
  * complete graph, Euclidean weights - direct verification against an independent reference
  */
 import { describe, expect, it } from "vitest";
@@ -15,16 +17,6 @@ function vertexKey([x, y]) {
 
 function euclidean([ux, uy], [vx, vy]) {
   return Math.hypot(ux - vx, uy - vy);
-}
-
-// independent multi-source reference: true distance to nearest special, complete graph
-function bruteForceDistanceToNearestSpecial(allVertices, specialSubset) {
-  const distances = new Map();
-  for (const v of allVertices) {
-    const best = Math.min(...specialSubset.map((s) => euclidean(v, s)));
-    distances.set(vertexKey(v), best);
-  }
-  return distances;
 }
 
 // independent single-pair reference Dijkstra over the complete graph
@@ -130,7 +122,12 @@ describe("dijkstra", () => {
     it("never settles a farther vertex before a closer one, on a symmetric chain", () => {
       const allVertices = [[0, 0], [2, 0], [4, 0], [6, 0], [8, 0], [10, 0]];
       const special = [allVertices[0], allVertices[5]];
-      const trueDist = bruteForceDistanceToNearestSpecial(allVertices, special);
+      const trueDist = new Map(
+        allVertices.map((vertex) => [
+          vertexKey(vertex),
+          bruteForceShortestPath(allVertices, special[0], vertex),
+        ]),
+      );
 
       const connected = new Set(special.map(vertexKey));
       let runningMax = 0;
@@ -179,6 +176,43 @@ describe("dijkstra", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
       const edges = [...dijkstra.growEdgesStepwise(allVertices, [allVertices[0]])];
       expect(edges).toEqual([]);
+    });
+  });
+
+  describe("FR14: optional edgeSet restricts candidate pairs", () => {
+    it("omitting edgeSet still finds the complete-graph shortest path (direct edge)", () => {
+      const allVertices = [[0, 0], [10, 0], [0, 3], [10, 3]];
+      const special = [allVertices[0], allVertices[1]];
+
+      const { edges } = dijkstra.growEdges(allVertices, special);
+      const found = shortestPathInSubgraph(edges, special[0], special[1]);
+
+      expect(found).toBeCloseTo(10, 9);
+    });
+
+    it("given edgeSet excluding the direct edge, finds shortest path within edgeSet, not complete-graph optimum", () => {
+      const [a, b, c, d] = [[0, 0], [10, 0], [0, 3], [10, 3]];
+      const allVertices = [a, b, c, d];
+      const special = [a, b];
+      const edgeSet = [[a, c], [c, d], [d, b]]; // excludes direct a-b edge (weight 10)
+
+      const { edges, dsu } = dijkstra.growEdges(allVertices, special, edgeSet);
+
+      expect(dsu.connected(a, b)).toBe(true);
+      const found = shortestPathInSubgraph(edges, a, b);
+      expect(found).toBeCloseTo(16, 9); // 3 + 10 + 3, not the complete-graph optimum of 10
+    });
+
+    it("given a disconnecting edgeSet, terminates without hanging and leaves specials separate", () => {
+      const [a, b, c] = [[0, 0], [10, 0], [5, 5]];
+      const allVertices = [a, b, c];
+      const special = [a, b];
+      const edgeSet = [[a, c]]; // never reaches b
+
+      const { dsu } = dijkstra.growEdges(allVertices, special, edgeSet);
+
+      expect(dsu.connected(a, b)).toBe(false);
+      expect(dsu.componentCount()).toBeGreaterThan(1);
     });
   });
 });

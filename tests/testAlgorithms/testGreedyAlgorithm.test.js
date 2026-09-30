@@ -107,4 +107,60 @@ describe("greedyAlgorithm", () => {
       expect(touched.size).toBe(5);
     });
   });
+
+  describe("A3b: isStale discards stale candidates without accepting them", () => {
+    // 5 vertices, custom priority table forces a fixed pop order (ties broken as listed)
+    // (0,2) settles vertex 2 first; every later-popped pair targeting v=2 (or v=3, v=4
+    // once settled) must be discarded by isStale, interleaved with still-valid pops
+    function makeStaleScenario() {
+      const allVertices = makeVertices(5);
+      const priorityTable = new Map([
+        ["0,1", 2],
+        ["0,2", 1],
+        ["0,3", 4],
+        ["0,4", 6],
+        ["1,2", 3],
+        ["1,3", 7],
+        ["1,4", 8],
+        ["2,3", 5],
+        ["2,4", 9],
+        ["3,4", 10],
+      ]);
+      const priorityFn = (u, v) => priorityTable.get(`${u[0]},${v[0]}`);
+
+      const settled = new Set();
+      const onAccept = (u, v) => {
+        settled.add(v[0]);
+        return [];
+      };
+      const isStale = (u, v) => settled.has(v[0]);
+
+      const terminationFn = terminationAfterUnions(allVertices, 4);
+
+      return { allVertices, priorityFn, terminationFn, onAccept, isStale };
+    }
+
+    it("a candidate reported stale by isStale is never yielded", () => {
+      const { allVertices, priorityFn, terminationFn, onAccept, isStale } = makeStaleScenario();
+
+      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept, isStale)];
+      const keys = new Set(edges.map(edgeKey));
+
+      // (1,2) and (2,3) pop after v=2/v=3 are already settled - must be discarded
+      expect(keys.has(edgeKey([allVertices[1], allVertices[2]]))).toBe(false);
+      expect(keys.has(edgeKey([allVertices[2], allVertices[3]]))).toBe(false);
+    });
+
+    it("keeps popping and accepting valid candidates after a stale discard", () => {
+      const { allVertices, priorityFn, terminationFn, onAccept, isStale } = makeStaleScenario();
+
+      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept, isStale)];
+      const keys = new Set(edges.map(edgeKey));
+
+      // exactly the 4 star edges accepted; discards did not stall or end the run early
+      expect(edges.length).toBe(4);
+      expect(keys.has(edgeKey([allVertices[0], allVertices[3]]))).toBe(true);
+      expect(keys.has(edgeKey([allVertices[0], allVertices[4]]))).toBe(true);
+    });
+  });
 });

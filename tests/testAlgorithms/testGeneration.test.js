@@ -1,10 +1,12 @@
 /**
- * algorithms/generation.js: _candidatePairs, growEdges, growEdgesStepwise
+ * algorithms/greedyAlgorithm.js: _candidatePairs
+ * algorithms/generation.js: growEdges, growEdgesStepwise
  * edge-selection algorithm; edges keyed value-based via local edgeKey helper
  */
 import { describe, expect, it } from "vitest";
 
 import * as algorithm from "../../algorithms/generation.js";
+import { _candidatePairs } from "../../algorithms/greedyAlgorithm.js";
 
 function makeVertices(n) {
   return Array.from({ length: n }, (_, i) => [i, 0]);
@@ -32,13 +34,13 @@ describe("algorithm", () => {
   describe("TestCandidatePoolInitialization", () => {
     it("candidatePairs has size n choose 2", () => {
       const allVertices = makeVertices(6);
-      const pairs = algorithm._candidatePairs(allVertices);
+      const pairs = _candidatePairs(allVertices);
       expect(pairs.length).toBe(nChoose2(allVertices.length));
     });
 
     it("candidatePairs excludes self pairs", () => {
       const allVertices = makeVertices(5);
-      const pairs = algorithm._candidatePairs(allVertices);
+      const pairs = _candidatePairs(allVertices);
       for (const [u, v] of pairs) {
         expect(vertexKey(u)).not.toBe(vertexKey(v));
       }
@@ -46,7 +48,7 @@ describe("algorithm", () => {
 
     it("candidatePairs contains only unordered pairs (no duplicates)", () => {
       const allVertices = makeVertices(4);
-      const pairs = algorithm._candidatePairs(allVertices);
+      const pairs = _candidatePairs(allVertices);
       const keys = uniqueEdgeKeys(pairs);
       expect(keys.size).toBe(pairs.length);
       for (const pair of pairs) {
