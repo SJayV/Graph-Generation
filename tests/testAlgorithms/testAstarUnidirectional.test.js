@@ -1,11 +1,11 @@
 /**
- * algorithms/astar.js: growEdgesStepwise(allVertices, specialSubset, heuristicFn), growEdges(...)
+ * algorithms/astarUnidirectional.js: growEdgesStepwise(allVertices, specialSubset, heuristicFn), growEdges(...)
  * heuristicFn defaults to logic/heuristic.js's defaultHeuristic, swappable per call
  */
 import { describe, expect, it } from "vitest";
 
-import * as astar from "../../algorithms/astar.js";
-import * as dijkstra from "../../algorithms/dijkstra.js";
+import * as astar from "../../algorithms/astarUnidirectional.js";
+import * as dijkstra from "../../algorithms/dijkstraUnidirectional.js";
 
 const ZERO_HEURISTIC = () => 0;
 
@@ -63,7 +63,7 @@ function shortestPathInSubgraph(edges, source, target) {
   return dist.get(vertexKey(target));
 }
 
-describe("astar", () => {
+describe("astarUnidirectional", () => {
   describe("AC7: reaches full special-vertex connectivity", () => {
     it("connects every special into one DSU component, identically to Dijkstra's AC4", () => {
       const allVertices = [
@@ -82,7 +82,7 @@ describe("astar", () => {
   });
 
   describe("AC8: zero heuristic degenerates to Dijkstra", () => {
-    it("accepts the exact same edges in the exact same order as dijkstra.js", () => {
+    it("accepts the exact same edges in the exact same order as dijkstraUnidirectional.js", () => {
       const allVertices = [
         [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0],
       ];

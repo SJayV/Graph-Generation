@@ -1,5 +1,5 @@
 /**
- * algorithms/dijkstra.js: growEdgesStepwise(allVertices, specialSubset), growEdges(allVertices, specialSubset)
+ * algorithms/dijkstraUnidirectional.js: growEdgesStepwise(allVertices, specialSubset), growEdges(allVertices, specialSubset)
  * single-source Dijkstra: only specialSubset[0] starts at distance 0; every other special is
  * discovered as an ordinary vertex once the single growing tree reaches it, using the same
  * cumulative-distance-from-the-one-origin basis throughout
@@ -7,7 +7,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as dijkstra from "../../algorithms/dijkstra.js";
+import * as dijkstra from "../../algorithms/dijkstraUnidirectional.js";
 
 const EPSILON = 1e-9;
 
@@ -100,7 +100,7 @@ function shortestPathInSubgraph(edges, source, target) {
   return dist.get(vertexKey(target));
 }
 
-describe("dijkstra", () => {
+describe("dijkstraUnidirectional", () => {
   describe("AC4: reaches full special-vertex connectivity", () => {
     it("connects every special into one DSU component on a scattered graph", () => {
       const allVertices = [

@@ -1,5 +1,5 @@
 /** Root-level orchestrator: generates a graph in-memory and renders it. */
-import { growEdgesStepwise } from "./algorithms/astar.js";
+import { growEdgesStepwise } from "./algorithms/astarUnidirectional.js";
 import { buildNearestNeighborEdges } from "./logic/edges.js";
 import { defaultHeuristic } from "./logic/heuristic.js";
 import { createSeededRng } from "./logic/rng.js";
