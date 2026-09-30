@@ -23,6 +23,12 @@ export function vertexKey(vertex) {
   return `${vertex[0]},${vertex[1]}`;
 }
 
+/** Canonical, order-independent key for an unordered vertex pair. */
+export function edgeKey(u, v) {
+  const [a, b] = [vertexKey(u), vertexKey(v)].sort();
+  return `${a}|${b}`;
+}
+
 /**
  * Samples n pairwise-distinct integer coordinates from {0,...,L}^2, biased
  * toward the grid center by a Gaussian weight (roughly normally distributed).

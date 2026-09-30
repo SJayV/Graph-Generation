@@ -7,14 +7,7 @@
  */
 import { DSU } from "../logic/dsu.js";
 import { MinHeap } from "../logic/minHeap.js";
-import { vertexKey } from "../logic/vertices.js";
-
-// HELPER FUNCTIONS - VERTEX KEYING
-
-function _pairKey(u, v) {
-  const [a, b] = [vertexKey(u), vertexKey(v)].sort();
-  return `${a}|${b}`;
-}
+import { edgeKey } from "../logic/vertices.js";
 
 // HELPER FUNCTIONS - CANDIDATE POOL
 
@@ -52,14 +45,7 @@ function _neverStale() {
 // PUBLIC INTERFACE
 
 /** Yields accepted [u, v] edges one at a time, in acceptance order. */
-export function* growEdgesStepwise(
-  allVertices,
-  specialSubset,
-  priorityFunction,
-  terminationFunction,
-  onAccept = _noReactivation,
-  isStale = _neverStale,
-) {
+export function* growEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept = _noReactivation, isStale = _neverStale) {
   const dsu = new DSU(allVertices, specialSubset);
   const heap = _initializeHeap(allVertices, priorityFunction, dsu);
   const acceptedPairs = new Set();
@@ -71,7 +57,7 @@ export function* growEdgesStepwise(
       continue;
     }
 
-    const pairKey = _pairKey(u, v);
+    const pairKey = edgeKey(u, v);
     if (acceptedPairs.has(pairKey)) {
       continue;
     }

@@ -1,6 +1,6 @@
 /** Deterministic k-nearest-neighbor edge set construction, no RNG. */
 import { distance } from "./distance.js";
-import { vertexKey } from "./vertices.js";
+import { edgeKey } from "./vertices.js";
 
 // CONSTANTS
 
@@ -16,12 +16,6 @@ function _nearestNeighborsOf(vertex, allVertices) {
 }
 
 // PUBLIC INTERFACE
-
-/** Canonical, order-independent key for an unordered vertex pair. */
-export function edgeKey(u, v) {
-  const [a, b] = [vertexKey(u), vertexKey(v)].sort();
-  return `${a}|${b}`;
-}
 
 export function buildNearestNeighborEdges(allVertices) {
   const edgesByKey = new Map();

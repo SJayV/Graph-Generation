@@ -2,9 +2,9 @@
 
 // CONSTANTS
 
-export const MAX_ITERATIONS = 20000;
-export const GRADIENT_TOLERANCE = 1e-8;
-export const LEARNING_RATE = 1.0;
+const MAX_ITERATIONS = 20000;
+const GRADIENT_TOLERANCE = 1e-8;
+const LEARNING_RATE = 1.0;
 
 // HELPER FUNCTIONS - SIGMOID
 
