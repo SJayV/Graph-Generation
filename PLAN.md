@@ -66,62 +66,6 @@ This feature explicitly does NOT cover:
 
 ## User Stories
 
-### User Story 5: Unidirectional Shortest-Path Connectivity (Dijkstra + A*)
-
-As a developer extending the graph algorithms layer, I want Dijkstra and A* to connect all
-special vertices into one component via a shared greedy-search skeleton — the same skeleton
-`generation.js` is refactored onto — so that they behave as drop-in, interchangeable
-edge-selection strategies alongside the existing generator, with no rendering changes needed.
-
-Builds on `generation.js`'s existing accept/union/reactivate loop, generalized into
-`algorithms/greedyAlgorithm.js`. **Revised: single-source, not multi-source.** Only the first
-member of `specialSubset` starts as a distance-`0` source; the tree grows outward from that one
-origin, and any other special vertex is simply discovered as an ordinary vertex once the
-growing tree reaches it (using the same cumulative-distance basis throughout, no restart) — the
-observable effect is "spreads from one special vertex, reaches the next, continues spreading
-from there," one special at a time, rather than several regions growing simultaneously. (An
-earlier version seeded every special as a simultaneous distance-`0` source — reverted because
-it made Story 5 visually indistinguishable from Story 6's multidirectional search; that
-multi-source design is preserved as the explicit basis for Story 6, see its own section below.)
-A candidate boundary edge `(u,v)`'s priority is `u`'s already-accepted cumulative distance from
-the single origin plus `w(u,v)` (Dijkstra), or that same value plus a heuristic estimate from
-`v` to the nearest not-yet-connected special vertex (A*). Termination is reached once all of
-`specialSubset` shares one DSU root — not a target edge count.
-
-**Acceptance criteria**
-1. Accepted when `algorithms/greedyAlgorithm.js` is invoked with a vertex set, a priority
-   function, and a termination predicate, it yields accepted `[u, v]` edges one at a time in
-   acceptance order and stops as soon as the termination predicate is satisfied.
-2. Accepted when `algorithms/generation.js`'s `growEdgesStepwise` and `growEdges` are called
-   with any inputs valid before the refactor, they yield/return the same edges in the same
-   order as before — verified by the existing, unmodified `testGeneration.test.js` suite
-   continuing to pass without modification.
-3. Accepted when `logic/distance.js`'s exported distance function is called with two vertices,
-   it returns their Euclidean distance $\lVert u-v\rVert_2$.
-4. Accepted when `algorithms/dijkstra.js`'s generator is run to completion on a vertex set and
-   special subset with at least two special vertices, the resulting DSU has every member of
-   `specialSubset` sharing one root.
-5. Accepted when comparing consecutively accepted edges from `algorithms/dijkstra.js`, each
-   newly accepted edge's priority (cumulative distance from its originating special vertex) is
-   greater than or equal to every previously accepted edge's priority (monotonic
-   non-decreasing distance order — the defining Dijkstra correctness property for
-   non-negative edge weights).
-6. Accepted when two special vertices become connected by `algorithms/dijkstra.js`'s accepted
-   edges, the total weight of the edges connecting them equals the independently/brute-force
-   computed shortest-path distance between them at the moment they merge (verified on a small,
-   hand-constructed test graph where the true shortest path is known).
-7. Accepted when `algorithms/astar.js` is run to completion, the resulting DSU has every
-   member of `specialSubset` sharing one root, identically to AC4 for Dijkstra.
-8. Accepted when `algorithms/astar.js` is given a heuristic that always returns `0`, it accepts
-   the exact same edges in the exact same order as `algorithms/dijkstra.js` given the same
-   inputs (A* with a zero heuristic degenerates to Dijkstra).
-9. Accepted when `algorithms/astar.js`'s default heuristic is queried for a vertex against the
-   current set of not-yet-connected special vertices, it returns the Euclidean distance from
-   that vertex to the nearest not-yet-connected special vertex.
-10. Accepted when `algorithms/dijkstra.js` or `algorithms/astar.js` is called on a special
-    subset with fewer than 2 members (`0` or `1`), the generator terminates immediately,
-    yielding no edges (already vacuously connected).
-
 ### User Story 6: Multidirectional Shortest-Path Connectivity (Multidirectional Dijkstra + A*)
 
 As a developer extending the graph algorithms layer, I want multidirectional variants of
