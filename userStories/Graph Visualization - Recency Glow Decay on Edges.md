@@ -1,8 +1,6 @@
 ### User Story 4: Recency Glow Decay on Edges
 
-As a viewer of a generated graph, I want each edge to glow strongest right when it appears and
-fade out asymptotically thereafter, so that I can visually tell recently-added edges apart from
-older ones.
+As a viewer of a generated graph, I want each edge to glow strongest right when it appears and fade out asymptotically thereafter, so that I can visually tell recently-added edges apart from older ones.
 
 **Acceptance criteria**
 1. Accepted when, given a vertex list, edge sequence, step index, and a `currentTime` equal to the time an edge became visible, the render-state helper reports that edge's glow intensity as `1.0`.

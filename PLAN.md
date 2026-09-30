@@ -68,157 +68,92 @@ This feature explicitly does NOT cover:
 
 ### User Story 6: Multidirectional Shortest-Path Connectivity (Multidirectional Dijkstra + A*)
 
-As a developer extending the graph algorithms layer, I want multidirectional variants of
-Dijkstra and A* that search from one independent frontier per special vertex simultaneously,
-so that special-vertex connections can be found with less search-space exploration than the
-unidirectional versions, while still producing the same drop-in edge-sequence output as every
-other algorithm in this layer.
+As a developer extending the graph algorithms layer, I want multidirectional variants of Dijkstra and A* that search from one independent frontier per special vertex simultaneously, so that special-vertex connections can be found with less search-space exploration than the unidirectional versions, while still producing the same drop-in edge-sequence output as every other algorithm in this layer.
 
-Generalizes two-way bidirectional search to `k` simultaneous origins: each special vertex owns
-its own independent frontier/tentative-distance state (unlike Story 5's Dijkstra/A*, which
-unify all specials into one shared multi-source queue from the start). All frontiers expand
-simultaneously; whenever two different frontiers reach the same vertex, the special-containing
-components they originated from merge, using the combined path through that meeting vertex.
-Builds on Story 5's primitives (`logic/distance.js`, the default heuristic) and output
-contract, and reuses `algorithms/greedyAlgorithm.js` itself as `k` independent single-source
-instances (one per special vertex), coordinated by a thin round-robin + meeting-detection
-driver local to the multidirectional files (see PLAN.md's Architecture Decisions) — the
-acceptance criteria below are black-box/observable and hold regardless of that internal
-coordination detail.
+Generalizes two-way bidirectional search to `k` simultaneous origins: each special vertex owns its own independent frontier/tentative-distance state (unlike Story 5's Dijkstra/A*, which unify all specials into one shared multi-source queue from the start). All frontiers expand simultaneously; whenever two different frontiers reach the same vertex, the special-containing components they originated from merge, using the combined path through that meeting vertex. Builds on Story 5's primitives (`logic/distance.js`, the default heuristic) and output contract, and reuses `algorithms/greedyAlgorithm.js` itself as `k` independent single-source instances (one per special vertex), coordinated by a thin round-robin + meeting-detection driver local to the multidirectional files (see PLAN.md's Architecture Decisions) — the acceptance criteria below are black-box/observable and hold regardless of that internal coordination detail.
 
 **Acceptance criteria**
-1. Accepted when `algorithms/dijkstraMultidirectional.js`'s generator is run to completion on a
-   vertex set and special subset with at least two special vertices, the resulting DSU has
-   every member of `specialSubset` sharing one root.
-2. Accepted when `algorithms/dijkstraMultidirectional.js` connects two special-containing
-   components, the total weight of the edges connecting them equals the
-   independently/brute-force computed shortest-path distance between them, on the same small
-   hand-constructed test graphs used for Story 5 AC6.
-3. Accepted when `algorithms/dijkstraMultidirectional.js` and `algorithms/dijkstraUnidirectional.js` are run
-   on the same inputs, both produce the same total connecting distance between any two special
-   vertices that end up directly connected by the algorithm's own edges (multidirectional
-   search must not find an inferior/longer connection — same optimality guarantee, though the
-   exact edge sequence/order accepted may differ).
-4. Accepted when three or more special vertices' frontiers are active at once,
-   `algorithms/dijkstraMultidirectional.js` still merges every pair of frontiers that meet,
-   continuing until all of `specialSubset` shares one DSU root (not just the first two
-   frontiers to meet).
-5. Accepted when `algorithms/astarMultidirectional.js` is run to completion, it satisfies the
-   same connectivity (AC1-equivalent) and shortest-distance-correctness (AC2-equivalent)
-   guarantees as `algorithms/dijkstraMultidirectional.js`.
-6. Accepted when `algorithms/astarMultidirectional.js` is given a heuristic that always returns
-   `0` on every frontier, it produces the same total connecting distances as
-   `algorithms/dijkstraMultidirectional.js` given the same inputs.
-7. Accepted when either multidirectional algorithm is called on a special subset with fewer
-   than 2 members, the generator terminates immediately, yielding no edges.
-8. Accepted when either multidirectional algorithm's generator is consumed by `main.js`/
-   `rendering/` in place of `algorithms/generation.js` or the unidirectional variants, no
-   changes to `main.js` or `rendering/` are needed.
+1. Accepted when `algorithms/dijkstraMultidirectional.js`'s generator is run to completion on a vertex set and special subset with at least two special vertices, the resulting DSU has every member of `specialSubset` sharing one root.
+2. Accepted when `algorithms/dijkstraMultidirectional.js` connects two special-containing components, the total weight of the edges connecting them equals the independently/brute-force computed shortest-path distance between them, on the same small hand-constructed test graphs used for Story 5 AC6.
+3. Accepted when `algorithms/dijkstraMultidirectional.js` and `algorithms/dijkstraUnidirectional.js` are run on the same inputs, both produce the same total connecting distance between any two special vertices that end up directly connected by the algorithm's own edges (multidirectional search must not find an inferior/longer connection — same optimality guarantee, though the exact edge sequence/order accepted may differ).
+4. Accepted when three or more special vertices' frontiers are active at once, `algorithms/dijkstraMultidirectional.js` still merges every pair of frontiers that meet, continuing until all of `specialSubset` shares one DSU root (not just the first two frontiers to meet).
+5. Accepted when `algorithms/astarMultidirectional.js` is run to completion, it satisfies the same connectivity (AC1-equivalent) and shortest-distance-correctness (AC2-equivalent) guarantees as `algorithms/dijkstraMultidirectional.js`.
+6. Accepted when `algorithms/astarMultidirectional.js` is given a heuristic that always returns `0` on every frontier, it produces the same total connecting distances as `algorithms/dijkstraMultidirectional.js` given the same inputs.
+7. Accepted when either multidirectional algorithm is called on a special subset with fewer than 2 members, the generator terminates immediately, yielding no edges.
+8. Accepted when either multidirectional algorithm's generator is consumed by `main.js`/`rendering/` in place of `algorithms/generation.js` or the unidirectional variants, no changes to `main.js` or `rendering/` are needed.
 
-**Explicitly not covered by this story:** the exact round-robin/interleaving order across the
-`k` frontiers (e.g. strict alternation vs. always stepping the globally cheapest-next frontier)
-— left as an implementation choice, not a fixed contract, as long as the connectivity and
-shortest-distance-correctness acceptance criteria above hold.
+**Explicitly not covered by this story:** the exact round-robin/interleaving order across the `k` frontiers (e.g. strict alternation vs. always stepping the globally cheapest-next frontier) — left as an implementation choice, not a fixed contract, as long as the connectivity and shortest-distance-correctness acceptance criteria above hold.
 
 ### User Story 7: Tab-Key Algorithm Switching
 
-As a viewer of the demo, I want to press Tab to switch to the next algorithm and see a freshly
-generated graph grown by it, so that I can compare how the different connectivity strategies
-introduced by this feature grow a graph.
+As a viewer of the demo, I want to press Tab to switch to the next algorithm and see a freshly generated graph grown by it, so that I can compare how the different connectivity strategies introduced by this feature grow a graph.
 
-The project's test suite runs in a plain Node environment (no jsdom), so — consistent with how
-`renderer.js`'s timer-driven playback is unit-tested while `main.js`'s `requestAnimationFrame`
-loop is not — the algorithm-cycling logic itself must be exposed as a small, pure,
-DOM-independent unit (e.g. given the fixed ordered algorithm list and a current index, what the
-next index is) that is unit-testable in isolation. The actual `keydown` listener and the
-graph-regeneration/render-restart side effects it triggers are untested imperative-shell wiring
-in `main.js`, same class of code as the existing render loop.
+The project's test suite runs in a plain Node environment (no jsdom), so — consistent with how `renderer.js`'s timer-driven playback is unit-tested while `main.js`'s `requestAnimationFrame` loop is not — the algorithm-cycling logic itself must be exposed as a small, pure, DOM-independent unit (e.g. given the fixed ordered algorithm list and a current index, what the next index is) that is unit-testable in isolation. The actual `keydown` listener and the graph-regeneration/render-restart side effects it triggers are untested imperative-shell wiring in `main.js`, same class of code as the existing render loop.
 
 **Acceptance criteria**
-1. Accepted when the demo starts, the active algorithm is `algorithms/generation.js` — first
-   in the fixed ordered list (generation, Dijkstra, A*, multidirectional Dijkstra,
-   multidirectional A*).
-2. Accepted when the pure cycling unit is advanced once from any given algorithm in the fixed
-   ordered list, it returns the next algorithm in that list.
-3. Accepted when the pure cycling unit is advanced once from the last algorithm in the fixed
-   ordered list, it returns the first algorithm (wraps around).
-4. Accepted when the Tab key is pressed, a freshly sampled vertex set and special subset are
-   generated (not reusing the previous graph's vertices) and passed to the newly selected
-   algorithm.
-5. Accepted when the Tab key is pressed while a previous graph's stepwise reveal/glow animation
-   was mid-playback, the previous render state is fully replaced — no leftover edges, dots, or
-   glow from the previous algorithm's graph remain visible.
-6. Accepted when any key other than Tab is pressed, the currently displayed algorithm and graph
-   are unaffected.
+1. Accepted when the demo starts, the active algorithm is `algorithms/generation.js` — first in the fixed ordered list (generation, Dijkstra, A*, multidirectional Dijkstra, multidirectional A*).
+2. Accepted when the pure cycling unit is advanced once from any given algorithm in the fixed ordered list, it returns the next algorithm in that list.
+3. Accepted when the pure cycling unit is advanced once from the last algorithm in the fixed ordered list, it returns the first algorithm (wraps around).
+4. Accepted when the Tab key is pressed, a freshly sampled vertex set and special subset are generated (not reusing the previous graph's vertices) and passed to the newly selected algorithm.
+5. Accepted when the Tab key is pressed while a previous graph's stepwise reveal/glow animation was mid-playback, the previous render state is fully replaced — no leftover edges, dots, or glow from the previous algorithm's graph remain visible.
+6. Accepted when any key other than Tab is pressed, the currently displayed algorithm and graph are unaffected.
 
-**Explicitly not covered by this story:** the exact visual/DOM wiring of the `keydown` listener
-itself (untestable imperative-shell code, verified by manual/visual check rather than an
-automated test, same as the existing render loop).
+**Explicitly not covered by this story:** the exact visual/DOM wiring of the `keydown` listener itself (untestable imperative-shell code, verified by manual/visual check rather than an automated test, same as the existing render loop).
+
+### User Story 8: Static Edge-Set Baseline Layer and Final-Path Highlight Glow
+
+As a viewer of the demo, I want to see the algorithm's full candidate edge set as a dim, always-visible background layer beneath the actively-growing edges, and see the final accepted edges light up in the same orange as the special vertices once the algorithm finishes, so that I can tell at a glance which candidate connections were available versus which ones the algorithm actually settled on as its answer.
+
+Builds on Story 5's `edgeSet` concept (the static k-nearest-neighbor candidate graph `logic/edges.js` builds, and `main.js` already wires into Dijkstra/A*/multidirectional) and on Story 4's recency-glow mechanism (`rendering/glow.js`'s `computeGlow`), reusing both rather than introducing new decay math or a new candidate-graph primitive.
+
+**Acceptance criteria**
+1. Accepted when the render-state helper is given an `edgeSet`, it reports a baseline-edge list containing exactly the pairs in that `edgeSet`, present in the result at step index `0` before any edge from the edge sequence has been accepted/grown.
+2. Accepted when the step index advances through the edge sequence, the reported baseline-edge list remains exactly the same set of pairs throughout.
+3. Accepted when the top-level draw function renders a baseline edge and an actively-growing edge, both use the same blue hue as each other, but the baseline edge's rendered opacity/brightness is strictly less than the actively-growing edge's.
+4. Accepted when the render-state helper is queried at any step, each edge in its result additionally exposes whether it is currently highlighted (finalized), independent of its glow value so a caller can distinguish them without separately cross-referencing the raw edge sequence or algorithm internals.
+5. Accepted when an edge's highlighted status becomes true, the render-state helper reports that edge's glow intensity as `1.0` at the moment of that transition, decaying thereafter along the identical curve with its own `becameVisibleAt`-equivalent timestamp, regardless of how long the edge had already been visible in its non-highlighted color.
+6. Accepted when the algorithm's generator has been fully consumed and the render-state helper is queried at the corresponding terminal step, every edge determined to be highlighted reports the same highlighting-transition time as every other highlighted edge at that step .
+7. Accepted when the render-state helper is queried at any step before the generator has fully terminated, no edge reports a highlighted status of true.
+
+**Explicitly not covered by this story:** exact numeric color/opacity/darkness values (e.g. the precise alpha or RGB channels used for the baseline layer) — these are implementation details, not part of the acceptance criteria; only the qualitative relationship (same hue, strictly less opaque than growth-phase edges) is contractual.
+
+**Open questions for the user:** the following are genuinely unresolved and are deliberately left out of the acceptance criteria above until answered.
+1. Does the baseline layer apply to every algorithm, including `algorithms/generation.js` (which has no `edgeSet` concept and normally treats the vertex set as a complete graph — its "baseline" would be all C(n,2) pairs, likely visually overwhelming), or does the baseline layer only ever apply when an `edgeSet` is actually supplied (i.e. Dijkstra, A*, and the multidirectional variants, as currently wired in `main.js`), with no baseline layer at all otherwise?
+2. Is the final orange highlighting a **replacement** of an edge's existing blue appearance, or an **additional overlay/second highlight** distinct from both the baseline and growth-phase coloring? Relatedly: does highlighting apply to **literally every** edge in the final accepted tree, or only to the subset of accepted edges that actually lie on a special-to-special connecting path (the accepted tree can include filler edges that are not on any special-to-special path, since termination is DSU-connectivity-based, not path-based)? If only the latter, a mechanism to identify "which accepted edges lie on a special-to-special path" does not yet exist anywhere in this feature's algorithms and would need to be designed.
+3. How does this story interact with Story 7's Tab-key algorithm switching (not yet implemented)? When Tab switches to a new algorithm/fresh graph, does the previous algorithm's baseline layer and highlight state need explicit clearing as part of this story, or is that already fully covered by Story 7's own AC5/A17 guarantee ("previous render state is fully replaced"), making it out of scope here?
 
 ## Assumptions
 
 ### Shared skeleton contract
-- A1: `algorithms/greedyAlgorithm.js`'s generator, given a priority function and a termination
-  predicate, yields accepted `[u, v]` edges one at a time, in acceptance order, and stops
-  yielding once the termination predicate holds.
+- A1: `algorithms/greedyAlgorithm.js`'s generator, given a priority function and a termination predicate, yields accepted `[u, v]` edges one at a time, in acceptance order, and stops yielding once the termination predicate holds.
 - A2: An accepted pair is never yielded more than once.
-- A2b: A popped candidate whose staleness predicate (if supplied, given the pair, the current
-  structure, and the candidate's own frozen priority) reports it stale is discarded without
-  being accepted, unioned, or yielded — used by algorithms (e.g. Dijkstra) where a vertex, once
-  settled via a cheaper entry, must ignore any later, costlier or now-outdated entry for the
-  same vertex still lingering in the heap. A candidate bridging two already-settled but
-  still-distinct components is not itself considered stale — only a candidate that is
-  redundant (both endpoints already in the same component) or whose cached priority no longer
-  matches a fresh recomputation is discarded.
+- A2b: A popped candidate whose staleness predicate (if supplied, given the pair, the current structure, and the candidate's own frozen priority) reports it stale is discarded without being accepted, unioned, or yielded — used by algorithms (e.g. Dijkstra) where a vertex, once settled via a cheaper entry, must ignore any later, costlier or now-outdated entry for the same vertex still lingering in the heap. A candidate bridging two already-settled but still-distinct components is not itself considered stale — only a candidate that is redundant (both endpoints already in the same component) or whose cached priority no longer matches a fresh recomputation is discarded.
+
 ### `generation.js` refactor (behavior preservation)
-- A3: For any input valid before the refactor, `growEdgesStepwise` and `growEdges` produce the
-  same edges, in the same order, as they did before the refactor.
+- A3: For any input valid before the refactor, `growEdgesStepwise` and `growEdges` produce the same edges, in the same order, as they did before the refactor.
 
 ### Euclidean distance primitive
-- A4: `logic/distance.js`'s distance function returns the Euclidean distance between two
-  vertices, is symmetric, and returns `0` if and only if the two vertices are the same
-  position.
+- A4: `logic/distance.js`'s distance function returns the Euclidean distance between two vertices, is symmetric, and returns `0` if and only if the two vertices are the same position.
 
 ### Connectivity termination
-- A5: For Dijkstra, A*, and their multidirectional variants, the generator terminates exactly
-  when every member of `specialSubset` shares one DSU component — not an edge count or
-  sparsity ratio.
-- A6: When `specialSubset` has fewer than 2 members, the generator terminates immediately,
-  yielding no edges.
+- A5: For Dijkstra, A*, and their multidirectional variants, the generator terminates exactly when every member of `specialSubset` shares one DSU component — not an edge count or sparsity ratio.
+- A6: When `specialSubset` has fewer than 2 members, the generator terminates immediately, yielding no edges.
 
 ### Cross-algorithm distance consistency
-- A7: For the same input graph, whenever two special vertices end up connected by any of
-  Dijkstra, A*, multidirectional Dijkstra, or multidirectional A*, the total distance of the
-  edges connecting them is the same across all of these algorithms — even though the exact set
-  of edges chosen to connect them may differ between algorithms.
-- A8: That shared connecting distance equals the true (independently verifiable) shortest-path
-  distance between the two special vertices.
+- A7: For the same input graph, whenever two special vertices end up connected by any of Dijkstra, A*, multidirectional Dijkstra, or multidirectional A*, the total distance of the edges connecting them is the same across all of these algorithms — even though the exact set of edges chosen to connect them may differ between algorithms.
+- A8: That shared connecting distance equals the true (independently verifiable) shortest-path distance between the two special vertices.
 
 ### A* heuristic behavior
-- A9: A* given a heuristic that always returns `0` accepts the same edges, in the same order,
-  as Dijkstra on the same input.
-- A10: A*'s default heuristic, queried for a vertex, returns the Euclidean distance from that
-  vertex to a special node.
-- A11: A*'s default heuristic is admissible (never overestimates the true remaining distance
-  to the special node it targets) and consistent (satisfies the triangle inequality relative
-  to edge weights along any path).
-- A12: A*'s heuristic is a caller-supplied input, not fixed — swapping it changes A*'s behavior
-  without any other code change.
+- A9: A* given a heuristic that always returns `0` accepts the same edges, in the same order, as Dijkstra on the same input.
+- A10: A*'s default heuristic, queried for a vertex, returns the Euclidean distance from that vertex to a special node.
+- A11: A*'s default heuristic is admissible (never overestimates the true remaining distance to the special node it targets) and consistent (satisfies the triangle inequality relative to edge weights along any path).
+- A12: A*'s heuristic is a caller-supplied input, not fixed — swapping it changes A*'s behavior without any other code change.
 
 ### Drop-in interface guarantee
-- A13: Every algorithm file in `algorithms/` (generation, Dijkstra, A*, multidirectional
-  Dijkstra, multidirectional A*) exposes a generator with the same call signature and
-  yielded-edge shape.
-- A14: `main.js` and `rendering/` consume any algorithm file's generator without needing to
-  know which algorithm produced it, and without code changes when swapping between algorithm
-  files.
+- A13: Every algorithm file in `algorithms/` (generation, Dijkstra, A*, multidirectional Dijkstra, multidirectional A*) exposes a generator with the same call signature and yielded-edge shape.
+- A14: `main.js` and `rendering/` consume any algorithm file's generator without needing to know which algorithm produced it, and without code changes when swapping between algorithm files.
 
 ### Algorithm switching (Story 7)
-- A15: The ordered algorithm list is fixed for the lifetime of a running demo — switching does
-  not add, remove, or reorder entries.
-- A16: Each physical Tab key press advances the active algorithm by exactly one step in the
-  list — holding the key down does not repeatedly advance via the browser's native key-repeat;
-  a new advance only occurs after the key has been released and pressed again.
-- A17: After a switch, the render state contains only vertex, edge, and glow data from the
-  newly selected algorithm's newly generated graph — none from any previously active
-  algorithm's graph.
+- A15: The ordered algorithm list is fixed for the lifetime of a running demo — switching does not add, remove, or reorder entries.
+- A16: Each physical Tab key press advances the active algorithm by exactly one step in the list — holding the key down does not repeatedly advance via the browser's native key-repeat; a new advance only occurs after the key has been released and pressed again.
+- A17: After a switch, the render state contains only vertex, edge, and glow data from the newly selected algorithm's newly generated graph — none from any previously active algorithm's graph.
