@@ -50,6 +50,33 @@ $$C(\rho) = \{v\in V\mid\text{parent}(v)=\rho\}$$
 
 $$C(\rho_{\text{new}}) = C(\rho_1)\cup C(\rho_2)$$
 
+### Shortest-Path Connectivity
+
+- **Source set**
+  - unidirectional: single origin
+  - multidirectional: every special is its own origin
+
+$$S_0\subseteq S,\quad S_0 = \{s_1\}\ \text{ or }\ S_0 = S$$
+
+- **Finalized distance**
+  - cumulative edge weight from a vertex's nearest origin
+  - accepted edges only
+
+  $$\forall s \in S_0: d(s) = 0$$
+  $$d(v) = d(u) + w(u,v) \ \text{ for the accepted edge that first reaches } v \text{ from a finalized } u$$
+
+- **Candidate priority**
+  - Dijkstra: pure accumulated distance
+  - A*: accumulated distance plus heuristic estimate
+
+$$\text{priority}(\{u,v\}) = d(u) + w(u,v) + h(v)$$
+
+- **Admissibility of heuristic**
+  - no overestimation of true remaining distance to nearest unconnected special
+  - straight-line distance to nearest unconnected special as default
+
+$$h(v) \le \min_{s\in S\setminus C(v)} w(v,s)$$
+
 ### Field
 
 - **Field strength**
@@ -88,7 +115,7 @@ $$\text{key}(\{u,v\}) = F_{\rho(v)}(u) + F_{\rho(u)}(v)$$
 
 ## Functionality
 
-### Generation and Visualization
+### Visualization
 
 - **Vertices**
   - one dot per vertex
@@ -129,6 +156,27 @@ graph LR
   class B,C,E,F normal;
 ```
 
+### Shortest-Path Connectivity
+
+- **Candidate edges**
+  - restriction to a static k-nearest-neighbor graph
+- **Connectivity**
+  - growth until every special vertex shares one component
+  - unidirectional
+    - one region spreads outward
+    - reaching the rest
+  - multidirectional
+    - every region grows at once
+    - merge wherever two regions meet
+
+### Generation
+
+- **Candidate edges**
+  - complete graph
+- **Saturation**
+  - growth until graph sparsity fulfilled
+  - patterns depending on parametrization
+
 ### Fragmentation Study
 
 - **Trial proportion**
@@ -159,32 +207,15 @@ xychart-beta
 
 ## Implementation
 
-### Generation-Algorithm
-
-- **Priority list**
-  - candidate pool $\binom V2$, one entry per unordered vertex pair
-  - each entry ranked by its current $\text{key}(\{u,v\})$
-
-- **Greedy growth**
-1. highest-ranked entry $\{u,v\}$ from the priority list
-2. $\{u,v\}$ as edge, merge of $\rho(u)$ and $\rho(v)$
-3. re-ranking of all remaining entries incident to $u$ or $v$
-- **Stopping criteria**
-  - $|E|=m$, or
-  - the priority list is exhausted
-- **Invariants**
-  - accepted pairs are never revisited
-  - single edge accepted per iteration
-
 ### Shortest-Path Algorithms
 
 - **Priority list**
-  - same candidate heap as generation
+  - candidate heap
     - distance-based priority function
     - connectivity-based termination predicate
-  - single-source
-    - one special vertex seeded as distance-0
-    - special vertices discovered as ordinary vertices once reached
+  - source seeding
+    - unidirectional
+    - multidirectional
   - priority
     - shortest known source distance to a candidate's unresolved endpoint
     - A* only: heuristic estimate to unconnected specials
@@ -208,6 +239,23 @@ xychart-beta
 - **Invariants**
   - stale entries never accepted
   - accepted pairs are never revisited
+
+### Generation-Algorithm
+
+- **Priority list**
+  - candidate pool $\binom V2$, one entry per unordered vertex pair
+  - each entry ranked by its current $\text{key}(\{u,v\})$
+
+- **Greedy growth**
+1. highest-ranked entry $\{u,v\}$ from the priority list
+2. $\{u,v\}$ as edge, merge of $\rho(u)$ and $\rho(v)$
+3. re-ranking of all remaining entries incident to $u$ or $v$
+- **Stopping criteria**
+  - $|E|=m$, or
+  - the priority list is exhausted
+- **Invariants**
+  - accepted pairs are never revisited
+  - single edge accepted per iteration
 
 ### Fragmentation Study
 
