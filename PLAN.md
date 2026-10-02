@@ -67,24 +67,6 @@ This feature explicitly does NOT cover:
 
 ## User Stories
 
-### User Story 6: Multidirectional Shortest-Path Connectivity (Multidirectional Dijkstra + A*)
-
-As a developer extending the graph algorithms layer, I want multidirectional variants of Dijkstra and A* that search from one independent frontier per special vertex simultaneously, so that special-vertex connections can be found with less search-space exploration than the unidirectional versions, while still producing the same drop-in edge-sequence output as every other algorithm in this layer.
-
-Generalizes two-way bidirectional search to `k` simultaneous origins. **Revised: implemented as a single shared multi-source search, not `k` independent per-special frontier instances.** Every special vertex is seeded as a simultaneous distance-0 source in the same shared heap/DSU (unlike Story 5's Dijkstra/A*, which seed only the first special) — mathematically equivalent to `k` independent frontiers expanding simultaneously and merging whenever two reach the same vertex, since the shared skeleton's single priority-ordered heap already processes every candidate in strict ascending-distance order regardless of which special it traces back to (see PLAN.md's Architecture Decisions for the full reasoning and the superseded original per-instance-coordinator design). Builds on Story 5's primitives (`logic/distance.js`, A*'s default heuristic) and output contract — the acceptance criteria below are black-box/observable and hold regardless of this internal mechanism.
-
-**Acceptance criteria**
-1. Accepted when `algorithms/dijkstra/dijkstraMultidirectional.js`'s generator is run to completion on a vertex set and special subset with at least two special vertices, the resulting DSU has every member of `specialSubset` sharing one root.
-2. Accepted when `algorithms/dijkstra/dijkstraMultidirectional.js` connects two special-containing components, the total weight of the edges connecting them equals the independently/brute-force computed shortest-path distance between them, on the same small hand-constructed test graphs used for Story 5 AC6.
-3. Accepted when `algorithms/dijkstra/dijkstraMultidirectional.js` and `algorithms/dijkstra/dijkstraUnidirectional.js` are run on the same inputs, both produce the same total connecting distance between any two special vertices that end up directly connected by the algorithm's own edges (multidirectional search must not find an inferior/longer connection — same optimality guarantee, though the exact edge sequence/order accepted may differ).
-4. Accepted when three or more special vertices' frontiers are active at once, `algorithms/dijkstra/dijkstraMultidirectional.js` still merges every pair of frontiers that meet, continuing until all of `specialSubset` shares one DSU root (not just the first two frontiers to meet).
-5. Accepted when `algorithms/astar/astarMultidirectional.js` is run to completion, it satisfies the same connectivity (AC1-equivalent) and shortest-distance-correctness (AC2-equivalent) guarantees as `algorithms/dijkstra/dijkstraMultidirectional.js`.
-6. Accepted when `algorithms/astar/astarMultidirectional.js` is given a heuristic that always returns `0` on every frontier, it produces the same total connecting distances as `algorithms/dijkstra/dijkstraMultidirectional.js` given the same inputs.
-7. Accepted when either multidirectional algorithm is called on a special subset with fewer than 2 members, the generator terminates immediately, yielding no edges.
-8. Accepted when either multidirectional algorithm's generator is consumed by `main.js`/`rendering/` in place of `algorithms/generation.js` or the unidirectional variants, no changes to `main.js` or `rendering/` are needed.
-
-**Explicitly not covered by this story:** the exact round-robin/interleaving order across the `k` frontiers (e.g. strict alternation vs. always stepping the globally cheapest-next frontier) — left as an implementation choice, not a fixed contract, as long as the connectivity and shortest-distance-correctness acceptance criteria above hold.
-
 ### User Story 7: Tab-Key Algorithm Switching
 
 As a viewer of the demo, I want to press Tab to switch to the next algorithm and see a freshly generated graph grown by it, so that I can compare how the different connectivity strategies introduced by this feature grow a graph.
