@@ -1,6 +1,5 @@
 /**
- * empirical/orchestrator.js: sweepAndFit(rValues, n, L, k, N, rngSource)
- * -> { rawResults, kFit, r0 }; composes trialRunner + fitter
+ * composes trialRunner + fitter into a single sweep-and-fit pipeline
  */
 import { describe, expect, it, vi } from "vitest";
 

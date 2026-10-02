@@ -1,6 +1,4 @@
 /**
- * logic/field.js: fieldValue, key
- * logic/rng.js: gaussian
  * priority key uses DSU (see testDsu.test.js) for find/isSpecial
  */
 import { describe, expect, it } from "vitest";

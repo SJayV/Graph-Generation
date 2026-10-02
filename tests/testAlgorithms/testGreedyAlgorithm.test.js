@@ -1,5 +1,4 @@
 /**
- * algorithms/greedyAlgorithm.js: growEdgesStepwise(allVertices, specialSubset, priorityFn, terminationFn, onAccept)
  * generic accept/union/reactivate skeleton; priorityFn(u, v, dsu) -> number, smaller = popped first
  * terminationFn(dsu) -> boolean, checked before popping the next candidate
  * synthetic priority/termination here on purpose - contract is algorithm-agnostic
@@ -23,7 +22,7 @@ function terminationAfterUnions(allVertices, k) {
 }
 
 describe("greedyAlgorithm", () => {
-  describe("AC1: acceptance order and stepwise yielding", () => {
+  describe("acceptance order and stepwise yielding", () => {
     it("yields accepted edges one at a time, in non-decreasing priority order", () => {
       const allVertices = makeVertices(6);
       const priorityFn = (u, v) => u[0] + v[0];
@@ -59,7 +58,7 @@ describe("greedyAlgorithm", () => {
     });
   });
 
-  describe("A2: an accepted pair is never yielded more than once", () => {
+  describe("an accepted pair is never yielded more than once", () => {
     it("has no repeated unordered pairs across a long run", () => {
       const allVertices = makeVertices(8);
       const priorityFn = (u, v) => Math.abs(u[0] - v[0]);
@@ -74,7 +73,7 @@ describe("greedyAlgorithm", () => {
     });
   });
 
-  describe("A3: onAccept drives candidate reactivation", () => {
+  describe("onAccept drives candidate reactivation", () => {
     // priorityFn is asymmetric: only finite for pairs whose 'u' side is already reachable
     // mirrors Dijkstra needing dist[u] finalized before priorityFn(u, v) is meaningful
     it("without onAccept, pairs scored Infinity at heap-build time stay unreachable", () => {
@@ -108,7 +107,7 @@ describe("greedyAlgorithm", () => {
     });
   });
 
-  describe("A3b: isStale discards stale candidates without accepting them", () => {
+  describe("isStale discards stale candidates without accepting them", () => {
     // 5 vertices, custom priority table forces a fixed pop order (ties broken as listed)
     // (0,2) settles vertex 2 first; every later-popped pair targeting v=2 (or v=3, v=4
     // once settled) must be discarded by isStale, interleaved with still-valid pops

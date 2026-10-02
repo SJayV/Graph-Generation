@@ -1,5 +1,4 @@
 /**
- * rendering/renderState.js: computeRenderState(vertices, edgeSequence, stepIndex, currentTime)
  * visibleEdges[i]: { startIndex, endIndex, becameVisibleAt, glow }
  * No fixed cooldown: glow decays asymptotically, approaching but never reaching 0.0
  */
@@ -25,7 +24,7 @@ function stripGlowFields(visibleEdges) {
 }
 
 describe("Glow decay", () => {
-  describe("A15: glow is 1.0 at elapsed time 0, strictly within (0.0, 1.0) otherwise", () => {
+  describe("glow is 1.0 at elapsed time 0, strictly within (0.0, 1.0) otherwise", () => {
     it("reports glow 1.0 when currentTime equals the edge's became-visible time", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
@@ -49,7 +48,7 @@ describe("Glow decay", () => {
     });
   });
 
-  describe("A16: glow gets arbitrarily close to 0.0 for large enough elapsed time", () => {
+  describe("glow gets arbitrarily close to 0.0 for large enough elapsed time", () => {
     it("drops below a small threshold at a very large elapsed time", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
@@ -61,7 +60,7 @@ describe("Glow decay", () => {
     });
   });
 
-  describe("A17: in the tail, glow trends toward 0.0 as elapsed time increases", () => {
+  describe("in the tail, glow trends toward 0.0 as elapsed time increases", () => {
     it("reports glow no greater for the larger of two elapsed times, both deep in the tail", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
@@ -74,7 +73,7 @@ describe("Glow decay", () => {
     });
   });
 
-  describe("A18: decay curve is a single fixed function across edges/graphs", () => {
+  describe("decay curve is a single fixed function across edges/graphs", () => {
     it("reports equal glow for two different edges at the same elapsed time", () => {
       const verticesA = makeVertices(3);
       const edgeSequenceA = makeLinearEdgeSequence(3);
@@ -121,7 +120,7 @@ describe("Glow decay", () => {
     });
   });
 
-  describe("A19: glow is purely visual, never affects the visible-edge set/order", () => {
+  describe("glow is purely visual, never affects the visible-edge set/order", () => {
     it("keeps a negligible-glow edge present in the visible-edge list", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
@@ -133,43 +132,43 @@ describe("Glow decay", () => {
       expect(state.visibleEdges[0].glow).toBeLessThan(EPSILON);
     });
 
-    it("matches the Story 1 visible-edge set/order regardless of currentTime", () => {
+    it("matches the base visible-edge set/order regardless of currentTime", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
 
-      const story1State = computeRenderState(vertices, edgeSequence, 3);
+      const baseState = computeRenderState(vertices, edgeSequence, 3);
       const glowStateEarly = computeRenderState(vertices, edgeSequence, 3, 0, computeGlow, EDGE_PACING_MILLISECONDS);
       const glowStateLate = computeRenderState(vertices, edgeSequence, 3, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(stripGlowFields(glowStateEarly.visibleEdges)).toEqual(
-        stripGlowFields(story1State.visibleEdges),
+        stripGlowFields(baseState.visibleEdges),
       );
       expect(stripGlowFields(glowStateLate.visibleEdges)).toEqual(
-        stripGlowFields(story1State.visibleEdges),
+        stripGlowFields(baseState.visibleEdges),
       );
     });
   });
 
-  describe("A20: negligible-glow state matches Story 1's state aside from glow fields", () => {
+  describe("negligible-glow state matches the base render state aside from glow fields", () => {
     it("matches dots exactly at a very large currentTime", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
-      const story1State = computeRenderState(vertices, edgeSequence, edgeSequence.length);
+      const baseState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
       const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(glowState.dots).toEqual(story1State.dots);
+      expect(glowState.dots).toEqual(baseState.dots);
     });
 
     it("matches the visible-edge list exactly, aside from negligible glow fields", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
-      const story1State = computeRenderState(vertices, edgeSequence, edgeSequence.length);
+      const baseState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
       const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
       expect(stripGlowFields(glowState.visibleEdges)).toEqual(
-        stripGlowFields(story1State.visibleEdges),
+        stripGlowFields(baseState.visibleEdges),
       );
       glowState.visibleEdges.forEach((edge) => {
         expect(edge.glow).toBeLessThan(EPSILON);

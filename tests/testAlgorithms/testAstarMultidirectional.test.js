@@ -1,15 +1,11 @@
 /**
- * algorithms/astarMultidirectional.js: growEdgesStepwise(allVertices, specialSubset, heuristicFn, edgeSet),
- * growEdges(...)
- * heuristicFn defaults to logic/heuristic.js's defaultHeuristic, swappable per call, applied
+ * heuristicFn defaults to A*'s own built-in straight-line heuristic, swappable per call, applied
  * independently on every frontier
- * NOT YET IMPLEMENTED (Story 6) - these tests are expected to fail/error (module not found)
- * until algorithms/astarMultidirectional.js exists
  */
 import { describe, expect, it } from "vitest";
 
-import * as astarMultidirectional from "../../algorithms/astarMultidirectional.js";
-import * as dijkstraMultidirectional from "../../algorithms/dijkstraMultidirectional.js";
+import * as astarMultidirectional from "../../algorithms/astar/astarMultidirectional.js";
+import * as dijkstraMultidirectional from "../../algorithms/dijkstra/dijkstraMultidirectional.js";
 
 const ZERO_HEURISTIC = () => 0;
 
@@ -68,7 +64,7 @@ function shortestPathInSubgraph(edges, source, target) {
 }
 
 describe("astarMultidirectional", () => {
-  describe("AC5: same connectivity guarantee as dijkstraMultidirectional (AC1-equivalent)", () => {
+  describe("same connectivity guarantee as dijkstraMultidirectional", () => {
     it("connects every special into one DSU component on a scattered graph", () => {
       const allVertices = [
         [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0], [2, 5],
@@ -85,7 +81,7 @@ describe("astarMultidirectional", () => {
     });
   });
 
-  describe("AC5: same shortest-distance-correctness guarantee as dijkstraMultidirectional (AC2-equivalent)", () => {
+  describe("same shortest-distance-correctness guarantee as dijkstraMultidirectional", () => {
     it("connects two specials with total edge weight equal to dijkstraMultidirectional's connecting distance", () => {
       const allVertices = [
         [0, 0], [1, 1], [3, 1], [5, 0], [2, 4], [4, 3],
@@ -102,7 +98,7 @@ describe("astarMultidirectional", () => {
     });
   });
 
-  describe("AC6: zero heuristic on every frontier degenerates to dijkstraMultidirectional", () => {
+  describe("zero heuristic on every frontier degenerates to dijkstraMultidirectional", () => {
     it("produces the same total connecting distances as dijkstraMultidirectional given the same inputs", () => {
       const allVertices = [
         [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0],
@@ -125,7 +121,7 @@ describe("astarMultidirectional", () => {
     });
   });
 
-  describe("AC7: vacuous termination for fewer than 2 specials", () => {
+  describe("vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
       const edges = [...astarMultidirectional.growEdgesStepwise(allVertices, [])];

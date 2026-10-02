@@ -1,5 +1,4 @@
 /**
- * empirical/trialRunner.js: runTrials(r, n, L, k, N, rngSource) -> number
  * proportion of N trials where special subset shares a DSU root
  */
 import { describe, expect, it, vi } from "vitest";

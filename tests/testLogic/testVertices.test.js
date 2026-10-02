@@ -1,7 +1,3 @@
-/**
- * logic/vertices.js: sampleVertices, selectSpecialSubset
- * logic/rng.js: createSeededRng
- */
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { createSeededRng } from "../../logic/rng.js";

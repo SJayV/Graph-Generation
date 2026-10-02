@@ -1,15 +1,11 @@
 /**
- * algorithms/dijkstraMultidirectional.js: growEdgesStepwise(allVertices, specialSubset, edgeSet),
- * growEdges(allVertices, specialSubset, edgeSet)
  * multidirectional Dijkstra: one independent frontier per special vertex, all expanding
  * simultaneously; whenever two frontiers meet, their special-containing components merge
- * NOT YET IMPLEMENTED (Story 6) - these tests are expected to fail/error (module not found)
- * until algorithms/dijkstraMultidirectional.js exists
  */
 import { describe, expect, it } from "vitest";
 
-import * as dijkstraMultidirectional from "../../algorithms/dijkstraMultidirectional.js";
-import * as dijkstraUnidirectional from "../../algorithms/dijkstraUnidirectional.js";
+import * as dijkstraMultidirectional from "../../algorithms/dijkstra/dijkstraMultidirectional.js";
+import * as dijkstraUnidirectional from "../../algorithms/dijkstra/dijkstraUnidirectional.js";
 
 function vertexKey([x, y]) {
   return `${x},${y}`;
@@ -101,7 +97,7 @@ function shortestPathInSubgraph(edges, source, target) {
 }
 
 describe("dijkstraMultidirectional", () => {
-  describe("AC1: reaches full special-vertex connectivity with >=2 specials", () => {
+  describe("reaches full special-vertex connectivity with two or more specials", () => {
     it("connects every special into one DSU component on a scattered graph", () => {
       const allVertices = [
         [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0], [2, 5],
@@ -114,7 +110,7 @@ describe("dijkstraMultidirectional", () => {
     });
   });
 
-  describe("AC2: shortest-path correctness on a hand-constructed graph", () => {
+  describe("shortest-path correctness on a hand-constructed graph", () => {
     it("connects two specials with total edge weight equal to the true shortest-path distance", () => {
       const allVertices = [
         [0, 0], [1, 1], [3, 1], [5, 0], [2, 4], [4, 3],
@@ -130,7 +126,7 @@ describe("dijkstraMultidirectional", () => {
     });
   });
 
-  describe("AC3: same optimality guarantee as dijkstraUnidirectional", () => {
+  describe("same optimality guarantee as dijkstraUnidirectional", () => {
     it("produces the same total connecting distance between two specials as dijkstraUnidirectional, on the same input", () => {
       const allVertices = [
         [0, 0], [1, 1], [3, 1], [5, 0], [2, 4], [4, 3],
@@ -152,7 +148,7 @@ describe("dijkstraMultidirectional", () => {
     });
   });
 
-  describe("AC4: merges every pair of frontiers with 3+ specials", () => {
+  describe("merges every pair of frontiers with three or more specials", () => {
     it("connects all specials into one DSU component, not just the first two frontiers to meet", () => {
       const allVertices = [
         [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0], [2, 5],
@@ -169,7 +165,7 @@ describe("dijkstraMultidirectional", () => {
     });
   });
 
-  describe("AC7: vacuous termination for fewer than 2 specials", () => {
+  describe("vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
       const edges = [...dijkstraMultidirectional.growEdgesStepwise(allVertices, [])];

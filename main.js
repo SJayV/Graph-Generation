@@ -1,7 +1,6 @@
 /** Root-level orchestrator: generates a graph in-memory and renders it. */
-import { growEdgesStepwise } from "./algorithms/astarMultidirectional.js";
+import { growEdgesStepwise } from "./algorithms/astar/astarMultidirectional.js";
 import { buildNearestNeighborEdges } from "./logic/edges.js";
-import { defaultHeuristic } from "./logic/heuristic.js";
 import { createSeededRng } from "./logic/rng.js";
 import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/vertices.js";
 import { drawRenderState } from "./rendering/draw.js";
@@ -34,7 +33,7 @@ function _generateGraph() {
   const specialSubset = selectSpecialSubset(allVertices, SPECIAL_SUBSET_SIZE, rng);
   const edgeSet = buildNearestNeighborEdges(allVertices);
 
-  const vertexPairs = [...growEdgesStepwise(allVertices, specialSubset, defaultHeuristic, edgeSet)];
+  const vertexPairs = [...growEdgesStepwise(allVertices, specialSubset, undefined, edgeSet)];
 
   return {
     vertices: _markSpecial(allVertices, specialSubset),

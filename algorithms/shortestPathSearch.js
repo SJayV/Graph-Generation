@@ -1,21 +1,17 @@
 /** Shared shortest-path search providing common functionality. */
 import { distance } from "../logic/distance.js";
 import { edgeKey, vertexKey } from "../logic/vertices.js";
+import { incidentPairs } from "./greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - EDGE-SET RESTRICTION
 
-function _buildAllowedEdgeKeys(edgeSet) {
+/** Builds a (u, v) => boolean predicate; unrestricted when edgeSet is omitted. */
+function _createEdgeFilter(edgeSet) {
   if (edgeSet === undefined) {
-    return null;
+    return () => true;
   }
-  return new Set(edgeSet.map(([u, v]) => edgeKey(u, v)));
-}
-
-function _isAllowed(allowedEdgeKeys, u, v) {
-  if (allowedEdgeKeys === null) {
-    return true;
-  }
-  return allowedEdgeKeys.has(edgeKey(u, v));
+  const allowedEdgeKeys = new Set(edgeSet.map(([u, v]) => edgeKey(u, v)));
+  return (u, v) => allowedEdgeKeys.has(edgeKey(u, v));
 }
 
 // HELPER FUNCTIONS - TERMINATION
@@ -55,28 +51,24 @@ function _resolvedDistance(finalizedDistances, u, v) {
 
 // HELPER FUNCTIONS - CANDIDATE SEEDING
 
-function _outwardCandidatesFrom(vertex, allVertices) {
-  return allVertices.filter((other) => other !== vertex).map((other) => [vertex, other]);
-}
-
 function _defaultInitialSources(specialSubset) {
   return specialSubset.length > 0 ? [specialSubset[0]] : [];
 }
 
 // PUBLIC INTERFACE
 
-/** jBuilds the components a Greedy Algorithm needs to run a single-source shortest-path search. */
-export function createShortestPathSearch(allVertices, specialSubset, edgeSet, initialSources, extraPriority, isTerminated) {
+/** Builds the components a Greedy Algorithm needs to run a single-source shortest-path search. */
+export function createShortestPathSearch(allVertices, specialSubset, edgeSet, initialSources, extraPriority) {
   const sources = initialSources ?? _defaultInitialSources(specialSubset);
   const finalizedDistances = new Map(sources.map((source) => [vertexKey(source), 0]));
-  const allowedEdgeKeys = _buildAllowedEdgeKeys(edgeSet);
+  const isAllowed = _createEdgeFilter(edgeSet);
 
   function priorityFunction(u, v, dsu) {
-    if (!_isAllowed(allowedEdgeKeys, u, v)) {
+    if (!isAllowed(u, v)) {
       return Infinity;
     }
     const { unresolved, value } = _resolvedDistance(finalizedDistances, u, v);
-    if (unresolved === null || extraPriority === undefined) {
+    if (unresolved === null) {
       return value;
     }
     return value + extraPriority(unresolved, dsu);
@@ -98,13 +90,10 @@ export function createShortestPathSearch(allVertices, specialSubset, edgeSet, in
     const newlyFinalized = uFinalized ? v : u;
     const { value } = _resolvedDistance(finalizedDistances, u, v);
     finalizedDistances.set(vertexKey(newlyFinalized), value);
-    return _outwardCandidatesFrom(newlyFinalized, allVertices);
+    return incidentPairs(newlyFinalized, allVertices);
   }
 
   function terminationFunction(dsu) {
-    if (isTerminated !== undefined) {
-      return isTerminated(dsu, specialSubset);
-    }
     return _allSpecialsConnected(dsu, specialSubset);
   }
 

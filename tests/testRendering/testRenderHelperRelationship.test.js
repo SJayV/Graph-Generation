@@ -1,6 +1,6 @@
 /**
- * rendering/renderer.js: createRenderer - getDisplayedState delegates to
- * rendering/renderState.js's computeRenderState
+ * Verifies that the renderer's displayed state is produced by delegating to
+ * computeRenderState rather than deriving state independently.
  */
 import { describe, expect, it, vi } from "vitest";
 
@@ -9,7 +9,7 @@ import { createRenderer } from "../../rendering/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 describe("Render function / helper relationship", () => {
-  describe("A10: the render-state helper is independently callable and queryable", () => {
+  describe("the render-state helper is independently callable and queryable", () => {
     it("can be called directly, with no renderer/top-level function involved", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
@@ -21,7 +21,7 @@ describe("Render function / helper relationship", () => {
     });
   });
 
-  describe("A9: the renderer's displayed output is fully determined by the helper", () => {
+  describe("the renderer's displayed output is fully determined by the helper", () => {
     it("returns a displayed state deep-equal to a direct computeRenderState call at the same step", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);

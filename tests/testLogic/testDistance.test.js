@@ -1,6 +1,5 @@
 /**
- * logic/distance.js: distance(u, v)
- * Euclidean weight primitive shared by every Story 5 algorithm.
+ * Euclidean weight primitive shared by every shortest-path algorithm.
  */
 import { describe, expect, it } from "vitest";
 

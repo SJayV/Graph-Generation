@@ -1,11 +1,10 @@
 /**
- * algorithms/astarUnidirectional.js: growEdgesStepwise(allVertices, specialSubset, heuristicFn), growEdges(...)
- * heuristicFn defaults to logic/heuristic.js's defaultHeuristic, swappable per call
+ * heuristicFn defaults to A*'s own built-in straight-line heuristic, swappable per call
  */
 import { describe, expect, it } from "vitest";
 
-import * as astar from "../../algorithms/astarUnidirectional.js";
-import * as dijkstra from "../../algorithms/dijkstraUnidirectional.js";
+import * as astar from "../../algorithms/astar/astarUnidirectional.js";
+import * as dijkstra from "../../algorithms/dijkstra/dijkstraUnidirectional.js";
 
 const ZERO_HEURISTIC = () => 0;
 

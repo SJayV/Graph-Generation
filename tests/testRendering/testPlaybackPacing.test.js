@@ -1,5 +1,4 @@
 /**
- * rendering/renderer.js: createRenderer auto-advance, EDGE_PACING_MILLISECONDS
  * fake timers (vi.useFakeTimers) for determinism
  */
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -17,7 +16,7 @@ afterEach(() => {
 });
 
 describe("Playback pacing", () => {
-  describe("A11: fixed constant elapsed time between consecutive edges becoming visible", () => {
+  describe("fixed constant elapsed time between consecutive edges becoming visible", () => {
     it("reveals exactly one additional edge per EDGE_PACING_MILLISECONDS tick", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
@@ -75,7 +74,7 @@ describe("Playback pacing", () => {
     });
   });
 
-  describe("A12: pacing does not depend on any per-edge timing from Python", () => {
+  describe("pacing does not depend on any per-edge timing data", () => {
     it("uses the same pacing constant regardless of which edges/vertices are supplied", () => {
       const verticesA = makeVertices(4);
       const edgeSequenceA = makeLinearEdgeSequence(4);
@@ -95,7 +94,7 @@ describe("Playback pacing", () => {
     });
   });
 
-  describe("A13: the pacing constant is fixed for a given run, independent of content/size", () => {
+  describe("the pacing constant is fixed for a given run, independent of content/size", () => {
     it("takes exactly length * EDGE_PACING_MILLISECONDS to reveal a short sequence fully", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);

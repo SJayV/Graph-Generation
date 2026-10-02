@@ -1,5 +1,4 @@
 /**
- * rendering/renderState.js: computeRenderState, stepwise edge visibility
  * edgeSequence entries: [startIndex, endIndex] into vertices
  */
 import { describe, expect, it } from "vitest";
@@ -8,7 +7,7 @@ import { computeRenderState } from "../../rendering/renderState.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 describe("Stepwise edge visibility", () => {
-  describe("A3: visible-edge count equals the step index i exactly", () => {
+  describe("visible-edge count equals the step index exactly", () => {
     it.each([0, 1, 2, 3, 4])(
       "reports exactly %i visible edges at step index %i",
       (stepIndex) => {
@@ -22,7 +21,7 @@ describe("Stepwise edge visibility", () => {
     );
   });
 
-  describe("A4: visible edges preserve the input sequence's order", () => {
+  describe("visible edges preserve the input sequence's order", () => {
     it("returns the first i entries index-for-index in original order", () => {
       const vertices = makeVertices(6);
       const edgeSequence = makeLinearEdgeSequence(6);
@@ -50,7 +49,7 @@ describe("Stepwise edge visibility", () => {
     });
   });
 
-  describe("A5: i = 0 yields no visible edges but vertex dots remain present", () => {
+  describe("step index 0 yields no visible edges but vertex dots remain present", () => {
     it("returns an empty visible-edge list at step 0", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
@@ -70,7 +69,7 @@ describe("Stepwise edge visibility", () => {
     });
   });
 
-  describe("A6: i = length yields the entire sequence as visible edges", () => {
+  describe("step index equal to sequence length yields the entire sequence as visible edges", () => {
     it("matches the full edge sequence when stepIndex equals its length", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
@@ -100,7 +99,7 @@ describe("Stepwise edge visibility", () => {
     });
   });
 
-  describe("A7: visibility is monotonic in i", () => {
+  describe("visibility is monotonic in the step index", () => {
     it("keeps every edge visible at step i also visible at every later step", () => {
       const vertices = makeVertices(6);
       const edgeSequence = makeLinearEdgeSequence(6);
@@ -129,7 +128,7 @@ describe("Stepwise edge visibility", () => {
     });
   });
 
-  describe("A8: every visible edge's endpoints reference existing vertex dots", () => {
+  describe("every visible edge's endpoints reference existing vertex dots", () => {
     it("has no dangling endpoints for any visible edge at any step", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);

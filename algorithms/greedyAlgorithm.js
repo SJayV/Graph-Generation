@@ -44,6 +44,11 @@ function _neverStale() {
 
 // PUBLIC INTERFACE
 
+/** Every candidate pair incident to vertex, for reactivation after it changes. */
+export function incidentPairs(vertex, allVertices) {
+  return allVertices.filter((other) => other !== vertex).map((other) => [vertex, other]);
+}
+
 /** Yields accepted [u, v] edges one at a time, in acceptance order. */
 export function* growEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept = _noReactivation, isStale = _neverStale) {
   const dsu = new DSU(allVertices, specialSubset);
@@ -73,6 +78,17 @@ export function* growEdgesStepwise(allVertices, specialSubset, priorityFunction,
   }
 
   return dsu;
+}
+
+/** Drains a stepwise edge generator into a complete { edges, dsu } result. */
+export function drainEdges(generator) {
+  const edges = [];
+  let step = generator.next();
+  while (!step.done) {
+    edges.push(step.value);
+    step = generator.next();
+  }
+  return { edges, dsu: step.value };
 }
 
 export { _candidatePairs };

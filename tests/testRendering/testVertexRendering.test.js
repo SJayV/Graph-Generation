@@ -1,5 +1,4 @@
 /**
- * rendering/renderState.js: computeRenderState(vertices, edgeSequence, stepIndex)
  * dots[i].position === vertices[i], no transform
  */
 import { describe, expect, it } from "vitest";
@@ -8,7 +7,7 @@ import { computeRenderState } from "../../rendering/renderState.js";
 import { makeVertices } from "./fixtures.js";
 
 describe("Vertex rendering", () => {
-  describe("A1: every vertex appears exactly once as a dot", () => {
+  describe("every vertex appears exactly once as a dot", () => {
     it("produces exactly one dot per input vertex", () => {
       const vertices = makeVertices(5);
 
@@ -32,7 +31,7 @@ describe("Vertex rendering", () => {
     });
   });
 
-  describe("A2: a dot's position equals its input vertex's position exactly", () => {
+  describe("a dot's position equals its input vertex's position exactly", () => {
     it("maps each vertex's coordinates onto its dot without transformation", () => {
       const vertices = [[0, 0], [3, 7], [10, 2]];
 

@@ -1,7 +1,5 @@
 /**
- * algorithms/greedyAlgorithm.js: _candidatePairs
- * algorithms/generation.js: growEdges, growEdgesStepwise
- * edge-selection algorithm; edges keyed value-based via local edgeKey helper
+ * edges are keyed value-based via a local edgeKey helper, not by reference
  */
 import { describe, expect, it } from "vitest";
 

@@ -1,5 +1,4 @@
 /**
- * logic/dsu.js: DSU class - find, union, componentCount
  * vertices as [x, y] arrays, resolved by value not reference
  */
 import { describe, expect, it } from "vitest";

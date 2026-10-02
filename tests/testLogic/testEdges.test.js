@@ -1,5 +1,4 @@
 /**
- * logic/edges.js: buildNearestNeighborEdges(allVertices)
  * static, deterministic k=4-nearest-neighbor union edge set, no RNG
  */
 import { describe, expect, it } from "vitest";

@@ -1,5 +1,4 @@
 /**
- * algorithms/dijkstraUnidirectional.js: growEdgesStepwise(allVertices, specialSubset), growEdges(allVertices, specialSubset)
  * single-source Dijkstra: only specialSubset[0] starts at distance 0; every other special is
  * discovered as an ordinary vertex once the single growing tree reaches it, using the same
  * cumulative-distance-from-the-one-origin basis throughout
@@ -7,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as dijkstra from "../../algorithms/dijkstraUnidirectional.js";
+import * as dijkstra from "../../algorithms/dijkstra/dijkstraUnidirectional.js";
 
 const EPSILON = 1e-9;
 
@@ -101,7 +100,7 @@ function shortestPathInSubgraph(edges, source, target) {
 }
 
 describe("dijkstraUnidirectional", () => {
-  describe("AC4: reaches full special-vertex connectivity", () => {
+  describe("reaches full special-vertex connectivity", () => {
     it("connects every special into one DSU component on a scattered graph", () => {
       const allVertices = [
         [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0], [2, 5],
@@ -118,7 +117,7 @@ describe("dijkstraUnidirectional", () => {
     });
   });
 
-  describe("AC5: monotonic non-decreasing accepted-edge priority", () => {
+  describe("monotonic non-decreasing accepted-edge priority", () => {
     it("never settles a farther vertex before a closer one, on a symmetric chain", () => {
       const allVertices = [[0, 0], [2, 0], [4, 0], [6, 0], [8, 0], [10, 0]];
       const special = [allVertices[0], allVertices[5]];
@@ -149,7 +148,7 @@ describe("dijkstraUnidirectional", () => {
     });
   });
 
-  describe("AC6: shortest-path correctness on a hand-constructed graph", () => {
+  describe("shortest-path correctness on a hand-constructed graph", () => {
     it("connects two specials with total edge weight equal to the true shortest-path distance", () => {
       const allVertices = [
         [0, 0], [1, 1], [3, 1], [5, 0], [2, 4], [4, 3],
@@ -165,7 +164,7 @@ describe("dijkstraUnidirectional", () => {
     });
   });
 
-  describe("AC10: vacuous termination for fewer than 2 specials", () => {
+  describe("vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
       const edges = [...dijkstra.growEdgesStepwise(allVertices, [])];
@@ -179,7 +178,7 @@ describe("dijkstraUnidirectional", () => {
     });
   });
 
-  describe("FR14: optional edgeSet restricts candidate pairs", () => {
+  describe("optional edgeSet restricts candidate pairs", () => {
     it("omitting edgeSet still finds the complete-graph shortest path (direct edge)", () => {
       const allVertices = [[0, 0], [10, 0], [0, 3], [10, 3]];
       const special = [allVertices[0], allVertices[1]];

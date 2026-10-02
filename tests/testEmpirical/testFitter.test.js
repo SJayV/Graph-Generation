@@ -1,5 +1,4 @@
 /**
- * empirical/fitter.js: fitSigmoid(dataPoints) -> [kFit, r0]
  * hand-rolled sigmoid fit, minimizes squared-error loss
  */
 import { describe, expect, it } from "vitest";
