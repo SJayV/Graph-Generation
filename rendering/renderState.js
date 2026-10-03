@@ -6,9 +6,10 @@ function _buildDots(vertices) {
   return vertices.map((position) => ({ position }));
 }
 
-function _buildVisibleEdges(edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds) {
+function _buildVisibleEdges(edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds, highlightStartIndex) {
   return edgeSequence.slice(0, stepIndex).map(([startIndex, endIndex], edgeIndex) => {
-    const edge = { startIndex, endIndex };
+    const category = edgeIndex >= highlightStartIndex ? "highlight" : "growth";
+    const edge = { startIndex, endIndex, category };
     if (currentTime === undefined) {
       return edge;
     }
@@ -18,11 +19,16 @@ function _buildVisibleEdges(edgeSequence, stepIndex, currentTime, computeGlow, e
   });
 }
 
+function _buildBaselineEdges(edgeSet) {
+  return (edgeSet ?? []).map(([startIndex, endIndex]) => ({ startIndex, endIndex }));
+}
+
 // PUBLIC INTERFACE
 
-export function computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds) {
+export function computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds, edgeSet, highlightStartIndex = Infinity) {
   return {
     dots: _buildDots(vertices),
-    visibleEdges: _buildVisibleEdges(edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds),
+    visibleEdges: _buildVisibleEdges(edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds, highlightStartIndex),
+    baselineEdges: _buildBaselineEdges(edgeSet),
   };
 }

@@ -1,7 +1,7 @@
 /** identifyConnectingEdges(edges, dsu, specialSubset) -> subset of `edges` */
 import { describe, expect, it } from "vitest";
 
-import { identifyConnectingEdges } from "../../algorithms/shortestPathSearch.js";
+import { identifyConnectingEdges } from "../../algorithms/connectingEdges.js";
 import { DSU } from "../../logic/dsu.js";
 import { edgeKey } from "../../logic/vertices.js";
 

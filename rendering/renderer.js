@@ -11,14 +11,14 @@ export const EDGE_PACING_MILLISECONDS = 30;
 
 // PUBLIC INTERFACE
 
-export function createRenderer(vertices, edgeSequence) {
+export function createRenderer(vertices, edgeSequence, edgeSet, highlightStartIndex) {
   let stepIndex = 0;
   let intervalHandle = null;
   let startTime = null;
 
   function getDisplayedState() {
     const currentTime = startTime === null ? undefined : Date.now() - startTime;
-    return computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, EDGE_PACING_MILLISECONDS);
+    return computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, EDGE_PACING_MILLISECONDS, edgeSet, highlightStartIndex);
   }
 
   function setStepIndex(nextStepIndex) {

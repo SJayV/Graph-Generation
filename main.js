@@ -1,5 +1,6 @@
 /** Root-level orchestrator: generates a graph in-memory and renders it. */
-import { growEdgesStepwise } from "./algorithms/astar/astarMultidirectional.js";
+import { growEdges } from "./algorithms/astar/astarMultidirectional.js";
+import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
 import { buildNearestNeighborEdges } from "./logic/edges.js";
 import { createSeededRng } from "./logic/rng.js";
 import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/vertices.js";
@@ -33,11 +34,15 @@ function _generateGraph() {
   const specialSubset = selectSpecialSubset(allVertices, SPECIAL_SUBSET_SIZE, rng);
   const edgeSet = buildNearestNeighborEdges(allVertices);
 
-  const vertexPairs = [...growEdgesStepwise(allVertices, specialSubset, undefined, edgeSet)];
+  const { edges, dsu } = growEdges(allVertices, specialSubset, undefined, edgeSet);
+  const connectingEdges = identifyConnectingEdges(edges, dsu, specialSubset);
+  const vertexPairs = [...edges, ...connectingEdges];
 
   return {
     vertices: _markSpecial(allVertices, specialSubset),
     edgeSequence: _toIndexEdges(allVertices, vertexPairs),
+    edgeSet: _toIndexEdges(allVertices, edgeSet),
+    highlightStartIndex: edges.length,
   };
 }
 
@@ -59,8 +64,8 @@ export function startDemo(canvasElement) {
     throw new Error("WebGL is not supported in this browser.");
   }
 
-  const { vertices, edgeSequence } = _generateGraph();
-  const renderer = createRenderer(vertices, edgeSequence);
+  const { vertices, edgeSequence, edgeSet, highlightStartIndex } = _generateGraph();
+  const renderer = createRenderer(vertices, edgeSequence, edgeSet, highlightStartIndex);
   renderer.start();
 
   _runRenderLoop(gl, renderer);
