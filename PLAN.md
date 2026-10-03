@@ -73,13 +73,22 @@ As a viewer of the demo, I want to press Tab to switch to the next algorithm and
 
 The project's test suite runs in a plain Node environment (no jsdom), so — consistent with how `renderer.js`'s timer-driven playback is unit-tested while `main.js`'s `requestAnimationFrame` loop is not — the algorithm-cycling logic itself must be exposed as a small, pure, DOM-independent unit (e.g. given the fixed ordered algorithm list and a current index, what the next index is) that is unit-testable in isolation. The actual `keydown` listener and the graph-regeneration/render-restart side effects it triggers are untested imperative-shell wiring in `main.js`, same class of code as the existing render loop.
 
+Resolved design:
+- a new `algorithms/dispatcher.js` exposes one uniform entry point accepting every possible algorithm parameter (`allVertices`, `specialSubset`, `r`, `sigma`, `heuristicFunction`, `edgeSet`) and internally forwards only the subset each selected algorithm actually takes — this is what the fixed ordered list's entries invoke, resolving the signature mismatch between `generation.js` (`r`/`sigma`) and the Dijkstra/A*/multidirectional family (`heuristicFunction`/`edgeSet`).
+- the render-state's `edgeSet` (controls the dim background layer) is independent of whatever `edgeSet` the selected algorithm itself used for candidate restriction, if any — for `generation.js` (no `edgeSet` concept at the algorithm level), the dispatcher simply never produces one: nothing is passed to the algorithm, and nothing is passed to the render state, so the background layer is empty while generation's own accepted edges still render normally as growth edges, completely unaffected.
+- A*'s heuristic stays the default always, for every entry in the fixed ordered list — not user-configurable through this UI.
+- `generation.js` gets the final-path highlight attempt too, run the same as every other algorithm in the list — experimental, since its termination isn't connectivity-guaranteed so the result may look partial/odd; revisit and possibly drop highlighting for generation specifically if so once it's visible.
+- the algorithm-name display is a plain DOM element (e.g. an absolutely-positioned element in `index.html`, layered over the canvas, updated via `textContent` on each switch) — not drawn via WebGL. Styled with the Bahnschrift font and a light blue color. Placed within the existing screen margin the rendering layer already reserves before drawing any graph content (`SCREEN_MARGIN_FRACTION` in `rendering/gl/glPrimitives.js`), so it needs no new collision-avoidance logic to satisfy "never overlaps the rendered graph."
+
 **Acceptance criteria**
-1. Accepted when the demo starts, the active algorithm is `algorithms/generation.js` — first in the fixed ordered list (generation, Dijkstra, A*, multidirectional Dijkstra, multidirectional A*).
+1. Accepted when the demo starts, the active algorithm is the generation as first in a fixed ordered list.
 2. Accepted when the pure cycling unit is advanced once from any given algorithm in the fixed ordered list, it returns the next algorithm in that list.
-3. Accepted when the pure cycling unit is advanced once from the last algorithm in the fixed ordered list, it returns the first algorithm (wraps around).
-4. Accepted when the Tab key is pressed, a freshly sampled vertex set and special subset are generated (not reusing the previous graph's vertices) and passed to the newly selected algorithm.
-5. Accepted when the Tab key is pressed while a previous graph's stepwise reveal/glow animation was mid-playback, the previous render state is fully replaced — no leftover edges, dots, or glow from the previous algorithm's graph remain visible.
+3. Accepted when the pure cycling unit is advanced once from the last algorithm in the fixed ordered list, it returns the first algorithm.
+4. Accepted when the Tab key is pressed, a freshly sampled vertex set and special subset are generated and passed to the newly selected algorithm.
+5. Accepted when the Tab key is pressed while a previous graph's stepwise reveal animation was mid-playback, the previous render state is fully replaced.
 6. Accepted when any key other than Tab is pressed, the currently displayed algorithm and graph are unaffected.
+7. Accepted when the current algorithm is displayed in the top left corner of the screen.
+8. Accepted when the name display never overlaps with any component of the rendered graph.
 
 **Explicitly not covered by this story:** the exact visual/DOM wiring of the `keydown` listener itself (untestable imperative-shell code, verified by manual/visual check rather than an automated test, same as the existing render loop).
 
