@@ -1,22 +1,13 @@
-/** Root-level orchestrator: generates a graph in-memory and renders it. */
-import { growEdges } from "./algorithms/astar/astarMultidirectional.js";
+/** Root-level orchestrator: creates a graph, runs the active algorithm, and renders the result. */
+import { ALGORITHM_NAMES, nextAlgorithmName, runAlgorithm } from "./dispatcher.js";
 import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
+import { createGraph } from "./graph.js";
 import { buildNearestNeighborEdges } from "./logic/randomness/edges.js";
-import { createSeededRng } from "./logic/randomness/rng.js";
-import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/randomness/vertices.js";
+import { vertexKey } from "./logic/randomness/vertices.js";
 import { drawRenderState } from "./rendering/gl/draw.js";
 import { createRenderer } from "./rendering/state/renderer.js";
 
-const VERTEX_COUNT = 400;
-const GRID_SIZE = 1000;
-const SPECIAL_SUBSET_SIZE = 5;
-const SPARSITY = 1.5;
-
-// HELPER FUNCTIONS - GRAPH GENERATION
-
-function _createEntropySeed() {
-  return Math.floor(Math.random() * 0xffffffff);
-}
+// HELPER FUNCTIONS - RENDER-STATE CONVERSION
 
 function _markSpecial(allVertices, specialSubset) {
   const specialKeys = new Set(specialSubset.map(vertexKey));
@@ -28,29 +19,25 @@ function _toIndexEdges(allVertices, vertexPairs) {
   return vertexPairs.map(([u, v]) => [indexByKey.get(vertexKey(u)), indexByKey.get(vertexKey(v))]);
 }
 
-function _generateGraph() {
-  const rng = createSeededRng(_createEntropySeed());
-  const allVertices = sampleVertices(VERTEX_COUNT, GRID_SIZE, rng);
-  const specialSubset = selectSpecialSubset(allVertices, SPECIAL_SUBSET_SIZE, rng);
+function _buildRenderData(algorithmName, allVertices, specialSubset, displayTarget) {
   const edgeSet = buildNearestNeighborEdges(allVertices);
-
-  const { edges, dsu } = growEdges(allVertices, specialSubset, undefined, edgeSet);
+  const { edges, dsu, edgeSet: appliedEdgeSet } = runAlgorithm(algorithmName, allVertices, specialSubset, edgeSet, displayTarget);
   const connectingEdges = identifyConnectingEdges(edges, dsu, specialSubset);
   const vertexPairs = [...edges, ...connectingEdges];
 
   return {
     vertices: _markSpecial(allVertices, specialSubset),
     edgeSequence: _toIndexEdges(allVertices, vertexPairs),
-    edgeSet: _toIndexEdges(allVertices, edgeSet),
+    edgeSet: appliedEdgeSet === undefined ? undefined : _toIndexEdges(allVertices, appliedEdgeSet),
     specialStartIndex: edges.length,
   };
 }
 
 // HELPER FUNCTIONS - RENDER LOOP
 
-function _runRenderLoop(gl, renderer) {
+function _runRenderLoop(gl, getRenderer) {
   function frame() {
-    drawRenderState(gl, renderer.getDisplayedState());
+    drawRenderState(gl, getRenderer().getDisplayedState());
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -58,15 +45,39 @@ function _runRenderLoop(gl, renderer) {
 
 // PUBLIC INTERFACE
 
-export function startDemo(canvasElement) {
+export function startDemo(canvasElement, displayTarget) {
   const gl = canvasElement.getContext("webgl");
   if (!gl) {
     throw new Error("WebGL is not supported in this browser.");
   }
 
-  const { vertices, edgeSequence, edgeSet, specialStartIndex } = _generateGraph();
-  const renderer = createRenderer(vertices, edgeSequence, edgeSet, specialStartIndex);
-  renderer.start();
+  let algorithmName = ALGORITHM_NAMES[0];
+  let renderer = null;
 
-  _runRenderLoop(gl, renderer);
+  function regenerate() {
+    if (renderer !== null) {
+      renderer.stop();
+    }
+    const { allVertices, specialSubset } = createGraph();
+    const { vertices, edgeSequence, edgeSet, specialStartIndex } = _buildRenderData(
+      algorithmName,
+      allVertices,
+      specialSubset,
+      displayTarget,
+    );
+    renderer = createRenderer(vertices, edgeSequence, edgeSet, specialStartIndex);
+    renderer.start();
+  }
+
+  regenerate();
+  _runRenderLoop(gl, () => renderer);
+
+  window.addEventListener("keydown", (event) => {
+    if (event.key !== "Tab") {
+      return;
+    }
+    event.preventDefault();
+    algorithmName = nextAlgorithmName(algorithmName);
+    regenerate();
+  });
 }

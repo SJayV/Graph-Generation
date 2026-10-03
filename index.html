@@ -15,15 +15,26 @@
       width: 100vw;
       height: 100vh;
     }
+    #algorithmName {
+      position: fixed;
+      top: 16px;
+      left: 16px;
+      font-family: "Bahnschrift", sans-serif;
+      color: #add8e6;
+      font-size: 18px;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
   <canvas id="graphCanvas"></canvas>
+  <div id="algorithmName"></div>
 
   <script type="module">
     import { startDemo } from "./main.js";
 
     const canvasElement = document.getElementById("graphCanvas");
+    const algorithmNameElement = document.getElementById("algorithmName");
 
     function resizeCanvasToWindow() {
       canvasElement.width = window.innerWidth;
@@ -34,7 +45,7 @@
     window.addEventListener("resize", resizeCanvasToWindow);
 
     try {
-      startDemo(canvasElement);
+      startDemo(canvasElement, algorithmNameElement);
     } catch (error) {
       console.error(error);
     }
