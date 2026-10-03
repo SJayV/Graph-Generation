@@ -2,6 +2,8 @@
 
 Greedy edge growth on a fixed vertex set, ranked by priority scores and shaped by a special subset $S$.
 
+Press Tab to cycle through the implemented algorithms.
+
 ## Formalization
 
 ### Graph
