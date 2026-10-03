@@ -1,7 +1,6 @@
 # Graph Generation
 
-Greedy edge growth on a fixed vertex set, ranked by a field-based
-priority score shaped by a special subset $S$.
+Greedy edge growth on a fixed vertex set, ranked by priority scores and shaped by a special subset $S$.
 
 ## Formalization
 
@@ -160,6 +159,7 @@ graph LR
 
 - **Candidate edges**
   - restriction to a static k-nearest-neighbor graph
+  - full candidate set as always-visible background layer
 - **Connectivity**
   - growth until every special vertex shares one component
   - unidirectional
@@ -168,6 +168,8 @@ graph LR
   - multidirectional
     - every region grows at once
     - merge wherever two regions meet
+- **Final path**
+  - edges connecting the specials light up
 
 ### Generation
 
@@ -239,6 +241,9 @@ xychart-beta
 - **Invariants**
   - stale entries never accepted
   - accepted pairs are never revisited
+- **Final path**
+  - trace of each special back to a shared origin
+  - union of those paths = edges marked as connecting
 
 ### Generation-Algorithm
 
