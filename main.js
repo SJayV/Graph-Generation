@@ -1,34 +1,21 @@
 /** Root-level orchestrator: creates a graph, runs the active algorithm, and renders the result. */
 import { ALGORITHM_NAMES, nextAlgorithmName, runAlgorithm } from "./dispatcher.js";
 import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
-import { createGraph } from "./graph.js";
-import { buildNearestNeighborEdges } from "./logic/randomness/edges.js";
-import { vertexKey } from "./logic/randomness/vertices.js";
+import { createGraph, markSpecial, toIndexEdges } from "./graph.js";
 import { drawRenderState } from "./rendering/gl/draw.js";
 import { createRenderer } from "./rendering/state/renderer.js";
 
 // HELPER FUNCTIONS - RENDER-STATE CONVERSION
 
-function _markSpecial(allVertices, specialSubset) {
-  const specialKeys = new Set(specialSubset.map(vertexKey));
-  return allVertices.map(([x, y]) => [x, y, specialKeys.has(vertexKey([x, y]))]);
-}
-
-function _toIndexEdges(allVertices, vertexPairs) {
-  const indexByKey = new Map(allVertices.map((vertex, index) => [vertexKey(vertex), index]));
-  return vertexPairs.map(([u, v]) => [indexByKey.get(vertexKey(u)), indexByKey.get(vertexKey(v))]);
-}
-
-function _buildRenderData(algorithmName, allVertices, specialSubset, displayTarget) {
-  const edgeSet = buildNearestNeighborEdges(allVertices);
+function _buildRenderData(algorithmName, allVertices, specialSubset, edgeSet, displayTarget) {
   const { edges, dsu, edgeSet: appliedEdgeSet } = runAlgorithm(algorithmName, allVertices, specialSubset, edgeSet, displayTarget);
   const connectingEdges = identifyConnectingEdges(edges, dsu, specialSubset);
   const vertexPairs = [...edges, ...connectingEdges];
 
   return {
-    vertices: _markSpecial(allVertices, specialSubset),
-    edgeSequence: _toIndexEdges(allVertices, vertexPairs),
-    edgeSet: appliedEdgeSet === undefined ? undefined : _toIndexEdges(allVertices, appliedEdgeSet),
+    vertices: markSpecial(allVertices, specialSubset),
+    edgeSequence: toIndexEdges(allVertices, vertexPairs),
+    edgeSet: appliedEdgeSet === undefined ? undefined : toIndexEdges(allVertices, appliedEdgeSet),
     specialStartIndex: edges.length,
   };
 }
@@ -58,13 +45,8 @@ export function startDemo(canvasElement, displayTarget) {
     if (renderer !== null) {
       renderer.stop();
     }
-    const { allVertices, specialSubset } = createGraph();
-    const { vertices, edgeSequence, edgeSet, specialStartIndex } = _buildRenderData(
-      algorithmName,
-      allVertices,
-      specialSubset,
-      displayTarget,
-    );
+    const { allVertices, specialSubset, edgeSet: candidateEdgeSet } = createGraph();
+    const { vertices, edgeSequence, edgeSet, specialStartIndex } = _buildRenderData(algorithmName, allVertices, specialSubset, candidateEdgeSet, displayTarget);
     renderer = createRenderer(vertices, edgeSequence, edgeSet, specialStartIndex);
     renderer.start();
   }

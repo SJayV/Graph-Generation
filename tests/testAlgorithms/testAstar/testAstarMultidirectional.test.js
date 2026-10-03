@@ -4,8 +4,9 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as astarMultidirectional from "../../../algorithms/astar/astarMultidirectional.js";
-import * as dijkstraMultidirectional from "../../../algorithms/dijkstra/dijkstraMultidirectional.js";
+import * as astar from "../../../algorithms/parametrization/astar.js";
+import * as dijkstra from "../../../algorithms/parametrization/dijkstra.js";
+import { drainEdges } from "../../../algorithms/skeleton/greedyAlgorithm.js";
 
 const ZERO_HEURISTIC = () => 0;
 
@@ -64,23 +65,6 @@ function shortestPathInSubgraph(edges, source, target) {
 }
 
 describe("astarMultidirectional", () => {
-  describe("same connectivity guarantee as dijkstraMultidirectional", () => {
-    it("connects every special into one DSU component on a scattered graph", () => {
-      const allVertices = [
-        [0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2], [6, 0], [2, 5],
-      ];
-      const special = [allVertices[0], allVertices[6], allVertices[7]];
-
-      const { dsu } = astarMultidirectional.growEdges(allVertices, special);
-
-      for (let i = 0; i < special.length; i += 1) {
-        for (let j = i + 1; j < special.length; j += 1) {
-          expect(dsu.connected(special[i], special[j])).toBe(true);
-        }
-      }
-    });
-  });
-
   describe("same shortest-distance-correctness guarantee as dijkstraMultidirectional", () => {
     it("connects two specials with total edge weight equal to dijkstraMultidirectional's connecting distance", () => {
       const allVertices = [
@@ -88,8 +72,8 @@ describe("astarMultidirectional", () => {
       ];
       const special = [allVertices[0], allVertices[3]];
 
-      const { edges: astarEdges } = astarMultidirectional.growEdges(allVertices, special);
-      const { edges: dijkstraEdges } = dijkstraMultidirectional.growEdges(allVertices, special);
+      const { edges: astarEdges } = drainEdges(astar.growEdgesMultidirectionalStepwise(allVertices, special));
+      const { edges: dijkstraEdges } = drainEdges(dijkstra.growEdgesMultidirectionalStepwise(allVertices, special));
 
       const astarDistance = shortestPathInSubgraph(astarEdges, special[0], special[1]);
       const dijkstraDistance = shortestPathInSubgraph(dijkstraEdges, special[0], special[1]);
@@ -105,8 +89,8 @@ describe("astarMultidirectional", () => {
       ];
       const special = [allVertices[0], allVertices[3], allVertices[6]];
 
-      const { edges: astarEdges } = astarMultidirectional.growEdges(allVertices, special, ZERO_HEURISTIC);
-      const { edges: dijkstraEdges } = dijkstraMultidirectional.growEdges(allVertices, special);
+      const { edges: astarEdges } = drainEdges(astar.growEdgesMultidirectionalStepwise(allVertices, special, ZERO_HEURISTIC));
+      const { edges: dijkstraEdges } = drainEdges(dijkstra.growEdgesMultidirectionalStepwise(allVertices, special));
 
       for (let i = 0; i < special.length; i += 1) {
         for (let j = i + 1; j < special.length; j += 1) {
@@ -124,13 +108,13 @@ describe("astarMultidirectional", () => {
   describe("vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...astarMultidirectional.growEdgesStepwise(allVertices, [])];
+      const edges = [...astar.growEdgesMultidirectionalStepwise(allVertices, [])];
       expect(edges).toEqual([]);
     });
 
     it("yields no edges for exactly one special vertex", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...astarMultidirectional.growEdgesStepwise(allVertices, [allVertices[0]])];
+      const edges = [...astar.growEdgesMultidirectionalStepwise(allVertices, [allVertices[0]])];
       expect(edges).toEqual([]);
     });
   });

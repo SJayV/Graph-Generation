@@ -1,11 +1,12 @@
-/** Samples a fresh vertex set and special subset for a single demo graph. */
+/** Samples a fresh vertex set, special subset, and candidate edge set for a single demo graph. */
+import { buildNearestNeighborEdges } from "./logic/randomness/edges.js";
 import { createSeededRng } from "./logic/randomness/rng.js";
-import { sampleVertices, selectSpecialSubset } from "./logic/randomness/vertices.js";
+import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/randomness/vertices.js";
 
 // CONSTANTS
 
-const VERTEX_COUNT = 400;
-const GRID_SIZE = 1000;
+const VERTEX_COUNT = 200;
+export const GRID_SIZE = 1000;
 const SPECIAL_SUBSET_SIZE = 5;
 
 // HELPER FUNCTIONS
@@ -20,5 +21,18 @@ export function createGraph() {
   const rng = createSeededRng(_createEntropySeed());
   const allVertices = sampleVertices(VERTEX_COUNT, GRID_SIZE, rng);
   const specialSubset = selectSpecialSubset(allVertices, SPECIAL_SUBSET_SIZE, rng);
-  return { allVertices, specialSubset };
+  const edgeSet = buildNearestNeighborEdges(allVertices);
+  return { allVertices, specialSubset, edgeSet };
+}
+
+/** Marks each vertex of allVertices with whether it belongs to specialSubset, for rendering. */
+export function markSpecial(allVertices, specialSubset) {
+  const specialKeys = new Set(specialSubset.map(vertexKey));
+  return allVertices.map(([x, y]) => [x, y, specialKeys.has(vertexKey([x, y]))]);
+}
+
+/** Converts vertex-coordinate edge pairs into index pairs into allVertices, for rendering. */
+export function toIndexEdges(allVertices, vertexPairs) {
+  const indexByKey = new Map(allVertices.map((vertex, index) => [vertexKey(vertex), index]));
+  return vertexPairs.map(([u, v]) => [indexByKey.get(vertexKey(u)), indexByKey.get(vertexKey(v))]);
 }

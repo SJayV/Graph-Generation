@@ -75,6 +75,15 @@ export class DSU {
     return vertexKey(rootA) === vertexKey(rootB);
   }
 
+  /** Whether every vertex in vertices shares one common component. */
+  allConnected(vertices) {
+    if (vertices.length < 2) {
+      return true;
+    }
+    const [first, ...rest] = vertices;
+    return rest.every((vertex) => this.connected(first, vertex));
+  }
+
   componentCount() {
     return this._componentCount;
   }

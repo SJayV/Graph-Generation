@@ -1,10 +1,9 @@
 /** Uniform entry point for running any algorithm in this layer, cycling through them, and reflecting the active one in the UI. */
-import { growEdges as growGeneration } from "./algorithms/generation.js";
-import { growEdges as growDijkstraUnidirectional } from "./algorithms/dijkstra/dijkstraUnidirectional.js";
-import { growEdges as growDijkstraMultidirectional } from "./algorithms/dijkstra/dijkstraMultidirectional.js";
-import { growEdges as growAstarUnidirectional } from "./algorithms/astar/astarUnidirectional.js";
-import { growEdges as growAstarMultidirectional } from "./algorithms/astar/astarMultidirectional.js";
-import { sigmaFromGridSize } from "./logic/computation/field.js";
+import { growEdgesStepwise as growGenerationStepwise } from "./algorithms/parametrization/generation.js";
+import { growEdgesUnidirectionalStepwise as growDijkstraUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growDijkstraMultidirectionalStepwise } from "./algorithms/parametrization/dijkstra.js";
+import { growEdgesUnidirectionalStepwise as growAstarUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growAstarMultidirectionalStepwise } from "./algorithms/parametrization/astar.js";
+import { drainEdges } from "./algorithms/skeleton/greedyAlgorithm.js";
+import { GRID_SIZE } from "./graph.js";
 
 // CONSTANTS
 
@@ -12,52 +11,43 @@ const GENERATION_SPARSITY = 1.5;
 
 // HELPER FUNCTIONS - GENERATION PARAMETERS
 
-function _inferGridSize(allVertices) {
-  return Math.max(...allVertices.flatMap(([x, y]) => [x, y]));
+function _sigmaForVertexCount(vertexCount) {
+  return GRID_SIZE / Math.sqrt(vertexCount);
 }
 
 // HELPER FUNCTIONS - PER-ALGORITHM RUNNERS
 
 function _runGeneration(allVertices, specialSubset) {
-  const sigma = sigmaFromGridSize(_inferGridSize(allVertices));
-  const { edges, dsu } = growGeneration(allVertices, specialSubset, GENERATION_SPARSITY, sigma);
+  const sigma = _sigmaForVertexCount(allVertices.length);
+  const { edges, dsu } = drainEdges(growGenerationStepwise(allVertices, specialSubset, GENERATION_SPARSITY, sigma));
   return { edges, dsu, edgeSet: undefined };
 }
 
-function _runWithEdgeSet(growEdges, allVertices, specialSubset, edgeSet) {
-  const { edges, dsu } = growEdges(allVertices, specialSubset, edgeSet);
-  return { edges, dsu, edgeSet };
-}
-
-function _runWithHeuristicAndEdgeSet(growEdges, allVertices, specialSubset, edgeSet) {
-  const { edges, dsu } = growEdges(allVertices, specialSubset, undefined, edgeSet);
+function _runShortestPath(growEdgesStepwise, allVertices, specialSubset, edgeSet) {
+  const { edges, dsu } = drainEdges(growEdgesStepwise(allVertices, specialSubset, undefined, edgeSet));
   return { edges, dsu, edgeSet };
 }
 
 const ALGORITHMS = {
   generation: {
     displayName: "Generation",
-    run: (allVertices, specialSubset) => _runGeneration(allVertices, specialSubset),
+    run: (allVertices, specialSubset) => _runGeneration(allVertices, specialSubset)
   },
   dijkstraUnidirectional: {
     displayName: "Dijkstra - Unidirectional",
-    run: (allVertices, specialSubset, edgeSet) =>
-      _runWithEdgeSet(growDijkstraUnidirectional, allVertices, specialSubset, edgeSet),
+    run: (allVertices, specialSubset, edgeSet) => _runShortestPath(growDijkstraUnidirectionalStepwise, allVertices, specialSubset, edgeSet)
   },
   astarUnidirectional: {
     displayName: "A* - Unidirectional",
-    run: (allVertices, specialSubset, edgeSet) =>
-      _runWithHeuristicAndEdgeSet(growAstarUnidirectional, allVertices, specialSubset, edgeSet),
+    run: (allVertices, specialSubset, edgeSet) => _runShortestPath(growAstarUnidirectionalStepwise, allVertices, specialSubset, edgeSet)
   },
   dijkstraMultidirectional: {
     displayName: "Dijkstra - Multidirectional",
-    run: (allVertices, specialSubset, edgeSet) =>
-      _runWithEdgeSet(growDijkstraMultidirectional, allVertices, specialSubset, edgeSet),
+    run: (allVertices, specialSubset, edgeSet) => _runShortestPath(growDijkstraMultidirectionalStepwise, allVertices, specialSubset, edgeSet)
   },
   astarMultidirectional: {
     displayName: "A* - Multidirectional",
-    run: (allVertices, specialSubset, edgeSet) =>
-      _runWithHeuristicAndEdgeSet(growAstarMultidirectional, allVertices, specialSubset, edgeSet),
+    run: (allVertices, specialSubset, edgeSet) => _runShortestPath(growAstarMultidirectionalStepwise, allVertices, specialSubset, edgeSet)
   },
 };
 

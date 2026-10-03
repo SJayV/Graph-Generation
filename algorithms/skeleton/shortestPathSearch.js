@@ -1,6 +1,6 @@
 /** Shared shortest-path search providing common functionality. */
-import { distance } from "../logic/computation/distance.js";
-import { edgeKey, vertexKey } from "../logic/randomness/vertices.js";
+import { distance } from "../../logic/computation/distance.js";
+import { edgeKey, vertexKey } from "../../logic/randomness/vertices.js";
 import { incidentPairs } from "./greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - EDGE-SET RESTRICTION
@@ -12,16 +12,6 @@ function _createEdgeFilter(edgeSet) {
   }
   const allowedEdgeKeys = new Set(edgeSet.map(([u, v]) => edgeKey(u, v)));
   return (u, v) => allowedEdgeKeys.has(edgeKey(u, v));
-}
-
-// HELPER FUNCTIONS - TERMINATION
-
-function _allSpecialsConnected(dsu, specialSubset) {
-  if (specialSubset.length < 2) {
-    return true;
-  }
-  const [first, ...rest] = specialSubset;
-  return rest.every((special) => dsu.connected(first, special));
 }
 
 // HELPER FUNCTIONS - LIVE FINALIZED-DISTANCE TRACKING
@@ -94,7 +84,7 @@ export function createShortestPathSearch(allVertices, specialSubset, edgeSet, in
   }
 
   function terminationFunction(dsu) {
-    return _allSpecialsConnected(dsu, specialSubset);
+    return dsu.allConnected(specialSubset);
   }
 
   return { priorityFunction, isStale, onAccept, terminationFunction };

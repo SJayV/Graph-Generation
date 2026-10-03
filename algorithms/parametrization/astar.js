@@ -1,7 +1,8 @@
-/** General A*, seeding from an explicit set of initial sources, optionally restricted to an edgeSet. */
+/** A*: general, single-source (unidirectional), and multi-source (multidirectional) stepwise variants. */
 import { distance } from "../../logic/computation/distance.js";
-import { createShortestPathSearch } from "../shortestPathSearch.js";
-import { drainEdges, growEdgesStepwise as _growEdgesStepwise } from "../greedyAlgorithm.js";
+import { createShortestPathSearch } from "../skeleton/shortestPathSearch.js";
+import { createDirectionalVariants } from "../skeleton/directionalSeeding.js";
+import { growEdgesStepwise as _growEdgesStepwise } from "../skeleton/greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - PRIORITY
 
@@ -10,17 +11,17 @@ function _notYetConnectedSpecials(dsu, specialSubset, vertex) {
 }
 
 /** Straight-line distance from vertex to the nearest not-yet-connected special vertex. */
-function _defaultExtraPriority(vertex, notYetConnectedSpecials) {
+function _defaultHeuristic(vertex, notYetConnectedSpecials) {
   if (notYetConnectedSpecials.length === 0) {
     return 0;
   }
   return Math.min(...notYetConnectedSpecials.map((special) => distance(vertex, special)));
 }
 
-// PUBLIC INTERFACE
+// HELPER FUNCTIONS - GENERAL SEARCH
 
-/** Yield accepted edges one at a time, in the order A* finalizes them. */
-export function* growEdgesStepwise(allVertices, specialSubset, initialSources, heuristicFunction = _defaultExtraPriority, edgeSet) {
+/** Yield accepted edges one at a time, in the order A* finalizes them, from an explicit set of initial sources. */
+function* _generalGrowEdgesStepwise(allVertices, specialSubset, initialSources, heuristicFunction = _defaultHeuristic, edgeSet) {
   function extraPriority(vertex, dsu) {
     return heuristicFunction(vertex, _notYetConnectedSpecials(dsu, specialSubset, vertex));
   }
@@ -30,7 +31,9 @@ export function* growEdgesStepwise(allVertices, specialSubset, initialSources, h
   return yield* _growEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept, isStale);
 }
 
-/** Grow edges via A* until every special vertex shares one DSU root. */
-export function growEdges(allVertices, specialSubset, initialSources, heuristicFunction = _defaultExtraPriority, edgeSet) {
-  return drainEdges(growEdgesStepwise(allVertices, specialSubset, initialSources, heuristicFunction, edgeSet));
-}
+// PUBLIC INTERFACE
+
+export const {
+  growEdgesUnidirectionalStepwise,
+  growEdgesMultidirectionalStepwise,
+} = createDirectionalVariants(_generalGrowEdgesStepwise);

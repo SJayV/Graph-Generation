@@ -1,5 +1,3 @@
-/** WebGL shader compilation and program linking for dot/line rendering. */
-
 // CONSTANTS
 
 const POSITION_VERTEX_SHADER_SOURCE = `
@@ -70,6 +68,7 @@ function _linkProgram(gl, vertexShader, fragmentShader) {
 }
 
 // PUBLIC INTERFACE
+
 export function createColorProgram(gl) {
   const vertexShader = _compileShader(gl, gl.VERTEX_SHADER, COLOR_VERTEX_SHADER_SOURCE);
   const fragmentShader = _compileShader(gl, gl.FRAGMENT_SHADER, COLOR_FRAGMENT_SHADER_SOURCE);

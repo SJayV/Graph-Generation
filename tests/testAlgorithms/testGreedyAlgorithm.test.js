@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { growEdgesStepwise } from "../../algorithms/greedyAlgorithm.js";
+import { growEdgesStepwise } from "../../algorithms/skeleton/greedyAlgorithm.js";
 
 function makeVertices(n) {
   return Array.from({ length: n }, (_, i) => [i, 0]);

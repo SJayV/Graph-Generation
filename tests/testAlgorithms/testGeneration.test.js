@@ -3,8 +3,8 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as algorithm from "../../algorithms/generation.js";
-import { _candidatePairs } from "../../algorithms/greedyAlgorithm.js";
+import * as algorithm from "../../algorithms/parametrization/generation.js";
+import { _candidatePairs, drainEdges } from "../../algorithms/skeleton/greedyAlgorithm.js";
 
 function makeVertices(n) {
   return Array.from({ length: n }, (_, i) => [i, 0]);
@@ -75,7 +75,7 @@ describe("algorithm", () => {
       const sigma = 1.0;
 
       const emittedSoFar = uniqueEdgeKeys([...algorithm.growEdgesStepwise(allVertices, special, 1.5, sigma)]);
-      const result = algorithm.growEdges(allVertices, special, 1.5, sigma);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, 1.5, sigma));
       const finalKeys = uniqueEdgeKeys(result.edges);
 
       for (const key of emittedSoFar) {
@@ -95,7 +95,7 @@ describe("algorithm", () => {
       const maxEdges = nChoose2(n);
       expect(m).toBeLessThan(maxEdges); // sanity check on the chosen scenario
 
-      const result = algorithm.growEdges(allVertices, special, r, sigma);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, r, sigma));
       expect(result.edges.length).toBe(Math.min(m, maxEdges));
     });
 
@@ -109,7 +109,7 @@ describe("algorithm", () => {
       const maxEdges = nChoose2(n);
       expect(m).toBeGreaterThan(maxEdges); // sanity check: r is deliberately oversized
 
-      const result = algorithm.growEdges(allVertices, special, r, sigma);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, r, sigma));
       expect(result.edges.length).toBe(maxEdges);
     });
 
@@ -119,7 +119,7 @@ describe("algorithm", () => {
       const sigma = 1.0;
 
       // Regression guard: this call must return rather than hang.
-      const result = algorithm.growEdges(allVertices, special, 1_000_000.0, sigma);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, 1_000_000.0, sigma));
       expect(result.edges.length).toBe(nChoose2(allVertices.length));
     });
   });
@@ -128,7 +128,7 @@ describe("algorithm", () => {
     it("no self-loop edges present", () => {
       const allVertices = makeVertices(6);
       const special = allVertices.slice(0, 2);
-      const result = algorithm.growEdges(allVertices, special, 2.0, 1.0);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, 2.0, 1.0));
       for (const [u, v] of result.edges) {
         expect(vertexKey(u)).not.toBe(vertexKey(v));
       }
@@ -137,7 +137,7 @@ describe("algorithm", () => {
     it("no duplicate unordered pairs", () => {
       const allVertices = makeVertices(6);
       const special = allVertices.slice(0, 2);
-      const result = algorithm.growEdges(allVertices, special, 2.0, 1.0);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, 2.0, 1.0));
       const keys = uniqueEdgeKeys(result.edges);
       expect(keys.size).toBe(result.edges.length);
     });
@@ -188,7 +188,7 @@ describe("algorithm", () => {
       const special = [allVertices[0], allVertices[1]];
       const sigma = 1.0;
 
-      const result = algorithm.growEdges(allVertices, special, 1.5, sigma);
+      const result = drainEdges(algorithm.growEdgesStepwise(allVertices, special, 1.5, sigma));
       const maxEdges = nChoose2(allVertices.length);
       expect(result.edges.length).toBeGreaterThan(0);
       expect(result.edges.length).toBeLessThan(maxEdges); // sanity: a non-trivial partial graph

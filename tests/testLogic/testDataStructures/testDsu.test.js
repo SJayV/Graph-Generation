@@ -295,4 +295,80 @@ describe("DSU", () => {
       expect(structure.connected([0, 0], [2, 0])).toBe(structure.connected([2, 0], [0, 0]));
     });
   });
+
+  describe("allConnected", () => {
+    it("returns true for an empty array of vertices (vacuous)", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+
+      expect(structure.allConnected([])).toBe(true);
+    });
+
+    it("returns true for a single vertex (vacuous, matches the length < 2 guard)", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+
+      expect(structure.allConnected([[0, 0]])).toBe(true);
+    });
+
+    it("returns true for two vertices already unioned together", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+      structure.union([0, 0], [1, 0]);
+
+      expect(structure.allConnected([[0, 0], [1, 0]])).toBe(true);
+    });
+
+    it("returns false for two vertices never unioned (separate components)", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+
+      expect(structure.allConnected([[0, 0], [2, 0]])).toBe(false);
+    });
+
+    it("returns true for three or more vertices all pairwise unioned into one component", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+        [3, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+      structure.union([0, 0], [1, 0]);
+      structure.union([1, 0], [2, 0]);
+      structure.union([2, 0], [3, 0]);
+
+      expect(structure.allConnected([[0, 0], [1, 0], [2, 0], [3, 0]])).toBe(true);
+    });
+
+    it("returns false for three or more vertices where only some are unioned", () => {
+      const allVertices = [
+        [0, 0],
+        [1, 0],
+        [2, 0],
+        [3, 0],
+      ];
+      const structure = buildDsu(allVertices, []);
+      structure.union([0, 0], [1, 0]);
+      structure.union([2, 0], [3, 0]);
+
+      expect(structure.allConnected([[0, 0], [1, 0], [2, 0], [3, 0]])).toBe(false);
+    });
+  });
 });

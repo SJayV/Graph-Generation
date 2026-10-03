@@ -1,4 +1,4 @@
-/** Deterministic k-nearest-neighbor edge set construction, no RNG. */
+/** Deterministic k-nearest-neighbor edge set construction. */
 import { distance } from "../computation/distance.js";
 import { edgeKey } from "./vertices.js";
 

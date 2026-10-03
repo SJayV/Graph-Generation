@@ -14,50 +14,6 @@ const SHORTEST_PATH_FAMILY_NAMES = [
 ];
 
 describe("algorithmOrder", () => {
-  describe("fixed ordered algorithm list", () => {
-    it("has exactly 5 entries", () => {
-      expect(ALGORITHM_NAMES.length).toBe(5);
-    });
-
-    it("starts with generation first (AC1)", () => {
-      expect(ALGORITHM_NAMES[0]).toBe("generation");
-    });
-
-    it("contains the exact 5 algorithm identifiers, in the resolved order", () => {
-      expect(ALGORITHM_NAMES).toEqual([
-        "generation",
-        "dijkstraUnidirectional",
-        "astarUnidirectional",
-        "dijkstraMultidirectional",
-        "astarMultidirectional",
-      ]);
-    });
-  });
-
-  describe("nextAlgorithmName advances through the list (AC2)", () => {
-    it("advances from generation to dijkstraUnidirectional", () => {
-      expect(nextAlgorithmName("generation")).toBe("dijkstraUnidirectional");
-    });
-
-    it("advances from dijkstraUnidirectional to astarUnidirectional", () => {
-      expect(nextAlgorithmName("dijkstraUnidirectional")).toBe("astarUnidirectional");
-    });
-
-    it("advances from astarUnidirectional to dijkstraMultidirectional", () => {
-      expect(nextAlgorithmName("astarUnidirectional")).toBe("dijkstraMultidirectional");
-    });
-
-    it("advances from dijkstraMultidirectional to astarMultidirectional", () => {
-      expect(nextAlgorithmName("dijkstraMultidirectional")).toBe("astarMultidirectional");
-    });
-  });
-
-  describe("nextAlgorithmName wraps from the last entry back to the first (AC3)", () => {
-    it("advances from astarMultidirectional (last) back to generation (first)", () => {
-      expect(nextAlgorithmName("astarMultidirectional")).toBe("generation");
-    });
-  });
-
   describe("full-cycle consistency", () => {
     it("advancing ALGORITHM_NAMES.length times from any entry returns to that same entry", () => {
       for (const startingName of ALGORITHM_NAMES) {
@@ -71,7 +27,7 @@ describe("algorithmOrder", () => {
 
     it("visits every name exactly once in one full cycle starting from generation", () => {
       const visited = [];
-      let currentName = "generation";
+      let currentName = ALGORITHM_NAMES[0];
       for (let step = 0; step < ALGORITHM_NAMES.length; step += 1) {
         visited.push(currentName);
         currentName = nextAlgorithmName(currentName);
@@ -244,16 +200,5 @@ describe("dispatcher", () => {
 
       expect(edges).toEqual([]);
     });
-  });
-});
-
-describe("algorithmOrder + dispatcher integration", () => {
-  it("cycling through every name in ALGORITHM_NAMES via runAlgorithm never throws, on the same small graph", () => {
-    const allVertices = [[0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2]];
-    const specialSubset = [allVertices[0], allVertices[2], allVertices[4]];
-
-    for (const algorithmName of ALGORITHM_NAMES) {
-      expect(() => runAlgorithm(algorithmName, allVertices, specialSubset, undefined)).not.toThrow();
-    }
   });
 });

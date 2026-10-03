@@ -1,5 +1,6 @@
 /** Repeated trials of the edge-growth algorithm. */
-import * as algorithm from "../algorithms/generation.js";
+import * as algorithm from "../algorithms/parametrization/generation.js";
+import { drainEdges } from "../algorithms/skeleton/greedyAlgorithm.js";
 import { sigmaFromGridSize } from "../logic/computation/field.js";
 import * as verticesModule from "../logic/randomness/vertices.js";
 
@@ -9,14 +10,9 @@ function _trialOutcome(r, n, L, k, rngSource) {
   const allVertices = verticesModule.sampleVertices(n, L, rngSource);
   const specialSubset = verticesModule.selectSpecialSubset(allVertices, k, rngSource);
   const sigma = sigmaFromGridSize(L);
-  const { dsu } = algorithm.growEdges(allVertices, specialSubset, r, sigma);
+  const { dsu } = drainEdges(algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma));
 
-  if (specialSubset.length <= 1) {
-    return true;
-  }
-
-  const roots = new Set(specialSubset.map((vertex) => verticesModule.vertexKey(dsu.find(vertex))));
-  return roots.size === 1;
+  return dsu.allConnected(specialSubset);
 }
 
 // PUBLIC INTERFACE
