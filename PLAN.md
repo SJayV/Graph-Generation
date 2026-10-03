@@ -67,7 +67,28 @@ This feature explicitly does NOT cover:
 
 ## User Stories
 
-### User Story 7: Tab-Key Algorithm Switching
+### User Story 7: Static Edge-Set Baseline Layer and Final-Path Highlight Glow
+
+As a viewer of the demo, I want to see the algorithm's full candidate edge set as a dim, always-visible background layer beneath the actively-growing edges, and see the edges that actually connect the specials light up in the same orange as the special vertices once the algorithm finishes, so that I can tell at a glance which candidate connections were available, and which ones the algorithm actually used to connect the specials.
+
+Builds on Story 5's `edgeSet` concept (the static k-nearest-neighbor candidate graph `logic/edges.js` builds, and `main.js` already wires into Dijkstra/A*/multidirectional) and on Story 4's recency-glow mechanism, reusing both rather than introducing new decay math or a new candidate-graph primitive. Resolved design (previously open questions):
+- the baseline layer only ever appears for algorithms that were given an `edgeSet` (Dijkstra/A*/multidirectional, as wired in `main.js`); `algorithms/generation.js` has no `edgeSet` and so gets no baseline layer.
+- a new algorithms-layer capability identifies, as a post-process over a finished algorithm's accepted edges and resulting DSU, exactly the subset of edges that lie on a path connecting two specials (excluding filler edges absorbed into the tree without connecting any two specials). `main.js`/rendering calls this once the generator is fully consumed, then appends those edges as a second, orange-colored batch onto the edge sequence at the terminal step — they pick up the existing recency-glow mechanism exactly like any other newly-revealed edge, with no new glow-timing machinery needed. The appended highlight entries render on top of (not in place of) their original blue entries, visually reading as a replacement at far less cost than finding and recoloring the original entry.
+- no separate clearing logic is needed for Tab-key switching (Story 8): both the baseline layer and the highlight entries are just more static, pre-rendered graph data, already covered by Story 8's existing full-render-state-replacement guarantee, the same as vertices.
+- `rendering/drawEdges.js`'s existing draw routine is reused, not duplicated, for the baseline and highlight layers: it currently hardcodes reading `renderState.visibleEdges` and a single `EDGE_COLOR` constant, so it needs generalizing to take an explicit edge list, dots, and axis bounds as parameters, letting `draw.js` call it once per edge category (baseline, growth, highlight) through the same WebGL upload/draw logic. Glow becomes a decorator over per-edge color resolution rather than baked into the draw routine itself: `drawEdges` takes a color-resolving function (defaulting to a flat base color), and only the growth/highlight calls pass one that mixes in `edge.glow` — the baseline call passes a plain constant-color resolver and so never touches glow at all. `rendering/renderState.js`'s `computeRenderState` is extended to also expose a `baselineEdges` list (dot positions only, no glow computation) alongside the existing `visibleEdges`.
+
+**Acceptance criteria**
+1. Accepted when the render-state helper is given an `edgeSet`, it reports a baseline-edge list containing exactly the pairs in that `edgeSet`, present in the result at step index `0`, before any edge from the edge sequence has been accepted/grown.
+2. Accepted when no `edgeSet` is given, the reported baseline-edge list is empty at every step.
+3. Accepted when the step index advances through the edge sequence, the reported baseline-edge list remains exactly the same set of pairs throughout.
+4. Accepted when the top-level draw function renders a baseline edge and an actively-growing edge, both use the same blue hue as each other, but the baseline edge's rendered opacity/brightness is strictly less than the actively-growing edge's.
+5. Accepted when a finished algorithm's accepted edges, resulting DSU, and special subset are given to the new path-identification capability, it returns exactly the subset of accepted edges that lie on a path connecting two special vertices.
+6. Accepted when the edge sequence fed to the render-state helper has the identified connecting edges appended as a second batch after the algorithm's own accepted-edge sequence, every edge in that second batch is reported using the special/orange color, with the same glow-intensity-`1.0`-at-reveal-then-decay behavior any newly-revealed edge already gets.
+7. Accepted when the same edge pair appears both in the original accepted-edge sequence and in the appended highlight batch, the render-state helper's draw order places the highlight entry after the original, so it draws on top.
+
+**Explicitly not covered by this story:** exact numeric color/opacity/darkness values (e.g. the precise alpha or RGB channels used for the baseline layer) — implementation detail, not part of the acceptance criteria; only the qualitative relationship (same hue, strictly less opaque than growth-phase edges for baseline; special/orange hue for highlight) is contractual. Also not covered: any clearing logic specific to this story for Tab-key switching — already covered by Story 8's own full-render-state-replacement guarantee.
+
+### User Story 8: Tab-Key Algorithm Switching
 
 As a viewer of the demo, I want to press Tab to switch to the next algorithm and see a freshly generated graph grown by it, so that I can compare how the different connectivity strategies introduced by this feature grow a graph.
 
@@ -82,28 +103,6 @@ The project's test suite runs in a plain Node environment (no jsdom), so — con
 6. Accepted when any key other than Tab is pressed, the currently displayed algorithm and graph are unaffected.
 
 **Explicitly not covered by this story:** the exact visual/DOM wiring of the `keydown` listener itself (untestable imperative-shell code, verified by manual/visual check rather than an automated test, same as the existing render loop).
-
-### User Story 8: Static Edge-Set Baseline Layer and Final-Path Highlight Glow
-
-As a viewer of the demo, I want to see the algorithm's full candidate edge set as a dim, always-visible background layer beneath the actively-growing edges, and see the final accepted edges light up in the same orange as the special vertices once the algorithm finishes, so that I can tell at a glance which candidate connections were available versus which ones the algorithm actually settled on as its answer.
-
-Builds on Story 5's `edgeSet` concept (the static k-nearest-neighbor candidate graph `logic/edges.js` builds, and `main.js` already wires into Dijkstra/A*/multidirectional) and on Story 4's recency-glow mechanism (`rendering/glow.js`'s `computeGlow`), reusing both rather than introducing new decay math or a new candidate-graph primitive.
-
-**Acceptance criteria**
-1. Accepted when the render-state helper is given an `edgeSet`, it reports a baseline-edge list containing exactly the pairs in that `edgeSet`, present in the result at step index `0` before any edge from the edge sequence has been accepted/grown.
-2. Accepted when the step index advances through the edge sequence, the reported baseline-edge list remains exactly the same set of pairs throughout.
-3. Accepted when the top-level draw function renders a baseline edge and an actively-growing edge, both use the same blue hue as each other, but the baseline edge's rendered opacity/brightness is strictly less than the actively-growing edge's.
-4. Accepted when the render-state helper is queried at any step, each edge in its result additionally exposes whether it is currently highlighted (finalized), independent of its glow value so a caller can distinguish them without separately cross-referencing the raw edge sequence or algorithm internals.
-5. Accepted when an edge's highlighted status becomes true, the render-state helper reports that edge's glow intensity as `1.0` at the moment of that transition, decaying thereafter along the identical curve with its own `becameVisibleAt`-equivalent timestamp, regardless of how long the edge had already been visible in its non-highlighted color.
-6. Accepted when the algorithm's generator has been fully consumed and the render-state helper is queried at the corresponding terminal step, every edge determined to be highlighted reports the same highlighting-transition time as every other highlighted edge at that step .
-7. Accepted when the render-state helper is queried at any step before the generator has fully terminated, no edge reports a highlighted status of true.
-
-**Explicitly not covered by this story:** exact numeric color/opacity/darkness values (e.g. the precise alpha or RGB channels used for the baseline layer) — these are implementation details, not part of the acceptance criteria; only the qualitative relationship (same hue, strictly less opaque than growth-phase edges) is contractual.
-
-**Open questions for the user:** the following are genuinely unresolved and are deliberately left out of the acceptance criteria above until answered.
-1. Does the baseline layer apply to every algorithm, including `algorithms/generation.js` (which has no `edgeSet` concept and normally treats the vertex set as a complete graph — its "baseline" would be all C(n,2) pairs, likely visually overwhelming), or does the baseline layer only ever apply when an `edgeSet` is actually supplied (i.e. Dijkstra, A*, and the multidirectional variants, as currently wired in `main.js`), with no baseline layer at all otherwise?
-2. Is the final orange highlighting a **replacement** of an edge's existing blue appearance, or an **additional overlay/second highlight** distinct from both the baseline and growth-phase coloring? Relatedly: does highlighting apply to **literally every** edge in the final accepted tree, or only to the subset of accepted edges that actually lie on a special-to-special connecting path (the accepted tree can include filler edges that are not on any special-to-special path, since termination is DSU-connectivity-based, not path-based)? If only the latter, a mechanism to identify "which accepted edges lie on a special-to-special path" does not yet exist anywhere in this feature's algorithms and would need to be designed.
-3. How does this story interact with Story 7's Tab-key algorithm switching (not yet implemented)? When Tab switches to a new algorithm/fresh graph, does the previous algorithm's baseline layer and highlight state need explicit clearing as part of this story, or is that already fully covered by Story 7's own AC5/A17 guarantee ("previous render state is fully replaced"), making it out of scope here?
 
 ## Assumptions
 
@@ -136,7 +135,7 @@ Builds on Story 5's `edgeSet` concept (the static k-nearest-neighbor candidate g
 - A13: Every algorithm file in `algorithms/` (generation, Dijkstra, A*, multidirectional Dijkstra, multidirectional A*) exposes a generator with the same call signature and yielded-edge shape.
 - A14: `main.js` and `rendering/` consume any algorithm file's generator without needing to know which algorithm produced it, and without code changes when swapping between algorithm files.
 
-### Algorithm switching (Story 7)
+### Algorithm switching (Story 8)
 - A15: The ordered algorithm list is fixed for the lifetime of a running demo — switching does not add, remove, or reorder entries.
 - A16: Each physical Tab key press advances the active algorithm by exactly one step in the list — holding the key down does not repeatedly advance via the browser's native key-repeat; a new advance only occurs after the key has been released and pressed again.
 - A17: After a switch, the render state contains only vertex, edge, and glow data from the newly selected algorithm's newly generated graph — none from any previously active algorithm's graph.

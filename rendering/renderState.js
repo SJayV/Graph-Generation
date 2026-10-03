@@ -1,7 +1,4 @@
-/**
- * Pure render-state helper. `computeRenderState` is the single source of
- * truth for what is rendered at a given step.
- */
+/** Pure render-state helper; single source of truth for what is rendered at a given step. */
 
 // HELPER FUNCTIONS
 
