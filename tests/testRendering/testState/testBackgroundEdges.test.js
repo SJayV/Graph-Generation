@@ -1,14 +1,22 @@
 /** Static, always-visible background layer built from an optional edgeSet. */
 import { describe, expect, it } from "vitest";
 
-import { computeRenderState } from "../../rendering/renderState.js";
-import { computeGlow } from "../../rendering/glow.js";
-import { EDGE_PACING_MILLISECONDS } from "../../rendering/renderer.js";
+import { computeRenderState } from "../../../rendering/state/renderState.js";
+import { computeGlow } from "../../../rendering/state/glow.js";
+import { EDGE_PACING_MILLISECONDS } from "../../../rendering/state/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
-describe("Baseline edge-set layer", () => {
-  describe("given an edgeSet, the baseline-edge list contains exactly its pairs", () => {
-    it("reports every edgeSet pair as a baseline edge at step index 0", () => {
+function _backgroundEdges(renderState) {
+  return renderState.edges.filter((edge) => edge.category === "background");
+}
+
+function _normalEdges(renderState) {
+  return renderState.edges.filter((edge) => edge.category === "normal");
+}
+
+describe("Background edge-set layer", () => {
+  describe("given an edgeSet, the background-edge list contains exactly its pairs", () => {
+    it("reports every edgeSet pair as a background edge at step index 0", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
       const edgeSet = [[0, 2], [2, 4], [1, 3]];
@@ -24,11 +32,11 @@ describe("Baseline edge-set layer", () => {
       );
 
       expect(
-        renderState.baselineEdges.map((edge) => [edge.startIndex, edge.endIndex]),
+        _backgroundEdges(renderState).map((edge) => [edge.startIndex, edge.endIndex]),
       ).toEqual(edgeSet);
     });
 
-    it("reports baseline edges already present before any growth edge is accepted", () => {
+    it("reports background edges already present before any growth edge is accepted", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
       const edgeSet = [[0, 3]];
@@ -43,23 +51,23 @@ describe("Baseline edge-set layer", () => {
         edgeSet,
       );
 
-      expect(renderState.visibleEdges).toEqual([]);
-      expect(renderState.baselineEdges).toHaveLength(1);
+      expect(_normalEdges(renderState)).toEqual([]);
+      expect(_backgroundEdges(renderState)).toHaveLength(1);
     });
   });
 
-  describe("no edgeSet given means no baseline layer, at any step", () => {
-    it.each([0, 1, 2, 3])("reports an empty baseline-edge list at step index %i", (stepIndex) => {
+  describe("no edgeSet given means no background layer, at any step", () => {
+    it.each([0, 1, 2, 3])("reports an empty background-edge list at step index %i", (stepIndex) => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
 
       const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
 
-      expect(renderState.baselineEdges).toEqual([]);
+      expect(_backgroundEdges(renderState)).toEqual([]);
     });
   });
 
-  describe("the baseline-edge list is static as the step index advances", () => {
+  describe("the background-edge list is static as the step index advances", () => {
     it("reports exactly the same pairs at every step index", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
@@ -71,7 +79,7 @@ describe("Baseline edge-set layer", () => {
 
       statesByStep.forEach((renderState) => {
         expect(
-          renderState.baselineEdges.map((edge) => [edge.startIndex, edge.endIndex]),
+          _backgroundEdges(renderState).map((edge) => [edge.startIndex, edge.endIndex]),
         ).toEqual(edgeSet);
       });
     });
@@ -100,12 +108,12 @@ describe("Baseline edge-set layer", () => {
         edgeSet,
       );
 
-      expect(early.baselineEdges).toEqual(late.baselineEdges);
+      expect(_backgroundEdges(early)).toEqual(_backgroundEdges(late));
     });
   });
 
-  describe("baseline edges carry no glow/timing data", () => {
-    it("never attaches a glow field to a baseline edge", () => {
+  describe("background edges carry no glow/timing data", () => {
+    it("never attaches a glow field to a background edge", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
       const edgeSet = [[0, 1]];
@@ -120,13 +128,13 @@ describe("Baseline edge-set layer", () => {
         edgeSet,
       );
 
-      renderState.baselineEdges.forEach((edge) => {
+      _backgroundEdges(renderState).forEach((edge) => {
         expect(edge).not.toHaveProperty("glow");
         expect(edge).not.toHaveProperty("becameVisibleAt");
       });
     });
 
-    it("keeps baselineEdges and visibleEdges as separate lists, each with their own endpoints", () => {
+    it("keeps backgroundEdges and visibleEdges as separate lists, each with their own endpoints", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
       const edgeSet = [[0, 4]];
@@ -141,9 +149,9 @@ describe("Baseline edge-set layer", () => {
         edgeSet,
       );
 
-      expect(renderState.baselineEdges).toHaveLength(1);
-      expect(renderState.visibleEdges).toHaveLength(2);
-      expect(renderState.baselineEdges[0]).toEqual({ startIndex: 0, endIndex: 4 });
+      expect(_backgroundEdges(renderState)).toHaveLength(1);
+      expect(_normalEdges(renderState)).toHaveLength(2);
+      expect(_backgroundEdges(renderState)[0]).toEqual({ startIndex: 0, endIndex: 4, category: "background" });
     });
   });
 });

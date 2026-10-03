@@ -4,8 +4,8 @@
  */
 import { describe, expect, it, vi } from "vitest";
 
-import * as renderStateModule from "../../rendering/renderState.js";
-import { createRenderer } from "../../rendering/renderer.js";
+import * as renderStateModule from "../../../rendering/state/renderState.js";
+import { createRenderer } from "../../../rendering/state/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 describe("Render function / helper relationship", () => {
@@ -16,8 +16,8 @@ describe("Render function / helper relationship", () => {
 
       const renderState = renderStateModule.computeRenderState(vertices, edgeSequence, 1);
 
-      expect(renderState.dots).toHaveLength(3);
-      expect(renderState.visibleEdges).toHaveLength(1);
+      expect(renderState.vertices).toHaveLength(3);
+      expect(renderState.edges).toHaveLength(1);
     });
   });
 

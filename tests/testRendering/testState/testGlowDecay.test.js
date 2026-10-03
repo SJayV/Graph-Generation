@@ -4,9 +4,9 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { computeRenderState } from "../../rendering/renderState.js";
-import { computeGlow } from "../../rendering/glow.js";
-import { EDGE_PACING_MILLISECONDS } from "../../rendering/renderer.js";
+import { computeRenderState } from "../../../rendering/state/renderState.js";
+import { computeGlow } from "../../../rendering/state/glow.js";
+import { EDGE_PACING_MILLISECONDS } from "../../../rendering/state/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 const LARGE_ELAPSED = 5000;
@@ -16,7 +16,7 @@ const EPSILON = 0.01;
 // becameVisibleAt is a property of the edge, not of the query time
 function becameVisibleAtOf(vertices, edgeSequence, stepIndex, edgeIndex) {
   const state = computeRenderState(vertices, edgeSequence, stepIndex, 0, computeGlow, EDGE_PACING_MILLISECONDS);
-  return state.visibleEdges[edgeIndex].becameVisibleAt;
+  return state.edges[edgeIndex].becameVisibleAt;
 }
 
 function stripGlowFields(visibleEdges) {
@@ -32,7 +32,7 @@ describe("Glow decay", () => {
 
       const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(state.visibleEdges[0].glow).toBe(1.0);
+      expect(state.edges[0].glow).toBe(1.0);
     });
 
     it("keeps glow strictly between 0.0 and 1.0 for any positive elapsed time", () => {
@@ -42,8 +42,8 @@ describe("Glow decay", () => {
 
       [1, 1000, LARGE_ELAPSED, LARGER_ELAPSED].forEach((elapsed) => {
         const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + elapsed, computeGlow, EDGE_PACING_MILLISECONDS);
-        expect(state.visibleEdges[0].glow).toBeGreaterThan(0.0);
-        expect(state.visibleEdges[0].glow).toBeLessThan(1.0);
+        expect(state.edges[0].glow).toBeGreaterThan(0.0);
+        expect(state.edges[0].glow).toBeLessThan(1.0);
       });
     });
   });
@@ -56,7 +56,7 @@ describe("Glow decay", () => {
 
       const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(state.visibleEdges[0].glow).toBeLessThan(EPSILON);
+      expect(state.edges[0].glow).toBeLessThan(EPSILON);
     });
   });
 
@@ -69,7 +69,7 @@ describe("Glow decay", () => {
       const lessElapsed = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGE_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
       const moreElapsed = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(moreElapsed.visibleEdges[0].glow).toBeLessThanOrEqual(lessElapsed.visibleEdges[0].glow);
+      expect(moreElapsed.edges[0].glow).toBeLessThanOrEqual(lessElapsed.edges[0].glow);
     });
   });
 
@@ -87,7 +87,7 @@ describe("Glow decay", () => {
       const stateA = computeRenderState(verticesA, edgeSequenceA, 1, becameVisibleAtA + elapsed, computeGlow, EDGE_PACING_MILLISECONDS);
       const stateB = computeRenderState(verticesB, edgeSequenceB, 1, becameVisibleAtB + elapsed, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(stateA.visibleEdges[0].glow).toBe(stateB.visibleEdges[0].glow);
+      expect(stateA.edges[0].glow).toBe(stateB.edges[0].glow);
     });
 
     it("does not vary with vertex/edge count at the same elapsed time", () => {
@@ -116,7 +116,7 @@ describe("Glow decay", () => {
         EDGE_PACING_MILLISECONDS,
       );
 
-      expect(smallState.visibleEdges[0].glow).toBe(largeState.visibleEdges[0].glow);
+      expect(smallState.edges[0].glow).toBe(largeState.edges[0].glow);
     });
   });
 
@@ -128,8 +128,8 @@ describe("Glow decay", () => {
 
       const state = computeRenderState(vertices, edgeSequence, 2, becameVisibleAt + LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(state.visibleEdges).toHaveLength(2);
-      expect(state.visibleEdges[0].glow).toBeLessThan(EPSILON);
+      expect(state.edges).toHaveLength(2);
+      expect(state.edges[0].glow).toBeLessThan(EPSILON);
     });
 
     it("matches the base visible-edge set/order regardless of currentTime", () => {
@@ -140,24 +140,24 @@ describe("Glow decay", () => {
       const glowStateEarly = computeRenderState(vertices, edgeSequence, 3, 0, computeGlow, EDGE_PACING_MILLISECONDS);
       const glowStateLate = computeRenderState(vertices, edgeSequence, 3, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(stripGlowFields(glowStateEarly.visibleEdges)).toEqual(
-        stripGlowFields(baseState.visibleEdges),
+      expect(stripGlowFields(glowStateEarly.edges)).toEqual(
+        stripGlowFields(baseState.edges),
       );
-      expect(stripGlowFields(glowStateLate.visibleEdges)).toEqual(
-        stripGlowFields(baseState.visibleEdges),
+      expect(stripGlowFields(glowStateLate.edges)).toEqual(
+        stripGlowFields(baseState.edges),
       );
     });
   });
 
   describe("negligible-glow state matches the base render state aside from glow fields", () => {
-    it("matches dots exactly at a very large currentTime", () => {
+    it("matches vertices exactly at a very large currentTime", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
       const baseState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
       const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(glowState.dots).toEqual(baseState.dots);
+      expect(glowState.vertices).toEqual(baseState.vertices);
     });
 
     it("matches the visible-edge list exactly, aside from negligible glow fields", () => {
@@ -167,10 +167,10 @@ describe("Glow decay", () => {
       const baseState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
       const glowState = computeRenderState(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED, computeGlow, EDGE_PACING_MILLISECONDS);
 
-      expect(stripGlowFields(glowState.visibleEdges)).toEqual(
-        stripGlowFields(baseState.visibleEdges),
+      expect(stripGlowFields(glowState.edges)).toEqual(
+        stripGlowFields(baseState.edges),
       );
-      glowState.visibleEdges.forEach((edge) => {
+      glowState.edges.forEach((edge) => {
         expect(edge.glow).toBeLessThan(EPSILON);
       });
     });

@@ -4,8 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as dijkstraMultidirectional from "../../algorithms/dijkstra/dijkstraMultidirectional.js";
-import * as dijkstraUnidirectional from "../../algorithms/dijkstra/dijkstraUnidirectional.js";
+import * as dijkstraMultidirectional from "../../../algorithms/dijkstra/dijkstraMultidirectional.js";
+import * as dijkstraUnidirectional from "../../../algorithms/dijkstra/dijkstraUnidirectional.js";
 
 function vertexKey([x, y]) {
   return `${x},${y}`;

@@ -1,5 +1,5 @@
 /** Greedy, field-priority-driven edge growth over a fixed vertex set. */
-import * as fieldModule from "../logic/field.js";
+import * as fieldModule from "../logic/computation/field.js";
 import { drainEdges, growEdgesStepwise as _growEdgesStepwise, incidentPairs } from "./greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - EDGE GROWTH

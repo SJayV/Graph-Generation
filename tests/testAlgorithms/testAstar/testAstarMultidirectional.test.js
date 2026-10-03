@@ -4,8 +4,8 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as astarMultidirectional from "../../algorithms/astar/astarMultidirectional.js";
-import * as dijkstraMultidirectional from "../../algorithms/dijkstra/dijkstraMultidirectional.js";
+import * as astarMultidirectional from "../../../algorithms/astar/astarMultidirectional.js";
+import * as dijkstraMultidirectional from "../../../algorithms/dijkstra/dijkstraMultidirectional.js";
 
 const ZERO_HEURISTIC = () => 0;
 

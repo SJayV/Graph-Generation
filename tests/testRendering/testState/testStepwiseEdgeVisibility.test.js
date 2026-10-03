@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { computeRenderState } from "../../rendering/renderState.js";
+import { computeRenderState } from "../../../rendering/state/renderState.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 describe("Stepwise edge visibility", () => {
@@ -16,7 +16,7 @@ describe("Stepwise edge visibility", () => {
 
         const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
 
-        expect(renderState.visibleEdges).toHaveLength(stepIndex);
+        expect(renderState.edges).toHaveLength(stepIndex);
       },
     );
   });
@@ -29,7 +29,7 @@ describe("Stepwise edge visibility", () => {
 
       const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
 
-      renderState.visibleEdges.forEach((visibleEdge, index) => {
+      renderState.edges.forEach((visibleEdge, index) => {
         const [expectedStart, expectedEnd] = edgeSequence[index];
         expect(visibleEdge.startIndex).toBe(expectedStart);
         expect(visibleEdge.endIndex).toBe(expectedEnd);
@@ -43,29 +43,29 @@ describe("Stepwise edge visibility", () => {
 
       const renderState = computeRenderState(vertices, edgeSequence, 3);
 
-      expect(renderState.visibleEdges.map((edge) => [edge.startIndex, edge.endIndex])).toEqual(
+      expect(renderState.edges.map((edge) => [edge.startIndex, edge.endIndex])).toEqual(
         edgeSequence,
       );
     });
   });
 
-  describe("step index 0 yields no visible edges but vertex dots remain present", () => {
+  describe("step index 0 yields no visible edges but vertices remain present", () => {
     it("returns an empty visible-edge list at step 0", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
 
       const renderState = computeRenderState(vertices, edgeSequence, 0);
 
-      expect(renderState.visibleEdges).toEqual([]);
+      expect(renderState.edges).toEqual([]);
     });
 
-    it("still renders all vertex dots at step 0", () => {
+    it("still renders all vertices at step 0", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
 
       const renderState = computeRenderState(vertices, edgeSequence, 0);
 
-      expect(renderState.dots).toHaveLength(vertices.length);
+      expect(renderState.vertices).toHaveLength(vertices.length);
     });
   });
 
@@ -76,23 +76,23 @@ describe("Stepwise edge visibility", () => {
 
       const renderState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
 
-      expect(renderState.visibleEdges.map((edge) => [edge.startIndex, edge.endIndex])).toEqual(
+      expect(renderState.edges.map((edge) => [edge.startIndex, edge.endIndex])).toEqual(
         edgeSequence,
       );
     });
 
-    it("connects the correct pair of vertex dots by rendered position for every edge", () => {
+    it("connects the correct pair of vertices by rendered position for every edge", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
       const renderState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
 
-      renderState.visibleEdges.forEach((visibleEdge, index) => {
+      renderState.edges.forEach((visibleEdge, index) => {
         const [expectedStartIndex, expectedEndIndex] = edgeSequence[index];
-        expect(renderState.dots[visibleEdge.startIndex].position).toEqual(
+        expect(renderState.vertices[visibleEdge.startIndex].position).toEqual(
           vertices[expectedStartIndex],
         );
-        expect(renderState.dots[visibleEdge.endIndex].position).toEqual(
+        expect(renderState.vertices[visibleEdge.endIndex].position).toEqual(
           vertices[expectedEndIndex],
         );
       });
@@ -107,7 +107,7 @@ describe("Stepwise edge visibility", () => {
       for (let stepIndex = 0; stepIndex < edgeSequence.length; stepIndex += 1) {
         const earlierState = computeRenderState(vertices, edgeSequence, stepIndex);
         const earlierEdgeKeys = new Set(
-          earlierState.visibleEdges.map((edge) => `${edge.startIndex}-${edge.endIndex}`),
+          earlierState.edges.map((edge) => `${edge.startIndex}-${edge.endIndex}`),
         );
 
         for (
@@ -117,7 +117,7 @@ describe("Stepwise edge visibility", () => {
         ) {
           const laterState = computeRenderState(vertices, edgeSequence, laterStepIndex);
           const laterEdgeKeys = new Set(
-            laterState.visibleEdges.map((edge) => `${edge.startIndex}-${edge.endIndex}`),
+            laterState.edges.map((edge) => `${edge.startIndex}-${edge.endIndex}`),
           );
 
           earlierEdgeKeys.forEach((edgeKey) => {
@@ -128,7 +128,7 @@ describe("Stepwise edge visibility", () => {
     });
   });
 
-  describe("every visible edge's endpoints reference existing vertex dots", () => {
+  describe("every visible edge's endpoints reference existing vertices", () => {
     it("has no dangling endpoints for any visible edge at any step", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
@@ -136,11 +136,11 @@ describe("Stepwise edge visibility", () => {
       for (let stepIndex = 0; stepIndex <= edgeSequence.length; stepIndex += 1) {
         const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
 
-        renderState.visibleEdges.forEach((visibleEdge) => {
+        renderState.edges.forEach((visibleEdge) => {
           expect(visibleEdge.startIndex).toBeGreaterThanOrEqual(0);
-          expect(visibleEdge.startIndex).toBeLessThan(renderState.dots.length);
+          expect(visibleEdge.startIndex).toBeLessThan(renderState.vertices.length);
           expect(visibleEdge.endIndex).toBeGreaterThanOrEqual(0);
-          expect(visibleEdge.endIndex).toBeLessThan(renderState.dots.length);
+          expect(visibleEdge.endIndex).toBeLessThan(renderState.vertices.length);
         });
       }
     });

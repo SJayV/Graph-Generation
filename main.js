@@ -1,11 +1,11 @@
 /** Root-level orchestrator: generates a graph in-memory and renders it. */
 import { growEdges } from "./algorithms/astar/astarMultidirectional.js";
 import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
-import { buildNearestNeighborEdges } from "./logic/edges.js";
-import { createSeededRng } from "./logic/rng.js";
-import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/vertices.js";
-import { drawRenderState } from "./rendering/draw.js";
-import { createRenderer } from "./rendering/renderer.js";
+import { buildNearestNeighborEdges } from "./logic/randomness/edges.js";
+import { createSeededRng } from "./logic/randomness/rng.js";
+import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/randomness/vertices.js";
+import { drawRenderState } from "./rendering/gl/draw.js";
+import { createRenderer } from "./rendering/state/renderer.js";
 
 const VERTEX_COUNT = 400;
 const GRID_SIZE = 1000;
@@ -42,7 +42,7 @@ function _generateGraph() {
     vertices: _markSpecial(allVertices, specialSubset),
     edgeSequence: _toIndexEdges(allVertices, vertexPairs),
     edgeSet: _toIndexEdges(allVertices, edgeSet),
-    highlightStartIndex: edges.length,
+    specialStartIndex: edges.length,
   };
 }
 
@@ -64,8 +64,8 @@ export function startDemo(canvasElement) {
     throw new Error("WebGL is not supported in this browser.");
   }
 
-  const { vertices, edgeSequence, edgeSet, highlightStartIndex } = _generateGraph();
-  const renderer = createRenderer(vertices, edgeSequence, edgeSet, highlightStartIndex);
+  const { vertices, edgeSequence, edgeSet, specialStartIndex } = _generateGraph();
+  const renderer = createRenderer(vertices, edgeSequence, edgeSet, specialStartIndex);
   renderer.start();
 
   _runRenderLoop(gl, renderer);

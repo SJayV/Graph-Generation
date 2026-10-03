@@ -1,5 +1,5 @@
 /** Gaussian-field priority score used by the greedy edge-growth algorithm. */
-import { gaussian } from "./rng.js";
+import { gaussian } from "../randomness/rng.js";
 
 // CONSTANTS
 

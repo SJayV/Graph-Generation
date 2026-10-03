@@ -5,9 +5,9 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { computeRenderState } from "../../rendering/renderState.js";
-import { computeGlow } from "../../rendering/glow.js";
-import { EDGE_PACING_MILLISECONDS } from "../../rendering/renderer.js";
+import { computeRenderState } from "../../../rendering/state/renderState.js";
+import { computeGlow } from "../../../rendering/state/glow.js";
+import { EDGE_PACING_MILLISECONDS } from "../../../rendering/state/renderer.js";
 import { makeVertices } from "./fixtures.js";
 
 describe("Final-path highlight glow", () => {
@@ -29,10 +29,10 @@ describe("Final-path highlight glow", () => {
         highlightStartIndex,
       );
 
-      expect(renderState.visibleEdges.map((edge) => edge.category)).toEqual([
-        "growth",
-        "growth",
-        "highlight",
+      expect(renderState.edges.map((edge) => edge.category)).toEqual([
+        "normal",
+        "normal",
+        "special",
       ]);
     });
 
@@ -49,9 +49,9 @@ describe("Final-path highlight glow", () => {
         EDGE_PACING_MILLISECONDS,
       );
 
-      expect(renderState.visibleEdges.map((edge) => edge.category)).toEqual([
-        "growth",
-        "growth",
+      expect(renderState.edges.map((edge) => edge.category)).toEqual([
+        "normal",
+        "normal",
       ]);
     });
   });
@@ -72,7 +72,7 @@ describe("Final-path highlight glow", () => {
         undefined,
         highlightStartIndex,
       );
-      const highlightBecameVisibleAt = probe.visibleEdges[1].becameVisibleAt;
+      const highlightBecameVisibleAt = probe.edges[1].becameVisibleAt;
 
       const renderState = computeRenderState(
         vertices,
@@ -85,8 +85,8 @@ describe("Final-path highlight glow", () => {
         highlightStartIndex,
       );
 
-      expect(renderState.visibleEdges[1].category).toBe("highlight");
-      expect(renderState.visibleEdges[1].glow).toBe(1.0);
+      expect(renderState.edges[1].category).toBe("special");
+      expect(renderState.edges[1].glow).toBe(1.0);
     });
 
     it("decays a highlight edge's glow toward 0.0 for large elapsed time, same as a growth edge would", () => {
@@ -106,7 +106,7 @@ describe("Final-path highlight glow", () => {
         undefined,
         highlightStartIndex,
       );
-      const highlightBecameVisibleAt = probe.visibleEdges[1].becameVisibleAt;
+      const highlightBecameVisibleAt = probe.edges[1].becameVisibleAt;
 
       const renderState = computeRenderState(
         vertices,
@@ -119,7 +119,7 @@ describe("Final-path highlight glow", () => {
         highlightStartIndex,
       );
 
-      expect(renderState.visibleEdges[1].glow).toBeLessThan(EPSILON);
+      expect(renderState.edges[1].glow).toBeLessThan(EPSILON);
     });
   });
 
@@ -140,8 +140,8 @@ describe("Final-path highlight glow", () => {
         highlightStartIndex,
       );
 
-      expect(renderState.visibleEdges).toHaveLength(3);
-      const duplicatePairOccurrences = renderState.visibleEdges.filter(
+      expect(renderState.edges).toHaveLength(3);
+      const duplicatePairOccurrences = renderState.edges.filter(
         (edge) => edge.startIndex === 0 && edge.endIndex === 1,
       );
       expect(duplicatePairOccurrences).toHaveLength(2);
@@ -163,11 +163,11 @@ describe("Final-path highlight glow", () => {
         highlightStartIndex,
       );
 
-      const originalIndex = renderState.visibleEdges.findIndex(
-        (edge) => edge.startIndex === 0 && edge.endIndex === 1 && edge.category === "growth",
+      const originalIndex = renderState.edges.findIndex(
+        (edge) => edge.startIndex === 0 && edge.endIndex === 1 && edge.category === "normal",
       );
-      const highlightIndex = renderState.visibleEdges.findIndex(
-        (edge) => edge.startIndex === 0 && edge.endIndex === 1 && edge.category === "highlight",
+      const highlightIndex = renderState.edges.findIndex(
+        (edge) => edge.startIndex === 0 && edge.endIndex === 1 && edge.category === "special",
       );
 
       expect(originalIndex).toBeGreaterThanOrEqual(0);
@@ -190,7 +190,7 @@ describe("Final-path highlight glow", () => {
         highlightStartIndex,
       );
 
-      const [originalOccurrence, , highlightOccurrence] = renderState.visibleEdges;
+      const [originalOccurrence, , highlightOccurrence] = renderState.edges;
       expect(highlightOccurrence.becameVisibleAt).not.toBe(originalOccurrence.becameVisibleAt);
     });
   });

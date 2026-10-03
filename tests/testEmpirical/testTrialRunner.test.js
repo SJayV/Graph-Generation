@@ -4,8 +4,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { runTrials } from "../../empirical/trialRunner.js";
-import { createSeededRng } from "../../logic/rng.js";
-import * as verticesModule from "../../logic/vertices.js";
+import { createSeededRng } from "../../logic/randomness/rng.js";
+import * as verticesModule from "../../logic/randomness/vertices.js";
 
 function makeRng() {
   return createSeededRng(1234);

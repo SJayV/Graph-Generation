@@ -1,44 +1,41 @@
-/**
- * dots[i].position === vertices[i], no transform
- */
 import { describe, expect, it } from "vitest";
 
-import { computeRenderState } from "../../rendering/renderState.js";
+import { computeRenderState } from "../../../rendering/state/renderState.js";
 import { makeVertices } from "./fixtures.js";
 
 describe("Vertex rendering", () => {
-  describe("every vertex appears exactly once as a dot", () => {
-    it("produces exactly one dot per input vertex", () => {
+  describe("every vertex appears exactly once in the rendered vertex list", () => {
+    it("produces exactly one rendered vertex per input vertex", () => {
       const vertices = makeVertices(5);
 
       const renderState = computeRenderState(vertices, [], 0);
 
-      expect(renderState.dots).toHaveLength(vertices.length);
+      expect(renderState.vertices).toHaveLength(vertices.length);
     });
 
-    it("produces no dots when the vertex list is empty", () => {
+    it("produces no rendered vertices when the vertex list is empty", () => {
       const renderState = computeRenderState([], [], 0);
 
-      expect(renderState.dots).toHaveLength(0);
+      expect(renderState.vertices).toHaveLength(0);
     });
 
-    it("does not duplicate a dot for a repeated vertex position query", () => {
+    it("does not duplicate a rendered vertex for a repeated vertex position query", () => {
       const vertices = [[0, 0], [1, 1], [2, 2]];
 
       const renderState = computeRenderState(vertices, [], 0);
 
-      expect(renderState.dots).toHaveLength(3);
+      expect(renderState.vertices).toHaveLength(3);
     });
   });
 
-  describe("a dot's position equals its input vertex's position exactly", () => {
-    it("maps each vertex's coordinates onto its dot without transformation", () => {
+  describe("a rendered vertex's position equals its input vertex's position exactly", () => {
+    it("maps each vertex's coordinates onto its rendered vertex without transformation", () => {
       const vertices = [[0, 0], [3, 7], [10, 2]];
 
       const renderState = computeRenderState(vertices, [], 0);
 
       vertices.forEach((vertex, index) => {
-        expect(renderState.dots[index].position).toEqual(vertex);
+        expect(renderState.vertices[index].position).toEqual(vertex);
       });
     });
 
@@ -47,8 +44,8 @@ describe("Vertex rendering", () => {
 
       const renderState = computeRenderState(vertices, [], 0);
 
-      expect(renderState.dots[0].position).toEqual([-5, -5]);
-      expect(renderState.dots[1].position).toEqual([1000, 1000]);
+      expect(renderState.vertices[0].position).toEqual([-5, -5]);
+      expect(renderState.vertices[1].position).toEqual([1000, 1000]);
     });
 
     it("does not recompute or normalize positions relative to each other", () => {
@@ -58,8 +55,8 @@ describe("Vertex rendering", () => {
 
       // A recomputed/arbitrary layout (e.g. centering, normalizing to [0,1])
       // would change these raw values; the exact input values must survive.
-      expect(renderState.dots[0].position).toEqual([0, 0]);
-      expect(renderState.dots[1].position).toEqual([1, 0]);
+      expect(renderState.vertices[0].position).toEqual([0, 0]);
+      expect(renderState.vertices[1].position).toEqual([1, 0]);
     });
   });
 });

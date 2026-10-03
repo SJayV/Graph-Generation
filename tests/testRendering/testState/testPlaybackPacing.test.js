@@ -4,7 +4,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { vi } from "vitest";
 
-import { createRenderer, EDGE_PACING_MILLISECONDS } from "../../rendering/renderer.js";
+import { createRenderer, EDGE_PACING_MILLISECONDS } from "../../../rendering/state/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 beforeEach(() => {
@@ -24,11 +24,11 @@ describe("Playback pacing", () => {
 
       renderer.start();
 
-      expect(renderer.getDisplayedState().visibleEdges).toHaveLength(0);
+      expect(renderer.getDisplayedState().edges).toHaveLength(0);
 
       for (let expectedVisibleCount = 1; expectedVisibleCount <= edgeSequence.length; expectedVisibleCount += 1) {
         vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS);
-        expect(renderer.getDisplayedState().visibleEdges).toHaveLength(expectedVisibleCount);
+        expect(renderer.getDisplayedState().edges).toHaveLength(expectedVisibleCount);
       }
     });
 
@@ -40,7 +40,7 @@ describe("Playback pacing", () => {
       renderer.start();
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS - 1);
 
-      expect(renderer.getDisplayedState().visibleEdges).toHaveLength(0);
+      expect(renderer.getDisplayedState().edges).toHaveLength(0);
     });
 
     it("spaces every consecutive pair of edge reveals by the same constant duration", () => {
@@ -59,7 +59,7 @@ describe("Playback pacing", () => {
         vi.advanceTimersByTime(millisecondsPerTick);
         millisecondsSinceLastReveal += millisecondsPerTick;
 
-        const currentVisibleCount = renderer.getDisplayedState().visibleEdges.length;
+        const currentVisibleCount = renderer.getDisplayedState().edges.length;
         if (currentVisibleCount > lastVisibleCount) {
           observedIntervalsBetweenReveals.push(millisecondsSinceLastReveal);
           millisecondsSinceLastReveal = 0;
@@ -89,8 +89,8 @@ describe("Playback pacing", () => {
 
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS);
 
-      expect(rendererA.getDisplayedState().visibleEdges).toHaveLength(1);
-      expect(rendererB.getDisplayedState().visibleEdges).toHaveLength(1);
+      expect(rendererA.getDisplayedState().edges).toHaveLength(1);
+      expect(rendererB.getDisplayedState().edges).toHaveLength(1);
     });
   });
 
@@ -103,7 +103,7 @@ describe("Playback pacing", () => {
       renderer.start();
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS * edgeSequence.length);
 
-      expect(renderer.getDisplayedState().visibleEdges).toHaveLength(edgeSequence.length);
+      expect(renderer.getDisplayedState().edges).toHaveLength(edgeSequence.length);
     });
 
     it("takes exactly length * EDGE_PACING_MILLISECONDS to reveal a long sequence fully, at the same rate", () => {
@@ -114,7 +114,7 @@ describe("Playback pacing", () => {
       renderer.start();
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS * edgeSequence.length);
 
-      expect(renderer.getDisplayedState().visibleEdges).toHaveLength(edgeSequence.length);
+      expect(renderer.getDisplayedState().edges).toHaveLength(edgeSequence.length);
     });
 
     it("exposes EDGE_PACING_MILLISECONDS as a single fixed numeric constant", () => {

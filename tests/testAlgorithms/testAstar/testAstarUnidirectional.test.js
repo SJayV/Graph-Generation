@@ -3,8 +3,8 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as astar from "../../algorithms/astar/astarUnidirectional.js";
-import * as dijkstra from "../../algorithms/dijkstra/dijkstraUnidirectional.js";
+import * as astar from "../../../algorithms/astar/astarUnidirectional.js";
+import * as dijkstra from "../../../algorithms/dijkstra/dijkstraUnidirectional.js";
 
 const ZERO_HEURISTIC = () => 0;
 

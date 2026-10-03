@@ -1,5 +1,5 @@
 /** General A*, seeding from an explicit set of initial sources, optionally restricted to an edgeSet. */
-import { distance } from "../../logic/distance.js";
+import { distance } from "../../logic/computation/distance.js";
 import { createShortestPathSearch } from "../shortestPathSearch.js";
 import { drainEdges, growEdgesStepwise as _growEdgesStepwise } from "../greedyAlgorithm.js";
 

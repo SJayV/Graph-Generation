@@ -28,9 +28,9 @@ function _uploadVertexAttribute(gl, program, attributeName, values, itemSize) {
 
 // PUBLIC INTERFACE
 
-export function computeAxisBounds(dots) {
-  const xValues = dots.map((dot) => dot.position[0]);
-  const yValues = dots.map((dot) => dot.position[1]);
+export function computeAxisBounds(vertices) {
+  const xValues = vertices.map((vertex) => vertex.position[0]);
+  const yValues = vertices.map((vertex) => vertex.position[1]);
   return {
     minX: Math.min(...xValues),
     maxX: Math.max(...xValues),
@@ -48,8 +48,8 @@ export function uploadClipSpacePositions(gl, program, clipSpacePositions) {
   _uploadVertexAttribute(gl, program, "aPosition", clipSpacePositions, 2);
 }
 
-export function uploadVertexColors(gl, program, vertexColors) {
-  _uploadVertexAttribute(gl, program, "aColor", vertexColors, 4);
+export function uploadVertexGlow(gl, program, glowValues) {
+  _uploadVertexAttribute(gl, program, "aGlow", glowValues, 1);
 }
 
 export function setColorUniform(gl, program, color) {

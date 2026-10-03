@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { distance } from "../../logic/distance.js";
+import { distance } from "../../../logic/computation/distance.js";
 
 describe("distance", () => {
   describe("TestKnownValues", () => {

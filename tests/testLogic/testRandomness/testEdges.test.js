@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { buildNearestNeighborEdges } from "../../logic/edges.js";
+import { buildNearestNeighborEdges } from "../../../logic/randomness/edges.js";
 
 function vertexKey([x, y]) {
   return `${x},${y}`;

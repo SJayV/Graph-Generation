@@ -1,5 +1,5 @@
 /** Deterministic k-nearest-neighbor edge set construction, no RNG. */
-import { distance } from "./distance.js";
+import { distance } from "../computation/distance.js";
 import { edgeKey } from "./vertices.js";
 
 // CONSTANTS

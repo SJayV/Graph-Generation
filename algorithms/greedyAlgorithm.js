@@ -5,9 +5,9 @@
  *    - termination predicate
  *    - shared loop structure
  */
-import { DSU } from "../logic/dsu.js";
-import { MinHeap } from "../logic/minHeap.js";
-import { edgeKey } from "../logic/vertices.js";
+import { DSU } from "../logic/dataStructures/dsu.js";
+import { MinHeap } from "../logic/dataStructures/minHeap.js";
+import { edgeKey } from "../logic/randomness/vertices.js";
 
 // HELPER FUNCTIONS - CANDIDATE POOL
 

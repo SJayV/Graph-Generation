@@ -13,19 +13,20 @@ const POSITION_VERTEX_SHADER_SOURCE = `
 
 const COLOR_VERTEX_SHADER_SOURCE = `
   attribute vec2 aPosition;
-  attribute vec4 aColor;
-  varying vec4 vColor;
+  attribute float aGlow;
+  varying float vGlow;
   void main() {
-    vColor = aColor;
+    vGlow = aGlow;
     gl_Position = vec4(aPosition, 0.0, 1.0);
   }
 `;
 
 const COLOR_FRAGMENT_SHADER_SOURCE = `
   precision mediump float;
-  varying vec4 vColor;
+  uniform vec4 uColor;
+  varying float vGlow;
   void main() {
-    gl_FragColor = vColor;
+    gl_FragColor = mix(uColor, vec4(1.0, 1.0, 1.0, 1.0), vGlow);
   }
 `;
 

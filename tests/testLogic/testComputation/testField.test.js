@@ -3,9 +3,9 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { DSU } from "../../logic/dsu.js";
-import { fieldValue, key } from "../../logic/field.js";
-import { gaussian } from "../../logic/rng.js";
+import { DSU } from "../../../logic/dataStructures/dsu.js";
+import { fieldValue, key } from "../../../logic/computation/field.js";
+import { gaussian } from "../../../logic/randomness/rng.js";
 
 function buildDsu(allVertices, specialSubset) {
   return new DSU(allVertices, specialSubset);

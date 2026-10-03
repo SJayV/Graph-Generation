@@ -3,7 +3,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { DSU } from "../../logic/dsu.js";
+import { DSU } from "../../../logic/dataStructures/dsu.js";
 
 function buildDsu(allVertices, specialSubset) {
   return new DSU(allVertices, specialSubset);

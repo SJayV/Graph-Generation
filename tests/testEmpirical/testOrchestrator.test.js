@@ -6,7 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import * as fitter from "../../empirical/fitter.js";
 import * as orchestrator from "../../empirical/orchestrator.js";
 import * as trialRunnerModule from "../../empirical/trialRunner.js";
-import { createSeededRng } from "../../logic/rng.js";
+import { createSeededRng } from "../../logic/randomness/rng.js";
 
 function makeRng() {
   return createSeededRng(1234);

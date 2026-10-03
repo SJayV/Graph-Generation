@@ -6,7 +6,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as dijkstra from "../../algorithms/dijkstra/dijkstraUnidirectional.js";
+import * as dijkstra from "../../../algorithms/dijkstra/dijkstraUnidirectional.js";
 
 const EPSILON = 1e-9;
 
