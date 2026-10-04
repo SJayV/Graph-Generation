@@ -15,8 +15,11 @@ finalized below — no open questions remain for any of them.
 Architecture Map in `AGENTS.md` has already been updated by the user to
 document `parameters.js` as the root-level single source of truth for
 tunables, read by `graph.js` / `dispatcher.js` / `logic/randomness/edges.js`,
-mutated only by `main.js`'s input handling, plus a mutable-shared-state
-exception note under data flow. No further Architecture Map work is needed.
+plus a mutable-shared-state exception note under data flow (writes only by
+the root orchestration layer in response to user input — this covers the
+new root-level `panel.js` from User Story 2). The repo map still needs a
+`panel.js` bullet (Architecture Map edits are reserved to the
+architecture-planning skill / the user).
 
 ---
 
@@ -51,24 +54,44 @@ since each story has a distinct concern even though they share one feature.
   read-only overlay): parameter values can be changed live in the panel but
   are only committed and regenerated on an explicit apply action — not
   live-as-you-type — per the user's decision.
+- **Panel module (confirmed):** a new root-level `panel.js`, next to
+  `main.js`/`parameters.js` — imperative-shell DOM/input code, closely coupled
+  to `parameters.js`. It shows one input per `parameters.js` value, each with
+  a human-readable name above the field. Sigma is not shown (it is derived,
+  not a value). The less self-explanatory values (dampening factor,
+  strengthening factor) get a plain-language label, not their constant name.
+  Its validation is a pure, DOM-independent function (unit-testable); the
+  DOM wiring itself is untested shell code, same class as `main.js`'s
+  `keydown` listener.
+- **Runtime mutability (confirmed):** `parameters.js`'s values become
+  `export let`, plus one exported setter (e.g. `setParameters(values)`) that
+  the panel's apply action calls. ES modules' live bindings mean every
+  existing `import { VERTEX_COUNT } from "./parameters.js"` sees the new
+  value — no consumer import changes. One consumer needs a fix:
+  `rendering/gl/glPrimitives.js` derives its clip bound from the screen
+  margin once at module load, so it must derive it per call instead, or an
+  applied margin would never take effect.
 - Per AGENTS.md's "input validation at system boundary" security rule, every
   staged edit is validated/bounded before it reaches `parameters.js`. Bounds
-  below are derived directly from constraints already enforced elsewhere in
-  the codebase, not invented from scratch:
-  - vertex count: `sampleVertices` already throws if `n` exceeds grid
-    capacity `(L + 1)^2`; a positive-integer lower bound is the natural
-    complement (zero or negative vertices is not a valid graph).
-  - grid size: must be a positive integer so the grid capacity bound above is
-    meaningful (`L >= 1`).
-  - special-subset size: `selectSpecialSubset` already throws if `k < 0` or
-    `k > allVertices.length` — reused verbatim as the bound (`0 <= k <=
-    vertexCount`).
-  - sparsity: used as a strictly-positive multiplier (`m = floor(r * n)`); a
-    positive-real lower bound (`r > 0`) is the natural domain constraint.
-  - nearest-neighbor count: must leave at least one other vertex to connect
-    to and less neighbors than exist (`1 <= k_nn <= vertexCount - 1`) —
-    otherwise `buildNearestNeighborEdges` would either produce no candidate
-    edges or request more neighbors than exist.
+  for the original five are derived from constraints already enforced
+  elsewhere in the codebase; bounds for the four newer ones were confirmed
+  with the user:
+  - vertex count: positive integer, at most grid capacity `(L + 1)^2`
+    (`sampleVertices` already throws above that; confirmed `(L + 1)^2`, not
+    `L^2`, since the grid includes both 0 and L).
+  - grid size: positive integer (`L >= 1`).
+  - special-subset size: integer, `0 <= k <= vertexCount`
+    (`selectSpecialSubset`'s existing bound).
+  - sparsity: positive real (`r > 0`, a multiplier in `m = floor(r * n)`).
+  - nearest-neighbor count: integer, `1 <= k_nn <= vertexCount - 1`.
+  - dampening factor: real in `(0, 1]` — shrinks strength, never zeroes it.
+  - strengthening factor: real, `>= 1` — boosts, never shrinks.
+  - edge reveal pacing: positive integer (milliseconds).
+  - screen margin fraction: real in `[0, 0.5)` — at 0.5 the drawing area
+    collapses.
+  Cross-field bounds (vertex count vs. grid size, special-subset size and
+  nearest-neighbor count vs. vertex count) are checked against the *staged*
+  values, not the currently applied ones.
 - This story depends on User Story 1 (reads/writes `parameters.js`'s values)
   but is otherwise self-contained.
 
@@ -79,8 +102,9 @@ since each story has a distinct concern even though they share one feature.
   algorithm, with no change to which algorithm is active.
 - FR9. Pressing Enter mid-animation shall fully replace the in-progress
   stepwise reveal, matching Tab's existing replacement behavior.
-- FR10. Pressing Space shall toggle an editable panel with one input per
-  `parameters.js` value, pre-filled with the current values.
+- FR10. Pressing Space shall toggle an editable panel (`panel.js`) with one
+  input per `parameters.js` value, each with a human-readable name above it,
+  pre-filled with the current values.
 - FR11. Edits in the panel shall be staged locally and shall not mutate
   `parameters.js` or trigger regeneration until an explicit apply action is
   triggered.
@@ -96,6 +120,12 @@ since each story has a distinct concern even though they share one feature.
   closed.
 - FR15. While the panel is closed, keys other than Tab, Enter, and Space
   shall leave algorithm and graph state unaffected.
+- FR16. `parameters.js` shall expose one setter that updates its values at
+  runtime; every consumer shall see applied values on its next use, including
+  screen margin and edge reveal pacing (no value frozen at module load).
+- FR17. Validation shall be a pure function, given a full set of staged
+  values, returning which values (if any) violate their bound — including
+  cross-field bounds evaluated against the staged values.
 
 ### Story
 
@@ -105,15 +135,18 @@ can retune generation parameters and apply them, so that I can experiment
 with different parameter values without editing code.
 
 **Acceptance criteria**
-1. Accepted when the Space key is pressed while the panel is hidden, a panel appears showing one editable input per parameter, pre-filled with `parameters.js`'s current values.
+1. Accepted when the Space key is pressed while the panel is hidden, a panel appears showing one editable input per parameter, each with a human-readable name above it, pre-filled with `parameters.js`'s current values.
 2. Accepted when the panel is visible and an edit is staged without yet being applied, `parameters.js`'s exported values remain unchanged.
 3. Accepted when the Space key is pressed again while the panel is visible and every staged value is within its valid bounds, the panel verifies and applies them: `parameters.js`'s values update to the staged values, the panel closes, and a fresh graph regenerates using them, on the same algorithm as before.
 4. Accepted when the Space key is pressed again while the panel is visible and at least one staged value is outside its valid bounds, that value is rejected: `parameters.js`'s values remain unchanged, no regeneration occurs, and the panel stays open with an indication of which value(s) were rejected.
 5. Accepted when the panel is open, no key other than Space has any effect until the panel is closed via a successful apply.
-6. Accepted when the Enter key is pressed while the panel is closed, a freshly sampled vertex set, special subset, and candidate edge set are generated and passed to the currently selected algorithm, with no change to which algorithm is active.
-7. Accepted when Enter is pressed while a previous graph's stepwise reveal animation was mid-playback, the previous render state is fully replaced.
-8. Accepted when Tab is pressed while the panel is closed, its existing cycle-and-regenerate behavior is unaffected by the addition of Enter and Space handling.
-9. Accepted when any key other than Tab, Enter, or Space is pressed while the panel is closed, the currently displayed algorithm and graph are unaffected.
+6. Accepted when the validation function is given a set of staged values, it reports exactly the values outside their bounds, and reports none when all are within bounds.
+7. Accepted when the validation function is given a vertex count above `(gridSize + 1)^2`, a special-subset size above the vertex count, or a nearest-neighbor count above `vertexCount - 1`, it reports that value as invalid.
+8. Accepted when new values are applied through `parameters.js`'s setter, every consumer uses them on its next use without reloading the page.
+9. Accepted when the Enter key is pressed while the panel is closed, a freshly sampled vertex set, special subset, and candidate edge set are generated and passed to the currently selected algorithm, with no change to which algorithm is active.
+10. Accepted when Enter is pressed while a previous graph's stepwise reveal animation was mid-playback, the previous render state is fully replaced.
+11. Accepted when Tab is pressed while the panel is closed, its existing cycle-and-regenerate behavior is unaffected by the addition of Enter and Space handling.
+12. Accepted when any key other than Tab, Enter, or Space is pressed while the panel is closed, the currently displayed algorithm and graph are unaffected.
 
 No open questions remain for this story.
 

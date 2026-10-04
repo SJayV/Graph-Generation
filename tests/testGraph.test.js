@@ -52,4 +52,21 @@ describe("graph", () => {
       expect(specialSubset.length).not.toBe(parameters.SPECIAL_SUBSET_SIZE);
     });
   });
+
+  describe("TestCreateGraphReflectsAppliedParameters (AC8, FR16)", () => {
+    it("createGraph returns the new vertex count after setParameters, without reloading modules", async () => {
+      vi.resetModules();
+      const liveParameters = await import("../parameters.js");
+      const { createGraph } = await import("../graph.js");
+      const originalVertexCount = liveParameters.VERTEX_COUNT;
+      const newVertexCount = originalVertexCount + 17;
+
+      try {
+        liveParameters.setParameters({ vertexCount: newVertexCount });
+        expect(createGraph().allVertices.length).toBe(newVertexCount);
+      } finally {
+        liveParameters.setParameters({ vertexCount: originalVertexCount });
+      }
+    });
+  });
 });
