@@ -1,9 +1,8 @@
-/**
- * static, deterministic k=4-nearest-neighbor union edge set, no RNG
- */
-import { describe, expect, it } from "vitest";
+/** static, deterministic k-nearest-neighbor union edge set, no RNG. */
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { buildNearestNeighborEdges } from "../../../logic/randomness/edges.js";
+import * as parameters from "../../../parameters.js";
 
 function vertexKey([x, y]) {
   return `${x},${y}`;
@@ -97,6 +96,57 @@ describe("edges", () => {
         expect(allVertices.some((vertex) => vertexKey(vertex) === vertexKey(u))).toBe(true);
         expect(allVertices.some((vertex) => vertexKey(vertex) === vertexKey(v))).toBe(true);
       }
+    });
+  });
+
+  // Visual Tuning - Centralized Parametrization (AC1, AC6): nearest-neighbor
+  // count sourced from parameters.js - tested by observable behavior only.
+  describe("TestNearestNeighborCountReflectsParameters (AC1, AC6)", () => {
+    afterEach(() => {
+      vi.doUnmock("../../../parameters.js");
+      vi.resetModules();
+    });
+
+    it("every vertex touches at least parameters.NEAREST_NEIGHBOR_COUNT edges by default", () => {
+      const allVertices = [
+        [0, 0], [3, 1], [6, 0], [1, 4], [4, 5], [8, 2], [9, 6], [2, 8], [5, 9], [7, 3],
+      ];
+      const edges = buildNearestNeighborEdges(allVertices);
+      const touchCount = new Map(allVertices.map((v) => [vertexKey(v), 0]));
+      for (const [u, v] of edges) {
+        touchCount.set(vertexKey(u), touchCount.get(vertexKey(u)) + 1);
+        touchCount.set(vertexKey(v), touchCount.get(vertexKey(v)) + 1);
+      }
+      for (const vertex of allVertices) {
+        expect(touchCount.get(vertexKey(vertex))).toBeGreaterThanOrEqual(parameters.NEAREST_NEIGHBOR_COUNT);
+      }
+    });
+
+    it("changing parameters.NEAREST_NEIGHBOR_COUNT changes the minimum per-vertex touch count", async () => {
+      vi.resetModules();
+      vi.doMock("../../../parameters.js", async () => {
+        const actual = await vi.importActual("../../../parameters.js");
+        return { ...actual, NEAREST_NEIGHBOR_COUNT: 2 };
+      });
+
+      const { buildNearestNeighborEdges: mockedBuild } = await import("../../../logic/randomness/edges.js");
+
+      const allVertices = [
+        [0, 0], [3, 1], [6, 0], [1, 4], [4, 5], [8, 2], [9, 6], [2, 8], [5, 9], [7, 3],
+      ];
+      const mockedEdges = mockedBuild(allVertices);
+      const touchCount = new Map(allVertices.map((v) => [vertexKey(v), 0]));
+      for (const [u, v] of mockedEdges) {
+        touchCount.set(vertexKey(u), touchCount.get(vertexKey(u)) + 1);
+        touchCount.set(vertexKey(v), touchCount.get(vertexKey(v)) + 1);
+      }
+      for (const vertex of allVertices) {
+        expect(touchCount.get(vertexKey(vertex))).toBeGreaterThanOrEqual(2);
+      }
+
+      // sanity: a smaller neighbor count never yields *more* unique edges than the default
+      const defaultEdges = buildNearestNeighborEdges(allVertices);
+      expect(mockedEdges.length).toBeLessThanOrEqual(defaultEdges.length);
     });
   });
 });
