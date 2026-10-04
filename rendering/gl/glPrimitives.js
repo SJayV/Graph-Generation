@@ -1,18 +1,15 @@
 /** Shared WebGL coordinate-mapping and buffer-upload primitives for drawing routines. */
 import { SCREEN_MARGIN_FRACTION } from "../../parameters.js";
 
-// CONSTANTS
-
-const CONTENT_CLIP_BOUND = 1 - 2 * SCREEN_MARGIN_FRACTION;
-
 // HELPER FUNCTIONS - COORDINATE MAPPING
 
 function _axisToClipSpace(value, minValue, maxValue) {
   if (maxValue === minValue) {
     return 0;
   }
+  const contentClipBound = 1 - 2 * SCREEN_MARGIN_FRACTION;
   const normalized = (value - minValue) / (maxValue - minValue);
-  return normalized * (2 * CONTENT_CLIP_BOUND) - CONTENT_CLIP_BOUND;
+  return normalized * (2 * contentClipBound) - contentClipBound;
 }
 
 // HELPER FUNCTIONS - BUFFER UPLOAD

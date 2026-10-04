@@ -24,17 +24,54 @@
       font-size: 18px;
       pointer-events: none;
     }
+    #parameterPanel {
+      position: fixed;
+      inset: 0;
+      display: none;
+      flex-wrap: wrap;
+      align-content: center;
+      justify-content: center;
+      gap: 16px 32px;
+      padding: 32px;
+      box-sizing: border-box;
+      background: rgba(0, 0, 0, 0.92);
+      font-family: "Bahnschrift", sans-serif;
+      color: #add8e6;
+      font-size: 18px;
+    }
+    #parameterPanel.open {
+      display: flex;
+    }
+    #parameterPanel label {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    #parameterPanel input {
+      width: 160px;
+      padding: 4px 8px;
+      font: inherit;
+      color: #add8e6;
+      background: #000;
+      border: 1px solid #add8e6;
+    }
+    #parameterPanel label.rejected input {
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
   </style>
 </head>
 <body>
   <canvas id="graphCanvas"></canvas>
   <div id="algorithmName"></div>
+  <div id="parameterPanel"></div>
 
   <script type="module">
     import { startDemo } from "./main.js";
 
     const canvasElement = document.getElementById("graphCanvas");
     const algorithmNameElement = document.getElementById("algorithmName");
+    const parameterPanelElement = document.getElementById("parameterPanel");
 
     function resizeCanvasToWindow() {
       canvasElement.width = window.innerWidth;
@@ -45,7 +82,7 @@
     window.addEventListener("resize", resizeCanvasToWindow);
 
     try {
-      startDemo(canvasElement, algorithmNameElement);
+      startDemo(canvasElement, algorithmNameElement, parameterPanelElement);
     } catch (error) {
       console.error(error);
     }

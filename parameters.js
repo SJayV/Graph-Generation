@@ -1,15 +1,43 @@
-export const VERTEX_COUNT = 400;
-export const GRID_SIZE = 1000;
-export const SPECIAL_SUBSET_SIZE = 5;
-export const NEAREST_NEIGHBOR_COUNT = 4;
-export const SPARSITY = 1.5;
-export const DAMPENING_FACTOR = 0.1;
-export const STRENGTHENING_FACTOR = 10.0;
-export const EDGE_PACING_MILLISECONDS = 30;
-export const SCREEN_MARGIN_FRACTION = 0.15;
+export let VERTEX_COUNT;
+export let GRID_SIZE;
+export let SPECIAL_SUBSET_SIZE;
+export let NEAREST_NEIGHBOR_COUNT;
+export let SPARSITY;
+export let DAMPENING_FACTOR;
+export let STRENGTHENING_FACTOR;
+export let EDGE_PACING_MILLISECONDS;
+export let SCREEN_MARGIN_FRACTION;
 
 // PUBLIC INTERFACE
+
+export function setParameters({vertexCount = 400, gridSize = 1000, specialSubsetSize = 5, nearestNeighborCount = 4, sparsity = 1.5, dampeningFactor = 0.1, strengtheningFactor = 10.0, edgePacingMilliseconds = 30, screenMarginFraction = 0.15} = {}) {
+  VERTEX_COUNT = vertexCount;
+  GRID_SIZE = gridSize;
+  SPECIAL_SUBSET_SIZE = specialSubsetSize;
+  NEAREST_NEIGHBOR_COUNT = nearestNeighborCount;
+  SPARSITY = sparsity;
+  DAMPENING_FACTOR = dampeningFactor;
+  STRENGTHENING_FACTOR = strengtheningFactor;
+  EDGE_PACING_MILLISECONDS = edgePacingMilliseconds;
+  SCREEN_MARGIN_FRACTION = screenMarginFraction;
+}
+
+export function getParameters() {
+  return {
+    vertexCount: VERTEX_COUNT,
+    gridSize: GRID_SIZE,
+    specialSubsetSize: SPECIAL_SUBSET_SIZE,
+    nearestNeighborCount: NEAREST_NEIGHBOR_COUNT,
+    sparsity: SPARSITY,
+    dampeningFactor: DAMPENING_FACTOR,
+    strengtheningFactor: STRENGTHENING_FACTOR,
+    edgePacingMilliseconds: EDGE_PACING_MILLISECONDS,
+    screenMarginFraction: SCREEN_MARGIN_FRACTION,
+  };
+}
 
 export function sigma(vertexCount = VERTEX_COUNT, gridSize = GRID_SIZE) {
   return gridSize / Math.sqrt(vertexCount);
 }
+
+setParameters();

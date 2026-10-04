@@ -2,8 +2,13 @@
 import { ALGORITHM_NAMES, nextAlgorithmName, runAlgorithm } from "./dispatcher.js";
 import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
 import { createGraph, markSpecial, toIndexEdges } from "./graph.js";
+import { createPanel } from "./panel.js";
 import { drawRenderState } from "./rendering/gl/draw.js";
 import { createRenderer } from "./rendering/state/renderer.js";
+
+// CONSTANTS
+
+const CONTROL_KEYS = ["Tab", "Enter", " "];
 
 // HELPER FUNCTIONS - RENDER-STATE CONVERSION
 
@@ -30,9 +35,41 @@ function _runRenderLoop(gl, getRenderer) {
   requestAnimationFrame(frame);
 }
 
+// HELPER FUNCTIONS - KEYBOARD
+
+function _handleOpenPanelKey(key, panel, regenerate) {
+  if (key === " " && panel.tryApply()) {
+    regenerate();
+  }
+}
+
+function _handleClosedPanelKey(key, panel, advanceAlgorithm, regenerate) {
+  if (key === " ") {
+    panel.open();
+    return;
+  }
+  if (key === "Tab") {
+    advanceAlgorithm();
+  }
+  if (key === "Tab" || key === "Enter") {
+    regenerate();
+  }
+}
+
+function _handleKeydown(event, panel, advanceAlgorithm, regenerate) {
+  if (CONTROL_KEYS.includes(event.key)) {
+    event.preventDefault();
+  }
+  if (panel.isOpen()) {
+    _handleOpenPanelKey(event.key, panel, regenerate);
+    return;
+  }
+  _handleClosedPanelKey(event.key, panel, advanceAlgorithm, regenerate);
+}
+
 // PUBLIC INTERFACE
 
-export function startDemo(canvasElement, displayTarget) {
+export function startDemo(canvasElement, displayTarget, panelElement) {
   const gl = canvasElement.getContext("webgl");
   if (!gl) {
     throw new Error("WebGL is not supported in this browser.");
@@ -51,15 +88,13 @@ export function startDemo(canvasElement, displayTarget) {
     renderer.start();
   }
 
+  function advanceAlgorithm() {
+    algorithmName = nextAlgorithmName(algorithmName);
+  }
+
   regenerate();
   _runRenderLoop(gl, () => renderer);
 
-  window.addEventListener("keydown", (event) => {
-    if (event.key !== "Tab") {
-      return;
-    }
-    event.preventDefault();
-    algorithmName = nextAlgorithmName(algorithmName);
-    regenerate();
-  });
+  const panel = createPanel(panelElement);
+  window.addEventListener("keydown", (event) => _handleKeydown(event, panel, advanceAlgorithm, regenerate));
 }
