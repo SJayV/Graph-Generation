@@ -19,27 +19,33 @@ An application to randomly create graphs parametrized in node count and sparsity
     - shared mechanics / primitives
         - graph primitive generation
         - heuristics / metrics
-    - algorithms
-- empirical study
+    - data structures
+    - algorithms / empirical study
 - layers
     - logic layer (mechanics + algorithms)
     - rendering / visual layer (view on model)
 - repo map
-    - logic (js files) — shared mechanics/primitives only
-    - algorithms (js files) — one complete algorithm per file, consumes `logic/`;
-      shares a common greedy priority-search skeleton (template method), each
-      algorithm file supplying its own priority function and termination
-      predicate; every algorithm file exposes the same external interface so
-      callers (e.g. `main.js`) can swap between them (strategy)
+    - logic (js files)
+        - shared mechanics / primitives only
+    - algorithms (js files)
+        - one complete algorithm per file
+        - template: common greedy priority-search skeleton
+        - strategy: same external interface for swapping
     - empirical (js files)
     - rendering (WebGL, js files)
     - index.html (root-level demo entry point)
     - main.js (root-level orchestrator)
+    - dispatcher.js (root-level algorithm dispatch)
+    - graph.js (root-level graph sampling)
+    - parameters.js (root-level single source of truth)
 - rng
     - seedable PRNG utility
 - data flow: logic → rendering (target end-state)
     - generation runs client-side in-browser; data passed in-memory
     - one-directional: rendering never calls back into logic
+    - exception
+        - mutable shared state
+        - writes only by root orchestration layer in response to user input
 - rendering layer interface
     - exposes a minimal programmatic entry point: a function
         - taking a vertex / edge-sequence
