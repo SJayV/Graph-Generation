@@ -49,62 +49,60 @@ since each story has a distinct concern even though they share one feature.
   constant(s) — `graph.js` (`VERTEX_COUNT`, `GRID_SIZE`,
   `SPECIAL_SUBSET_SIZE`), `dispatcher.js` (`GENERATION_SPARSITY`, and an
   inline sigma-derivation formula over `GRID_SIZE`), `logic/randomness/edges.js`
-  (`NEAREST_NEIGHBOR_COUNT`), `logic/computation/field.js` (`SIGMA_DIVISOR`,
-  `DAMPENING_FACTOR`, `STRENGTHENING_FACTOR`), `rendering/state/renderer.js`
+  (`NEAREST_NEIGHBOR_COUNT`), `logic/computation/field.js` (a separate,
+  now-retired sigma-derivation formula plus `DAMPENING_FACTOR`,
+  `STRENGTHENING_FACTOR`), `rendering/state/renderer.js`
   (`EDGE_PACING_MILLISECONDS`), `rendering/gl/glPrimitives.js`
   (`SCREEN_MARGIN_FRACTION`). The goal is one parameter record
-  `π = (n, L, k_special, r, k_nn, d_σ, λ, κ, t_pace, m_screen)` — vertex
-  count, grid size, special-subset size, sparsity, nearest-neighbor count,
-  field sigma divisor, field dampening factor, field strengthening factor,
-  edge reveal pacing (ms), and screen margin fraction — exported from a
-  single `parameters.js`, with every consumer importing from it instead of
-  declaring a local constant.
+  `π = (n, L, k_special, r, k_nn, λ, κ, t_pace, m_screen)` — vertex count,
+  grid size, special-subset size, sparsity, nearest-neighbor count, field
+  dampening factor, field strengthening factor, edge reveal pacing (ms), and
+  screen margin fraction — exported from a single `parameters.js`, plus one
+  unified sigma-derivation function (see below), with every consumer
+  importing from it instead of declaring a local constant.
 - **Scope confirmed with the user (expanded from the original 5):** sparsity,
-  the field's sigma divisor/dampening/strengthening factors, edge pacing, and
-  screen margin are all in scope for centralization. Explicitly confirmed
-  OUT of scope (left where they are, not centralized): `empirical/fitter.js`'s
-  `MAX_ITERATIONS`/`GRADIENT_TOLERANCE`/`LEARNING_RATE` (unrelated subsystem),
-  `logic/randomness/vertices.js`'s `GAUSSIAN_SIGMA_DIVISOR`, `rendering/state/glow.js`'s
-  `GAMMA_RATE`/`SCALE`, and `rendering/gl/drawPrimitives.js`'s `VERTEX_SIZE`.
+  the field's dampening/strengthening factors, edge pacing, screen margin, and
+  a unified sigma formula are all in scope for centralization. Explicitly
+  confirmed OUT of scope (left where they are, not centralized):
+  `empirical/fitter.js`'s `MAX_ITERATIONS`/`GRADIENT_TOLERANCE`/`LEARNING_RATE`
+  (unrelated subsystem), `logic/randomness/vertices.js`'s
+  `GAUSSIAN_SIGMA_DIVISOR`, `rendering/state/glow.js`'s `GAMMA_RATE`/`SCALE`,
+  and `rendering/gl/drawPrimitives.js`'s `VERTEX_SIZE`.
 - **Forward note for User Story 2's panel (not actionable here):** the less
-  self-explanatory new values (field sigma divisor, dampening factor,
-  strengthening factor) will need a plain-language explanation/label when
-  shown in User Story 2's editable panel, not just their constant name —
-  flagged for that story's design, not this one's.
-- **Sigma stays derived, not stored as a flat value — and now lives in
-  `parameters.js` as the formula itself (revised decision).** Sigma is still
-  not one of `parameters.js`'s flat exported constants (no `SIGMA` value
-  sitting there), but the derivation formula itself
-  (`GRID_SIZE / Math.sqrt(vertexCount)`) moves into `parameters.js` as an
-  exported function, e.g. `sigmaForVertexCount(vertexCount)`, using
-  `parameters.js`'s own `GRID_SIZE`. `dispatcher.js`'s private
-  `_sigmaForVertexCount` is removed entirely; `dispatcher.js` calls the
-  `parameters.js`-exported function instead. No new tuning constant is
-  introduced: the user already hand-tuned and then deliberately removed an
-  earlier `SIGMA_TUNING_CONSTANT` experiment from `dispatcher.js`, so
-  reintroducing any such knob here would be reversing a decision already
-  made, not centralizing an existing one.
-- **Discovered pre-existing inconsistency (not in scope to fix here, flagged
-  for awareness):** `logic/computation/field.js` already exports an unrelated
-  `sigmaFromGridSize(gridSize) = gridSize / SIGMA_DIVISOR` (`SIGMA_DIVISOR =
-  15.0`), used by `empirical/trialRunner.js`, and matching README's
-  formalization ("$\sigma$ scaled to $L$, fixed per run" — no vertex-count
-  term). The formula moving into `parameters.js` (`dispatcher.js`'s current
-  one) instead scales by `1/sqrt(vertexCount)` and ignores `SIGMA_DIVISOR`
-  entirely — two different sigma formulas coexist in the codebase today
-  (`field.js`'s `sigmaFromGridSize`, now itself reading `SIGMA_DIVISOR` from
-  `parameters.js` per FR8, is a separate, still-unreconciled formula). This
-  story does not reconcile them (out of
-  scope, not raised as a blocking question since the user already decided to
-  keep dispatcher.js's formula shape); noting it here so it isn't mistaken for
-  an oversight later.
+  self-explanatory new values (field dampening factor, strengthening factor)
+  will need a plain-language explanation/label when shown in User Story 2's
+  editable panel, not just their constant name — flagged for that story's
+  design, not this one's.
+- **Sigma is unified into one formula, now living in `parameters.js`
+  (revised, confirmed — reverses the earlier "two unreconciled formulas"
+  decision below).** The two previously-separate, previously-inconsistent
+  sigma derivations — `dispatcher.js`'s private `_sigmaForVertexCount(vertexCount)
+  = GRID_SIZE / Math.sqrt(vertexCount)` and `logic/computation/field.js`'s
+  `sigmaFromGridSize(gridSize) = gridSize / SIGMA_DIVISOR` — are unified into
+  one exported function in `parameters.js`: `sigma(vertexCount, gridSize)`,
+  implementing `gridSize / Math.sqrt(vertexCount)` (dispatcher's shape wins;
+  `SIGMA_DIVISOR` is retired, no longer a `parameters.js` export).
+  `dispatcher.js` calls it with its own vertex count; `empirical/trialRunner.js`
+  calls it as `sigma(n, L)` instead of its old `sigmaFromGridSize(L)` call —
+  this genuinely changes `trialRunner.js`'s computed sigma values (not a pure
+  relocation this time), but is confirmed safe: `tests/testEmpirical/testTrialRunner.test.js`
+  and `testOrchestrator.test.js` don't pin exact formula-dependent numbers, and
+  both pass unchanged (32/32) under the unified formula. `field.js` no longer
+  defines or exports any sigma function at all. `DAMPENING_FACTOR`/
+  `STRENGTHENING_FACTOR` are unrelated plain scalar multipliers (not sigma
+  formulas) and still just move their raw constant values to `parameters.js`,
+  per FR8.
+- No new tuning constant is introduced alongside this unification: the user
+  already hand-tuned and then deliberately removed an earlier
+  `SIGMA_TUNING_CONSTANT` experiment from `dispatcher.js`, so this story does
+  not reintroduce one.
 
 ### Requirements (Group 1)
 
 - FR1. `parameters.js` shall export named values for: vertex count, grid size,
-  special-subset size, sparsity, nearest-neighbor count, field sigma divisor,
-  field dampening factor, field strengthening factor, edge reveal pacing (in
-  milliseconds), and screen margin fraction.
+  special-subset size, sparsity, nearest-neighbor count, field dampening
+  factor, field strengthening factor, edge reveal pacing (in milliseconds),
+  and screen margin fraction.
 - FR2. `graph.js` shall import vertex count, grid size, and special-subset
   size from `parameters.js`, with no locally-declared constants of the same
   purpose remaining.
@@ -113,27 +111,29 @@ since each story has a distinct concern even though they share one feature.
 - FR4. `logic/randomness/edges.js` shall import the nearest-neighbor count
   from `parameters.js`, with no locally-declared constant of the same purpose
   remaining.
-- FR5. `parameters.js` shall export a sigma-derivation function (taking a
-  vertex count, using `parameters.js`'s own grid size), implementing the same
-  formula `dispatcher.js` uses today (`GRID_SIZE / Math.sqrt(vertexCount)`),
-  producing the exact same numeric result as today for the same inputs.
-  `dispatcher.js`'s private `_sigmaForVertexCount` is removed entirely;
-  `dispatcher.js` calls `parameters.js`'s exported function instead.
+- FR5. `parameters.js` shall export one unified sigma-derivation function
+  taking a vertex count and a grid size, implementing
+  `gridSize / Math.sqrt(vertexCount)` (dispatcher's formula shape).
+  `dispatcher.js`'s private `_sigmaForVertexCount` and `logic/computation/field.js`'s
+  `sigmaFromGridSize` are both removed entirely; `dispatcher.js` and
+  `empirical/trialRunner.js` both call `parameters.js`'s single exported
+  function instead.
 - FR6. Changing any one exported value in `parameters.js` shall change the
   corresponding behavior across every consuming module, with no edits
   required anywhere else.
 - FR7. `parameters.js` shall have no dependency on `graph.js`, `dispatcher.js`,
   or `logic/randomness/edges.js` (one-directional dependency flow — it is a
   pure, dependency-free data module).
-- FR8. `logic/computation/field.js` shall import its sigma divisor,
-  dampening factor, and strengthening factor from `parameters.js`, with no
-  locally-declared constants of the same purpose remaining; `sigmaFromGridSize`,
-  `fieldValue`, and `key`'s behavior shall be numerically unchanged for the
-  same inputs.
+- FR8. `logic/computation/field.js` shall import its dampening factor and
+  strengthening factor from `parameters.js`, with no locally-declared
+  constants of the same purpose remaining; `fieldValue` and `key`'s behavior
+  shall be numerically unchanged for the same inputs (sigma itself is passed
+  in by the caller, per FR5, and is no longer `field.js`'s concern).
 - FR9. `rendering/state/renderer.js` shall import edge reveal pacing from
-  `parameters.js`; its own `EDGE_PACING_MILLISECONDS` export shall re-export
-  that same value (preserving every existing import site's path), with no
-  independently-declared constant of the same purpose remaining.
+  `parameters.js` for its own internal use, with no independently-declared
+  constant of the same purpose remaining and no re-export of that name from
+  `renderer.js` — every consumer (including existing tests) imports it
+  directly from `parameters.js`.
 - FR10. `rendering/gl/glPrimitives.js` shall import screen margin fraction
   from `parameters.js`, with no locally-declared constant of the same purpose
   remaining; the derived clip-space bound shall be numerically unchanged for
@@ -146,15 +146,15 @@ centralized in one parameters module, so that I can change a single file to
 retune graph generation across the whole app.
 
 **Acceptance criteria**
-1. Accepted when `parameters.js` exports named values for vertex count, grid size, special-subset size, sparsity, nearest-neighbor count, field sigma divisor, field dampening factor, field strengthening factor, edge reveal pacing, and screen margin fraction.
+1. Accepted when `parameters.js` exports named values for vertex count, grid size, special-subset size, sparsity, nearest-neighbor count, field dampening factor, field strengthening factor, edge reveal pacing, and screen margin fraction.
 2. Accepted when `graph.js` imports vertex count, grid size, and special-subset size from `parameters.js`, and no longer declares its own constants for those three values.
 3. Accepted when `dispatcher.js` imports sparsity from `parameters.js`, and no longer declares its own constant for sparsity.
 4. Accepted when `logic/randomness/edges.js` imports the nearest-neighbor count from `parameters.js`, and no longer declares its own constant for that value.
-5. Accepted when `parameters.js`'s exported sigma-derivation function is given the same vertex count as today, it produces the exact same numeric result as today's formula; `dispatcher.js` no longer has its own `_sigmaForVertexCount` function and calls `parameters.js`'s function instead.
+5. Accepted when `parameters.js`'s unified sigma function is given a vertex count and grid size, it produces `gridSize / Math.sqrt(vertexCount)`; neither `dispatcher.js` nor `logic/computation/field.js` has its own sigma function anymore, and both `dispatcher.js` and `empirical/trialRunner.js` call `parameters.js`'s function instead.
 6. Accepted when one exported value in `parameters.js` is changed and the demo is reloaded, the corresponding generated graph property changes with no edits to any file other than `parameters.js`.
 7. Accepted when `parameters.js`'s own module source is inspected, it imports nothing from `graph.js`, `dispatcher.js`, or `logic/randomness/edges.js`.
-8. Accepted when `logic/computation/field.js`'s `sigmaFromGridSize`, `fieldValue`, and `key` are called with the same inputs as today, they produce the exact same numeric results as today, now sourcing their sigma divisor/dampening/strengthening factor from `parameters.js`.
-9. Accepted when `rendering/state/renderer.js`'s `EDGE_PACING_MILLISECONDS` is imported from its existing path (as every current test already does), it still resolves to the same value, now sourced from `parameters.js`.
+8. Accepted when `logic/computation/field.js`'s `fieldValue` and `key` are called with the same inputs (including sigma) as today, they produce the exact same numeric results as today, now sourcing their dampening/strengthening factor from `parameters.js`.
+9. Accepted when `rendering/state/renderer.js` is used to create and run a renderer, its edge-reveal pacing still matches today's value, now sourced directly from `parameters.js` with no re-export from `renderer.js`'s own export surface.
 10. Accepted when `rendering/gl/glPrimitives.js`'s coordinate-mapping functions are called with the same inputs as today, they produce the exact same numeric results as today, now sourcing the screen margin fraction from `parameters.js`.
 
 No open questions remain for this story.

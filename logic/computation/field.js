@@ -1,11 +1,6 @@
 /** Gaussian-field priority score used by the greedy edge-growth algorithm. */
 import { gaussian } from "../randomness/rng.js";
-
-// CONSTANTS
-
-const DAMPENING_FACTOR = 0.1;
-const STRENGTHENING_FACTOR = 10.0;
-export const SIGMA_DIVISOR = 15.0;
+import { DAMPENING_FACTOR, STRENGTHENING_FACTOR } from "../../parameters.js";
 
 // HELPER FUNCTIONS - STRENGTH CALCULATION
 
@@ -15,11 +10,6 @@ function _strength(dsu, vertex, x) {
 }
 
 // PUBLIC INTERFACE
-
-/** Derives the Gaussian spread sigma from the grid size. */
-export function sigmaFromGridSize(gridSize) {
-  return gridSize / SIGMA_DIVISOR;
-}
 
 /** Strength-scaled Gaussian bump centred on `vertex`, evaluated at x. */
 export function fieldValue(dsu, vertex, x, sigma) {

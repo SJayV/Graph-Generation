@@ -4,10 +4,7 @@
  */
 import { computeRenderState } from "./renderState.js";
 import { computeGlow } from "./glow.js";
-
-// CONSTANTS
-
-export const EDGE_PACING_MILLISECONDS = 30;
+import { EDGE_PACING_MILLISECONDS } from "../../parameters.js";
 
 // PUBLIC INTERFACE
 

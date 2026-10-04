@@ -4,7 +4,8 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { vi } from "vitest";
 
-import { createRenderer, EDGE_PACING_MILLISECONDS } from "../../../rendering/state/renderer.js";
+import { EDGE_PACING_MILLISECONDS } from "../../../parameters.js";
+import { createRenderer } from "../../../rendering/state/renderer.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 beforeEach(() => {

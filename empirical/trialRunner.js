@@ -1,7 +1,7 @@
 /** Repeated trials of the edge-growth algorithm. */
 import * as algorithm from "../algorithms/parametrization/generation.js";
 import { drainEdges } from "../algorithms/skeleton/greedyAlgorithm.js";
-import { sigmaFromGridSize } from "../logic/computation/field.js";
+import { sigma as computeSigma } from "../parameters.js";
 import * as verticesModule from "../logic/randomness/vertices.js";
 
 // HELPER FUNCTIONS
@@ -9,7 +9,7 @@ import * as verticesModule from "../logic/randomness/vertices.js";
 function _trialOutcome(r, n, L, k, rngSource) {
   const allVertices = verticesModule.sampleVertices(n, L, rngSource);
   const specialSubset = verticesModule.selectSpecialSubset(allVertices, k, rngSource);
-  const sigma = sigmaFromGridSize(L);
+  const sigma = computeSigma(n, L);
   const { dsu } = drainEdges(algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma));
 
   return dsu.allConnected(specialSubset);

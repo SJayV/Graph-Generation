@@ -1,8 +1,8 @@
 /** Shared WebGL coordinate-mapping and buffer-upload primitives for drawing routines. */
+import { SCREEN_MARGIN_FRACTION } from "../../parameters.js";
 
 // CONSTANTS
 
-const SCREEN_MARGIN_FRACTION = 0.15;
 const CONTENT_CLIP_BOUND = 1 - 2 * SCREEN_MARGIN_FRACTION;
 
 // HELPER FUNCTIONS - COORDINATE MAPPING

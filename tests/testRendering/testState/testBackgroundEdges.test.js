@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { computeRenderState } from "../../../rendering/state/renderState.js";
 import { computeGlow } from "../../../rendering/state/glow.js";
-import { EDGE_PACING_MILLISECONDS } from "../../../rendering/state/renderer.js";
+import { EDGE_PACING_MILLISECONDS } from "../../../parameters.js";
 import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
 
 function _backgroundEdges(renderState) {

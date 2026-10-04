@@ -3,18 +3,12 @@ import { growEdgesStepwise as growGenerationStepwise } from "./algorithms/parame
 import { growEdgesUnidirectionalStepwise as growDijkstraUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growDijkstraMultidirectionalStepwise } from "./algorithms/parametrization/dijkstra.js";
 import { growEdgesUnidirectionalStepwise as growAstarUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growAstarMultidirectionalStepwise } from "./algorithms/parametrization/astar.js";
 import { drainEdges } from "./algorithms/skeleton/greedyAlgorithm.js";
-import { GRID_SIZE, SPARSITY } from "./parameters.js";
-
-// HELPER FUNCTIONS - GENERATION PARAMETERS
-
-function _sigmaForVertexCount(vertexCount) {
-  return GRID_SIZE / Math.sqrt(vertexCount);
-}
+import { SPARSITY, sigma as computeSigma } from "./parameters.js";
 
 // HELPER FUNCTIONS - PER-ALGORITHM RUNNERS
 
 function _runGeneration(allVertices, specialSubset) {
-  const sigma = _sigmaForVertexCount(allVertices.length);
+  const sigma = computeSigma(allVertices.length);
   const { edges, dsu } = drainEdges(growGenerationStepwise(allVertices, specialSubset, SPARSITY, sigma));
   return { edges, dsu, edgeSet: undefined };
 }
