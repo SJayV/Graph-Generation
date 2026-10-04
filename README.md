@@ -4,6 +4,10 @@ Greedy edge growth on a fixed vertex set, ranked by priority scores and shaped b
 
 Press Tab to cycle through the implemented algorithms.
 
+Press Enter to restart a run of the same algorithm on a new graph.
+
+Press Space to open and close a menu for entering new parameter values.
+
 ## Formalization
 
 ### Graph
