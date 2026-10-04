@@ -2,12 +2,7 @@
 import { buildNearestNeighborEdges } from "./logic/randomness/edges.js";
 import { createSeededRng } from "./logic/randomness/rng.js";
 import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/randomness/vertices.js";
-
-// CONSTANTS
-
-const VERTEX_COUNT = 200;
-export const GRID_SIZE = 1000;
-const SPECIAL_SUBSET_SIZE = 5;
+import { GRID_SIZE, SPECIAL_SUBSET_SIZE, VERTEX_COUNT } from "./parameters.js";
 
 // HELPER FUNCTIONS
 

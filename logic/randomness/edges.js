@@ -1,10 +1,7 @@
 /** Deterministic k-nearest-neighbor edge set construction. */
 import { distance } from "../computation/distance.js";
 import { edgeKey } from "./vertices.js";
-
-// CONSTANTS
-
-const NEAREST_NEIGHBOR_COUNT = 4;
+import { NEAREST_NEIGHBOR_COUNT } from "../../parameters.js";
 
 // HELPER FUNCTIONS - NEAREST NEIGHBOR SELECTION
 
