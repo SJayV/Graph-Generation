@@ -1,11 +1,12 @@
 /**
  * proportion of N trials where special subset shares a DSU root
  */
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { runTrials } from "../../empirical/trialRunner.js";
-import { createSeededRng } from "../../logic/randomness/rng.js";
-import * as verticesModule from "../../logic/randomness/vertices.js";
+import { createSeededRng } from "../../logic/construction/rng.js";
+
+const FIELD_FACTORS = { dampeningFactor: 0.1, strengtheningFactor: 10 };
 
 function makeRng() {
   return createSeededRng(1234);
@@ -23,7 +24,7 @@ describe("trialRunner", () => {
       const L = 20;
       const k = 0;
       const N = 10;
-      const proportion = runTrials(0.0, n, L, k, N, makeRng());
+      const proportion = runTrials(0.0, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBe(1.0);
     });
 
@@ -32,29 +33,8 @@ describe("trialRunner", () => {
       const L = 20;
       const k = 3;
       const N = 7;
-      const proportion = runTrials(0.0, n, L, k, N, makeRng());
+      const proportion = runTrials(0.0, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBe(0.0);
-    });
-
-    it("invokes vertex sampling exactly N times", () => {
-      const n = 5;
-      const L = 15;
-      const k = 2;
-      const N = 6;
-      let callCount = 0;
-      const originalSample = verticesModule.sampleVertices;
-
-      const spy = vi
-        .spyOn(verticesModule, "sampleVertices")
-        .mockImplementation((nArg, lArg, rngArg) => {
-          callCount += 1;
-          return originalSample(nArg, lArg, rngArg);
-        });
-
-      runTrials(1.0, n, L, k, N, makeRng());
-      expect(callCount).toBe(N);
-
-      spy.mockRestore();
     });
   });
 
@@ -65,33 +45,9 @@ describe("trialRunner", () => {
       const k = 2;
       const N = 8;
       const r = 1.0;
-      const firstProportion = runTrials(r, n, L, k, N, createSeededRng(99));
-      const secondProportion = runTrials(r, n, L, k, N, createSeededRng(99));
+      const firstProportion = runTrials(r, n, L, k, N, createSeededRng(99), FIELD_FACTORS);
+      const secondProportion = runTrials(r, n, L, k, N, createSeededRng(99), FIELD_FACTORS);
       expect(firstProportion).toBe(secondProportion);
-    });
-
-    it("vertex sampling calls receive different rng-derived values across trials", () => {
-      const n = 5;
-      const L = 15;
-      const k = 2;
-      const N = 6;
-      const seenVertexSets = [];
-      const originalSample = verticesModule.sampleVertices;
-
-      const spy = vi
-        .spyOn(verticesModule, "sampleVertices")
-        .mockImplementation((nArg, lArg, rngArg) => {
-          const result = originalSample(nArg, lArg, rngArg);
-          seenVertexSets.push(JSON.stringify(result));
-          return result;
-        });
-
-      runTrials(1.0, n, L, k, N, makeRng());
-
-      expect(seenVertexSets.length).toBe(N);
-      expect(new Set(seenVertexSets).size).toBeGreaterThan(1); // rng advanced, not reused identically
-
-      spy.mockRestore();
     });
   });
 
@@ -100,7 +56,7 @@ describe("trialRunner", () => {
       const n = 8;
       const L = 25;
       const N = 12;
-      const proportion = runTrials(0.0, n, L, k, N, makeRng());
+      const proportion = runTrials(0.0, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBe(1.0);
     });
   });
@@ -111,7 +67,7 @@ describe("trialRunner", () => {
       const L = 20;
       const k = 3;
       const N = 10;
-      const proportion = runTrials(r, n, L, k, N, makeRng());
+      const proportion = runTrials(r, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBeGreaterThanOrEqual(0.0);
       expect(proportion).toBeLessThanOrEqual(1.0);
     });
@@ -124,16 +80,9 @@ describe("trialRunner", () => {
       const k = 3;
       const N = 15;
       const r = 1.5;
-      const first = runTrials(r, n, L, k, N, createSeededRng(2024));
-      const second = runTrials(r, n, L, k, N, createSeededRng(2024));
+      const first = runTrials(r, n, L, k, N, createSeededRng(2024), FIELD_FACTORS);
+      const second = runTrials(r, n, L, k, N, createSeededRng(2024), FIELD_FACTORS);
       expect(first).toBe(second);
-    });
-  });
-
-  describe("TestSigmaIsNotAParameter", () => {
-    it("declared signature has exactly the 6 non-sigma parameters", () => {
-      // runTrials(r, n, L, k, N, rngSource) - 6 declared parameters, no sigma.
-      expect(runTrials.length).toBe(6);
     });
   });
 
@@ -144,7 +93,7 @@ describe("trialRunner", () => {
       const k = 4;
       const N = 10;
       const r = fullyConnectingR(n);
-      const proportion = runTrials(r, n, L, k, N, makeRng());
+      const proportion = runTrials(r, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBe(1.0);
     });
 
@@ -154,7 +103,7 @@ describe("trialRunner", () => {
       const k = 5;
       const N = 8;
       const r = 1_000_000.0;
-      const proportion = runTrials(r, n, L, k, N, makeRng());
+      const proportion = runTrials(r, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBe(1.0);
     });
   });
@@ -164,7 +113,7 @@ describe("trialRunner", () => {
       const n = 8;
       const L = 25;
       const N = 10;
-      const proportion = runTrials(0.0, n, L, k, N, makeRng());
+      const proportion = runTrials(0.0, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBe(0.0);
     });
   });

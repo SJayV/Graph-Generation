@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { createSeededRng } from "../../../logic/randomness/rng.js";
-import { sampleVertices, selectSpecialSubset } from "../../../logic/randomness/vertices.js";
+import { createSeededRng } from "../../../logic/construction/rng.js";
+import { sampleVertices, selectSpecialSubset } from "../../../logic/construction/vertices.js";
 
 // A fresh, deterministically seeded RNG, isolated per test (JS
 // equivalent of the Python "rng" pytest fixture in conftest.py).

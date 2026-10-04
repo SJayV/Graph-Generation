@@ -1,16 +1,16 @@
 /** Repeated trials of the edge-growth algorithm. */
-import * as algorithm from "../algorithms/parametrization/generation.js";
+import { growEdgesStepwise as growGenerationStepwise } from "../algorithms/parametrization/generation.js";
 import { drainEdges } from "../algorithms/skeleton/greedyAlgorithm.js";
-import { sigma as computeSigma } from "../parameters.js";
-import * as verticesModule from "../logic/randomness/vertices.js";
+import { sigma as computeSigma } from "../logic/computation/field.js";
+import { sampleVertices, selectSpecialSubset } from "../logic/construction/vertices.js";
 
 // HELPER FUNCTIONS
 
-function _trialOutcome(r, n, L, k, rngSource) {
-  const allVertices = verticesModule.sampleVertices(n, L, rngSource);
-  const specialSubset = verticesModule.selectSpecialSubset(allVertices, k, rngSource);
-  const sigma = computeSigma(n, L);
-  const { dsu } = drainEdges(algorithm.growEdgesStepwise(allVertices, specialSubset, r, sigma));
+function _trialOutcome(r, n, L, k, rngSource, fieldFactors) {
+  const allVertices = sampleVertices(n, L, rngSource);
+  const specialSubset = selectSpecialSubset(allVertices, k, rngSource);
+  const fieldShape = { sigma: computeSigma(n, L), ...fieldFactors };
+  const { dsu } = drainEdges(growGenerationStepwise(allVertices, specialSubset, r, fieldShape));
 
   return dsu.allConnected(specialSubset);
 }
@@ -18,10 +18,10 @@ function _trialOutcome(r, n, L, k, rngSource) {
 // PUBLIC INTERFACE
 
 /** Runs N independent trials. */
-export function runTrials(r, n, L, k, N, rngSource) {
+export function runTrials(r, n, L, k, N, rngSource, fieldFactors) {
   let trueOutcomeCount = 0;
   for (let i = 0; i < N; i += 1) {
-    if (_trialOutcome(r, n, L, k, rngSource)) {
+    if (_trialOutcome(r, n, L, k, rngSource, fieldFactors)) {
       trueOutcomeCount += 1;
     }
   }

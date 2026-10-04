@@ -44,9 +44,6 @@ An application to randomly create graphs parametrized in node count and sparsity
 - data flow: logic → rendering (target end-state)
     - generation runs client-side in-browser; data passed in-memory
     - one-directional: rendering never calls back into logic
-    - exception
-        - mutable shared state
-        - writes only by root orchestration layer in response to user input
 - rendering layer interface
     - exposes a minimal programmatic entry point: a function
         - taking a vertex / edge-sequence

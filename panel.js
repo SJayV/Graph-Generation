@@ -1,39 +1,59 @@
 /** Imperative-shell parameter panel: stages edits in DOM inputs and commits them to parameters.js only on apply. */
 import { getParameters, setParameters } from "./parameters.js";
+import { fitsGridCapacity, isValidVertexSelection } from "./logic/construction/vertices.js";
 
 // CONSTANTS
 
-const FIELD_LABELS = {
-  vertexCount: "Vertex count",
-  gridSize: "Grid size",
-  specialSubsetSize: "Special subset size",
-  sparsity: "Sparsity (edges per vertex)",
-  nearestNeighborCount: "Nearest neighbors per vertex",
-  dampeningFactor: "Dampening of connected areas (0 to 1)",
-  strengtheningFactor: "Strengthening of special vertices (at least 1)",
-  edgePacingMilliseconds: "Edge reveal pace (milliseconds)",
-  screenMarginFraction: "Screen margin (fraction)",
+const PARAMETER_FIELDS = {
+  vertexCount: {
+    label: "Vertex count",
+    isValid: (value, staged) => _isPositiveInteger(value) && (!_isPositiveInteger(staged.gridSize) || fitsGridCapacity(value, staged.gridSize)),
+  },
+  gridSize: {
+    label: "Grid size",
+    isValid: _isPositiveInteger,
+  },
+  specialSubsetSize: {
+    label: "Special subset size",
+    isValid: (value, staged) => Number.isInteger(value) && isValidVertexSelection(value, staged.vertexCount),
+  },
+  sparsity: {
+    label: "Sparsity",
+    isValid: (value) => value > 0 && Number.isFinite(value),
+  },
+  nearestNeighborCount: {
+    label: "Nearest neighbor count",
+    isValid: (value, staged) => _isPositiveInteger(value) && isValidVertexSelection(value, staged.vertexCount - 1),
+  },
+  dampeningFactor: {
+    label: "Dampening - components",
+    isValid: (value) => value > 0 && value <= 1,
+  },
+  strengtheningFactor: {
+    label: "Strengthening - vertices",
+    isValid: (value) => value >= 1 && Number.isFinite(value),
+  },
+  edgePacingMilliseconds: {
+    label: "Edge reveal pace",
+    isValid: _isPositiveInteger,
+  },
+  screenMarginFraction: {
+    label: "Screen margin",
+    isValid: (value) => value >= 0 && value < 0.5,
+  },
 };
 
-const IS_POSITIVE_INTEGER = (value) => Number.isInteger(value) && value >= 1;
+// HELPER FUNCTIONS - VALIDATION
 
-const BOUND_CHECKS = {
-  vertexCount: (value, staged) => IS_POSITIVE_INTEGER(value) && (!IS_POSITIVE_INTEGER(staged.gridSize) || value <= (staged.gridSize + 1) ** 2),
-  gridSize: IS_POSITIVE_INTEGER,
-  specialSubsetSize: (value, staged) => Number.isInteger(value) && value >= 0 && value <= staged.vertexCount,
-  sparsity: (value) => value > 0 && Number.isFinite(value),
-  nearestNeighborCount: (value, staged) => Number.isInteger(value) && value >= 1 && value <= staged.vertexCount - 1,
-  dampeningFactor: (value) => value > 0 && value <= 1,
-  strengtheningFactor: (value) => value >= 1 && Number.isFinite(value),
-  edgePacingMilliseconds: IS_POSITIVE_INTEGER,
-  screenMarginFraction: (value) => value >= 0 && value < 0.5,
-};
+function _isPositiveInteger(value) {
+  return Number.isInteger(value) && value >= 1;
+}
 
 // HELPER FUNCTIONS - DOM CONSTRUCTION
 
 function _createField(key) {
   const label = document.createElement("label");
-  label.append(FIELD_LABELS[key]);
+  label.append(PARAMETER_FIELDS[key].label);
   const input = document.createElement("input");
   input.type = "number";
   input.step = "any";
@@ -43,7 +63,7 @@ function _createField(key) {
 
 function _createFields(containerElement) {
   const fields = {};
-  for (const key of Object.keys(FIELD_LABELS)) {
+  for (const key of Object.keys(PARAMETER_FIELDS)) {
     fields[key] = _createField(key);
     containerElement.append(fields[key].label);
   }
@@ -74,7 +94,7 @@ function _markRejected(fields, rejectedKeys) {
 // PUBLIC INTERFACE
 
 export function validateStagedParameters(stagedValues) {
-  return Object.keys(BOUND_CHECKS).filter((key) => !BOUND_CHECKS[key](stagedValues[key], stagedValues));
+  return Object.keys(PARAMETER_FIELDS).filter((key) => !PARAMETER_FIELDS[key].isValid(stagedValues[key], stagedValues));
 }
 
 export function createPanel(containerElement) {

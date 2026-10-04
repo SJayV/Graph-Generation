@@ -28,22 +28,27 @@ function _clear(gl) {
   gl.clear(gl.COLOR_BUFFER_BIT);
 }
 
-function _drawPrimitiveCategory(gl, program, drawFunction, field, renderState, axisBounds, category) {
+function _drawPrimitiveCategory(gl, program, buffers, drawFunction, field, renderState, axisBounds, category) {
   gl.useProgram(program);
-  drawFunction(gl, program, _inCategory(renderState[field], category), renderState.vertices, axisBounds, COLOR_BY_CATEGORY[category]);
+  drawFunction(gl, program, buffers, _inCategory(renderState[field], category), renderState.vertices, axisBounds, COLOR_BY_CATEGORY[category]);
 }
 
 // PUBLIC INTERFACE
 
-export function drawRenderState(gl, renderState) {
-  const edgeProgram = createColorProgram(gl);
-  const circleProgram = createCircleProgram(gl);
-  const axisBounds = computeAxisBounds(renderState.vertices);
+/** Compiles the shader programs and allocates the vertex buffers once; reuse the result across frames. */
+export function createDrawResources(gl) {
+  return {
+    edgeProgram: createColorProgram(gl),
+    circleProgram: createCircleProgram(gl),
+    buffers: { position: gl.createBuffer(), glow: gl.createBuffer() },
+  };
+}
+
+export function drawRenderState(gl, resources, renderState, screenMarginFraction) {
+  const { edgeProgram, circleProgram, buffers } = resources;
+  const axisBounds = computeAxisBounds(renderState.vertices, screenMarginFraction);
 
   _clear(gl);
-  EDGE_CATEGORIES.forEach((category) => _drawPrimitiveCategory(gl, edgeProgram, drawEdges, "edges", renderState, axisBounds, category));
-  VERTEX_CATEGORIES.forEach((category) => _drawPrimitiveCategory(gl, circleProgram, drawVertices, "vertices", renderState, axisBounds, category));
-
-  gl.deleteProgram(edgeProgram);
-  gl.deleteProgram(circleProgram);
+  EDGE_CATEGORIES.forEach((category) => _drawPrimitiveCategory(gl, edgeProgram, buffers, drawEdges, "edges", renderState, axisBounds, category));
+  VERTEX_CATEGORIES.forEach((category) => _drawPrimitiveCategory(gl, circleProgram, buffers, drawVertices, "vertices", renderState, axisBounds, category));
 }

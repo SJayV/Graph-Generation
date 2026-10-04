@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { identifyConnectingEdges } from "../../algorithms/connectingEdges.js";
 import { DSU } from "../../logic/dataStructures/dsu.js";
-import { edgeKey } from "../../logic/randomness/vertices.js";
+import { edgeKey } from "../../logic/construction/vertices.js";
 
 // HELPER FUNCTIONS
 

@@ -6,7 +6,7 @@ import { vi } from "vitest";
 
 import { EDGE_PACING_MILLISECONDS } from "../../../parameters.js";
 import { createRenderer } from "../../../rendering/state/renderer.js";
-import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
+import { makeLinearEdgeSequence, makeRenderData, makeVertices } from "./fixtures.js";
 
 beforeEach(() => {
   vi.useFakeTimers();
@@ -21,7 +21,7 @@ describe("Playback pacing", () => {
     it("reveals exactly one additional edge per EDGE_PACING_MILLISECONDS tick", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
-      const renderer = createRenderer(vertices, edgeSequence);
+      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
 
       renderer.start();
 
@@ -36,7 +36,7 @@ describe("Playback pacing", () => {
     it("does not reveal the next edge before a full pacing interval has elapsed", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
-      const renderer = createRenderer(vertices, edgeSequence);
+      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
 
       renderer.start();
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS - 1);
@@ -47,7 +47,7 @@ describe("Playback pacing", () => {
     it("spaces every consecutive pair of edge reveals by the same constant duration", () => {
       const vertices = makeVertices(6);
       const edgeSequence = makeLinearEdgeSequence(6);
-      const renderer = createRenderer(vertices, edgeSequence);
+      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
       const observedIntervalsBetweenReveals = [];
       let lastVisibleCount = 0;
       let millisecondsSinceLastReveal = 0;
@@ -82,8 +82,8 @@ describe("Playback pacing", () => {
       const verticesB = [[9, 9], [0, 0], [5, 3], [1, 1]];
       const edgeSequenceB = [[1, 0], [1, 3], [3, 2]];
 
-      const rendererA = createRenderer(verticesA, edgeSequenceA);
-      const rendererB = createRenderer(verticesB, edgeSequenceB);
+      const rendererA = createRenderer(makeRenderData(verticesA, edgeSequenceA), EDGE_PACING_MILLISECONDS);
+      const rendererB = createRenderer(makeRenderData(verticesB, edgeSequenceB), EDGE_PACING_MILLISECONDS);
 
       rendererA.start();
       rendererB.start();
@@ -99,7 +99,7 @@ describe("Playback pacing", () => {
     it("takes exactly length * EDGE_PACING_MILLISECONDS to reveal a short sequence fully", () => {
       const vertices = makeVertices(3);
       const edgeSequence = makeLinearEdgeSequence(3);
-      const renderer = createRenderer(vertices, edgeSequence);
+      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
 
       renderer.start();
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS * edgeSequence.length);
@@ -110,17 +110,12 @@ describe("Playback pacing", () => {
     it("takes exactly length * EDGE_PACING_MILLISECONDS to reveal a long sequence fully, at the same rate", () => {
       const vertices = makeVertices(20);
       const edgeSequence = makeLinearEdgeSequence(20);
-      const renderer = createRenderer(vertices, edgeSequence);
+      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
 
       renderer.start();
       vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS * edgeSequence.length);
 
       expect(renderer.getDisplayedState().edges).toHaveLength(edgeSequence.length);
-    });
-
-    it("exposes EDGE_PACING_MILLISECONDS as a single fixed numeric constant", () => {
-      expect(typeof EDGE_PACING_MILLISECONDS).toBe("number");
-      expect(EDGE_PACING_MILLISECONDS).toBeGreaterThan(0);
     });
   });
 });

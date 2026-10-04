@@ -3,37 +3,29 @@
  * current step index into the edge sequence and auto-advance playback.
  */
 import { computeRenderState } from "./renderState.js";
-import { computeGlow } from "./glow.js";
-import { EDGE_PACING_MILLISECONDS } from "../../parameters.js";
 
 // PUBLIC INTERFACE
 
-export function createRenderer(vertices, edgeSequence, edgeSet, specialStartIndex) {
+export function createRenderer(renderData, edgePacingMilliseconds) {
   let stepIndex = 0;
   let intervalHandle = null;
-  let startTime = null;
+  const startTime = Date.now();
 
   function getDisplayedState() {
-    const currentTime = startTime === null ? undefined : Date.now() - startTime;
-    return computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, EDGE_PACING_MILLISECONDS, edgeSet, specialStartIndex);
-  }
-
-  function setStepIndex(nextStepIndex) {
-    stepIndex = nextStepIndex;
+    return computeRenderState(renderData, stepIndex, Date.now() - startTime, edgePacingMilliseconds);
   }
 
   function start() {
     if (intervalHandle !== null) {
       return;
     }
-    startTime = Date.now();
     intervalHandle = setInterval(() => {
-      if (stepIndex >= edgeSequence.length) {
+      if (stepIndex >= renderData.edgeSequence.length) {
         stop();
         return;
       }
-      setStepIndex(stepIndex + 1);
-    }, EDGE_PACING_MILLISECONDS);
+      stepIndex += 1;
+    }, edgePacingMilliseconds);
   }
 
   function stop() {
@@ -44,5 +36,5 @@ export function createRenderer(vertices, edgeSequence, edgeSet, specialStartInde
     intervalHandle = null;
   }
 
-  return { getDisplayedState, setStepIndex, start, stop };
+  return { getDisplayedState, start, stop };
 }

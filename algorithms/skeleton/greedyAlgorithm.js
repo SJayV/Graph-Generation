@@ -7,7 +7,7 @@
  */
 import { DSU } from "../../logic/dataStructures/dsu.js";
 import { MinHeap } from "../../logic/dataStructures/minHeap.js";
-import { edgeKey } from "../../logic/randomness/vertices.js";
+import { edgeKey } from "../../logic/construction/vertices.js";
 
 // HELPER FUNCTIONS - CANDIDATE POOL
 
@@ -90,5 +90,3 @@ export function drainEdges(generator) {
   }
   return { edges, dsu: step.value };
 }
-
-export { _candidatePairs };

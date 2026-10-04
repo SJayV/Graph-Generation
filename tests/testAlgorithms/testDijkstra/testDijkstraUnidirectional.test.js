@@ -6,7 +6,9 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as dijkstra from "../../../algorithms/parametrization/dijkstra.js";
+import {
+  growEdgesUnidirectionalStepwise as growDijkstraUnidirectionalStepwise,
+} from "../../../algorithms/parametrization/dijkstra.js";
 import { drainEdges } from "../../../algorithms/skeleton/greedyAlgorithm.js";
 
 const EPSILON = 1e-9;
@@ -114,7 +116,7 @@ describe("dijkstraUnidirectional", () => {
 
       const connected = new Set(special.map(vertexKey));
       let runningMax = 0;
-      for (const [u, v] of dijkstra.growEdgesUnidirectionalStepwise(allVertices, special)) {
+      for (const [u, v] of growDijkstraUnidirectionalStepwise(allVertices, special)) {
         const uKey = vertexKey(u);
         const vKey = vertexKey(v);
         const uIsNew = !connected.has(uKey);
@@ -139,7 +141,7 @@ describe("dijkstraUnidirectional", () => {
       ];
       const special = [allVertices[0], allVertices[3]];
 
-      const { edges } = drainEdges(dijkstra.growEdgesUnidirectionalStepwise(allVertices, special));
+      const { edges } = drainEdges(growDijkstraUnidirectionalStepwise(allVertices, special));
 
       const found = shortestPathInSubgraph(edges, special[0], special[1]);
       const truth = bruteForceShortestPath(allVertices, special[0], special[1]);
@@ -151,13 +153,13 @@ describe("dijkstraUnidirectional", () => {
   describe("vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...dijkstra.growEdgesUnidirectionalStepwise(allVertices, [])];
+      const edges = [...growDijkstraUnidirectionalStepwise(allVertices, [])];
       expect(edges).toEqual([]);
     });
 
     it("yields no edges for exactly one special vertex", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...dijkstra.growEdgesUnidirectionalStepwise(allVertices, [allVertices[0]])];
+      const edges = [...growDijkstraUnidirectionalStepwise(allVertices, [allVertices[0]])];
       expect(edges).toEqual([]);
     });
   });
@@ -167,7 +169,7 @@ describe("dijkstraUnidirectional", () => {
       const allVertices = [[0, 0], [10, 0], [0, 3], [10, 3]];
       const special = [allVertices[0], allVertices[1]];
 
-      const { edges } = drainEdges(dijkstra.growEdgesUnidirectionalStepwise(allVertices, special));
+      const { edges } = drainEdges(growDijkstraUnidirectionalStepwise(allVertices, special));
       const found = shortestPathInSubgraph(edges, special[0], special[1]);
 
       expect(found).toBeCloseTo(10, 9);
@@ -179,7 +181,7 @@ describe("dijkstraUnidirectional", () => {
       const special = [a, b];
       const edgeSet = [[a, c], [c, d], [d, b]]; // excludes direct a-b edge (weight 10)
 
-      const { edges, dsu } = drainEdges(dijkstra.growEdgesUnidirectionalStepwise(allVertices, special, undefined, edgeSet));
+      const { edges, dsu } = drainEdges(growDijkstraUnidirectionalStepwise(allVertices, special, undefined, edgeSet));
 
       expect(dsu.connected(a, b)).toBe(true);
       const found = shortestPathInSubgraph(edges, a, b);
@@ -192,7 +194,7 @@ describe("dijkstraUnidirectional", () => {
       const special = [a, b];
       const edgeSet = [[a, c]]; // never reaches b
 
-      const { dsu } = drainEdges(dijkstra.growEdgesUnidirectionalStepwise(allVertices, special, undefined, edgeSet));
+      const { dsu } = drainEdges(growDijkstraUnidirectionalStepwise(allVertices, special, undefined, edgeSet));
 
       expect(dsu.connected(a, b)).toBe(false);
       expect(dsu.componentCount()).toBeGreaterThan(1);

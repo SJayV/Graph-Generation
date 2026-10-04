@@ -4,7 +4,8 @@
 import { describe, expect, it } from "vitest";
 
 import { computeRenderState } from "../../../rendering/state/renderState.js";
-import { makeLinearEdgeSequence, makeVertices } from "./fixtures.js";
+import { EDGE_PACING_MILLISECONDS } from "../../../parameters.js";
+import { makeLinearEdgeSequence, makeRenderData, makeVertices } from "./fixtures.js";
 
 describe("Stepwise edge visibility", () => {
   describe("visible-edge count equals the step index exactly", () => {
@@ -14,7 +15,7 @@ describe("Stepwise edge visibility", () => {
         const vertices = makeVertices(5);
         const edgeSequence = makeLinearEdgeSequence(5);
 
-        const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
+        const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), stepIndex, 0, EDGE_PACING_MILLISECONDS);
 
         expect(renderState.edges).toHaveLength(stepIndex);
       },
@@ -27,7 +28,7 @@ describe("Stepwise edge visibility", () => {
       const edgeSequence = makeLinearEdgeSequence(6);
       const stepIndex = 3;
 
-      const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
+      const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), stepIndex, 0, EDGE_PACING_MILLISECONDS);
 
       renderState.edges.forEach((visibleEdge, index) => {
         const [expectedStart, expectedEnd] = edgeSequence[index];
@@ -41,7 +42,7 @@ describe("Stepwise edge visibility", () => {
       // Deliberately not sorted by index to check no implicit re-sorting.
       const edgeSequence = [[2, 3], [0, 1], [1, 2]];
 
-      const renderState = computeRenderState(vertices, edgeSequence, 3);
+      const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), 3, 0, EDGE_PACING_MILLISECONDS);
 
       expect(renderState.edges.map((edge) => [edge.startIndex, edge.endIndex])).toEqual(
         edgeSequence,
@@ -54,7 +55,7 @@ describe("Stepwise edge visibility", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
 
-      const renderState = computeRenderState(vertices, edgeSequence, 0);
+      const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), 0, 0, EDGE_PACING_MILLISECONDS);
 
       expect(renderState.edges).toEqual([]);
     });
@@ -63,7 +64,7 @@ describe("Stepwise edge visibility", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
 
-      const renderState = computeRenderState(vertices, edgeSequence, 0);
+      const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), 0, 0, EDGE_PACING_MILLISECONDS);
 
       expect(renderState.vertices).toHaveLength(vertices.length);
     });
@@ -74,7 +75,7 @@ describe("Stepwise edge visibility", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
-      const renderState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
+      const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), edgeSequence.length, 0, EDGE_PACING_MILLISECONDS);
 
       expect(renderState.edges.map((edge) => [edge.startIndex, edge.endIndex])).toEqual(
         edgeSequence,
@@ -85,7 +86,7 @@ describe("Stepwise edge visibility", () => {
       const vertices = makeVertices(5);
       const edgeSequence = makeLinearEdgeSequence(5);
 
-      const renderState = computeRenderState(vertices, edgeSequence, edgeSequence.length);
+      const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), edgeSequence.length, 0, EDGE_PACING_MILLISECONDS);
 
       renderState.edges.forEach((visibleEdge, index) => {
         const [expectedStartIndex, expectedEndIndex] = edgeSequence[index];
@@ -105,7 +106,7 @@ describe("Stepwise edge visibility", () => {
       const edgeSequence = makeLinearEdgeSequence(6);
 
       for (let stepIndex = 0; stepIndex < edgeSequence.length; stepIndex += 1) {
-        const earlierState = computeRenderState(vertices, edgeSequence, stepIndex);
+        const earlierState = computeRenderState(makeRenderData(vertices, edgeSequence), stepIndex, 0, EDGE_PACING_MILLISECONDS);
         const earlierEdgeKeys = new Set(
           earlierState.edges.map((edge) => `${edge.startIndex}-${edge.endIndex}`),
         );
@@ -115,7 +116,7 @@ describe("Stepwise edge visibility", () => {
           laterStepIndex <= edgeSequence.length;
           laterStepIndex += 1
         ) {
-          const laterState = computeRenderState(vertices, edgeSequence, laterStepIndex);
+          const laterState = computeRenderState(makeRenderData(vertices, edgeSequence), laterStepIndex, 0, EDGE_PACING_MILLISECONDS);
           const laterEdgeKeys = new Set(
             laterState.edges.map((edge) => `${edge.startIndex}-${edge.endIndex}`),
           );
@@ -134,7 +135,7 @@ describe("Stepwise edge visibility", () => {
       const edgeSequence = makeLinearEdgeSequence(5);
 
       for (let stepIndex = 0; stepIndex <= edgeSequence.length; stepIndex += 1) {
-        const renderState = computeRenderState(vertices, edgeSequence, stepIndex);
+        const renderState = computeRenderState(makeRenderData(vertices, edgeSequence), stepIndex, 0, EDGE_PACING_MILLISECONDS);
 
         renderState.edges.forEach((visibleEdge) => {
           expect(visibleEdge.startIndex).toBeGreaterThanOrEqual(0);

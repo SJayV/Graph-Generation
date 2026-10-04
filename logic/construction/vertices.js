@@ -19,6 +19,14 @@ function _buildGridPoints(gridSideLength) {
 
 // PUBLIC INTERFACE
 
+export function fitsGridCapacity(n, L) {
+  return n <= (L + 1) ** 2;
+}
+
+export function isValidVertexSelection(k, n) {
+  return k >= 0 && k <= n;
+}
+
 export function vertexKey(vertex) {
   return `${vertex[0]},${vertex[1]}`;
 }
@@ -32,14 +40,13 @@ export function edgeKey(u, v) {
 /**
  * Samples n pairwise-distinct integer coordinates from {0,...,L}^2, biased
  * toward the grid center by a Gaussian weight (roughly normally distributed).
- * Throws when n exceeds the grid's capacity, (L + 1) ** 2.
  */
 export function sampleVertices(n, L, rngSource) {
-  const gridSideLength = L + 1;
-  const gridCapacity = gridSideLength * gridSideLength;
-  if (n > gridCapacity) {
-    throw new Error(`cannot sample ${n} unique vertices from a grid of capacity ${gridCapacity}`);
+  if (!fitsGridCapacity(n, L)) {
+    throw new Error(`cannot sample ${n} unique vertices from a grid of side length ${L}`);
   }
+
+  const gridSideLength = L + 1;
 
   const allGridPoints = _buildGridPoints(gridSideLength);
   const center = [L / 2, L / 2];
@@ -47,12 +54,9 @@ export function sampleVertices(n, L, rngSource) {
   return weightedSampleWithoutReplacement(rngSource, allGridPoints, n, (point) => gaussian(point, center, sigma));
 }
 
-/**
- * Selects k distinct members of allVertices to form the special subset.
- * Throws when k is negative or larger than allVertices.length.
- */
+/** Selects k distinct members of allVertices to form the special subset. */
 export function selectSpecialSubset(allVertices, k, rngSource) {
-  if (k < 0 || k > allVertices.length) {
+  if (!isValidVertexSelection(k, allVertices.length)) {
     throw new Error(`k=${k} must satisfy 0 <= k <= ${allVertices.length}`);
   }
 

@@ -27,3 +27,7 @@ export function makeLinearEdgeSequence(vertexCount) {
   }
   return edgeSequence;
 }
+
+export function makeRenderData(vertices, edgeSequence, { edgeSet = [], specialStartIndex = Infinity } = {}) {
+  return { vertices, edgeSequence, edgeSet, specialStartIndex };
+}

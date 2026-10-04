@@ -12,14 +12,10 @@ Per `AGENTS.md`, planning is only complete once all three stories below are
 finalized with converged, testable acceptance criteria. All three are
 finalized below — no open questions remain for any of them.
 
-Architecture Map in `AGENTS.md` has already been updated by the user to
-document `parameters.js` as the root-level single source of truth for
-tunables, read by `graph.js` / `dispatcher.js` / `logic/randomness/edges.js`,
-plus a mutable-shared-state exception note under data flow (writes only by
-the root orchestration layer in response to user input — this covers the
-new root-level `panel.js` from User Story 2). The repo map still needs a
-`panel.js` bullet (Architecture Map edits are reserved to the
-architecture-planning skill / the user).
+`parameters.js` is the root-level single source of truth for tunables. Only
+the root files (`graph.js`, `dispatcher.js`, `main.js`, `panel.js`) read or
+write it; lower layers (`logic/`, `algorithms/`, `rendering/`, `empirical/`)
+receive the values as arguments.
 
 ---
 

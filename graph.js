@@ -1,8 +1,7 @@
-/** Samples a fresh vertex set, special subset, and candidate edge set for a single demo graph. */
-import { buildNearestNeighborEdges } from "./logic/randomness/edges.js";
-import { createSeededRng } from "./logic/randomness/rng.js";
-import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/randomness/vertices.js";
-import { GRID_SIZE, SPECIAL_SUBSET_SIZE, VERTEX_COUNT } from "./parameters.js";
+import { buildNearestNeighborEdges } from "./logic/construction/edges.js";
+import { createSeededRng } from "./logic/construction/rng.js";
+import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/construction/vertices.js";
+import { GRID_SIZE, NEAREST_NEIGHBOR_COUNT, SPECIAL_SUBSET_SIZE, VERTEX_COUNT } from "./parameters.js";
 
 // HELPER FUNCTIONS
 
@@ -16,7 +15,7 @@ export function createGraph() {
   const rng = createSeededRng(_createEntropySeed());
   const allVertices = sampleVertices(VERTEX_COUNT, GRID_SIZE, rng);
   const specialSubset = selectSpecialSubset(allVertices, SPECIAL_SUBSET_SIZE, rng);
-  const edgeSet = buildNearestNeighborEdges(allVertices);
+  const edgeSet = buildNearestNeighborEdges(allVertices, NEAREST_NEIGHBOR_COUNT);
   return { allVertices, specialSubset, edgeSet };
 }
 

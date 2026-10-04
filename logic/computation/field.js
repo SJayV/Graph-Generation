@@ -1,25 +1,29 @@
 /** Gaussian-field priority score used by the greedy edge-growth algorithm. */
-import { gaussian } from "../randomness/rng.js";
-import { DAMPENING_FACTOR, STRENGTHENING_FACTOR } from "../../parameters.js";
+import { gaussian } from "../construction/rng.js";
 
 // HELPER FUNCTIONS - STRENGTH CALCULATION
 
-function _strength(dsu, vertex, x) {
-  const dampeningFactor = dsu.connected(vertex, x) ? DAMPENING_FACTOR : 1;
-  return Math.sqrt(dampeningFactor * (dsu.componentSize(vertex)));
+function _strength(dsu, vertex, x, dampeningFactor) {
+  const appliedDampening = dsu.connected(vertex, x) ? dampeningFactor : 1;
+  return Math.sqrt(appliedDampening * (dsu.componentSize(vertex)));
+}
+
+// HELPER FUNCTIONS - FIELD VALUE
+
+function _fieldValue(dsu, vertex, x, fieldShape) {
+  const strengtheningFactor = dsu.isSpecial(vertex) ? fieldShape.strengtheningFactor : 1.0;
+  return strengtheningFactor * _strength(dsu, vertex, x, fieldShape.dampeningFactor) * gaussian(x, vertex, fieldShape.sigma);
 }
 
 // PUBLIC INTERFACE
 
-/** Strength-scaled Gaussian bump centred on `vertex`, evaluated at x. */
-export function fieldValue(dsu, vertex, x, sigma) {
-  const strengtheningFactor = dsu.isSpecial(vertex) ? STRENGTHENING_FACTOR : 1.0;
-  return strengtheningFactor * _strength(dsu, vertex, x) * gaussian(x, vertex, sigma);
+export function sigma(vertexCount, gridSize) {
+  return gridSize / Math.sqrt(vertexCount);
 }
 
 /** Symmetric priority score for the unordered pair {u, v}. */
-export function key(dsu, u, v, sigma) {
-  const fieldOfVAtU = fieldValue(dsu, v, u, sigma);
-  const fieldOfUAtV = fieldValue(dsu, u, v, sigma);
+export function key(dsu, u, v, fieldShape) {
+  const fieldOfVAtU = _fieldValue(dsu, v, u, fieldShape);
+  const fieldOfUAtV = _fieldValue(dsu, u, v, fieldShape);
   return fieldOfVAtU + fieldOfUAtV;
 }

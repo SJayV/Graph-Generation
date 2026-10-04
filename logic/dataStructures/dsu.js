@@ -2,7 +2,7 @@
  * Disjoint-set union (union-find) over vertices, tracking special-subset
  * membership per vertex.
  */
-import { vertexKey } from "../randomness/vertices.js";
+import { vertexKey } from "../construction/vertices.js";
 
 // PUBLIC INTERFACE
 

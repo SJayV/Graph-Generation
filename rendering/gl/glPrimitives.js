@@ -1,31 +1,27 @@
 /** Shared WebGL coordinate-mapping and buffer-upload primitives for drawing routines. */
-import { SCREEN_MARGIN_FRACTION } from "../../parameters.js";
-
 // HELPER FUNCTIONS - COORDINATE MAPPING
 
-function _axisToClipSpace(value, minValue, maxValue) {
+function _axisToClipSpace(value, minValue, maxValue, contentClipBound) {
   if (maxValue === minValue) {
     return 0;
   }
-  const contentClipBound = 1 - 2 * SCREEN_MARGIN_FRACTION;
   const normalized = (value - minValue) / (maxValue - minValue);
   return normalized * (2 * contentClipBound) - contentClipBound;
 }
 
 // HELPER FUNCTIONS - BUFFER UPLOAD
 
-function _uploadVertexAttribute(gl, program, attributeName, values, itemSize) {
+function _uploadVertexAttribute(gl, program, buffer, attributeName, values, itemSize) {
   const attributeLocation = gl.getAttribLocation(program, attributeName);
-  const buffer = gl.createBuffer();
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(values.flat()), gl.STATIC_DRAW);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(values.flat()), gl.DYNAMIC_DRAW);
   gl.enableVertexAttribArray(attributeLocation);
   gl.vertexAttribPointer(attributeLocation, itemSize, gl.FLOAT, false, 0, 0);
 }
 
 // PUBLIC INTERFACE
 
-export function computeAxisBounds(vertices) {
+export function computeAxisBounds(vertices, screenMarginFraction) {
   const xValues = vertices.map((vertex) => vertex.position[0]);
   const yValues = vertices.map((vertex) => vertex.position[1]);
   return {
@@ -33,20 +29,21 @@ export function computeAxisBounds(vertices) {
     maxX: Math.max(...xValues),
     minY: Math.min(...yValues),
     maxY: Math.max(...yValues),
+    contentClipBound: 1 - 2 * screenMarginFraction,
   };
 }
 
 export function positionToClipSpace([x, y], axisBounds) {
-  const { minX, maxX, minY, maxY } = axisBounds;
-  return [_axisToClipSpace(x, minX, maxX), _axisToClipSpace(y, minY, maxY)];
+  const { minX, maxX, minY, maxY, contentClipBound } = axisBounds;
+  return [_axisToClipSpace(x, minX, maxX, contentClipBound), _axisToClipSpace(y, minY, maxY, contentClipBound)];
 }
 
-export function uploadClipSpacePositions(gl, program, clipSpacePositions) {
-  _uploadVertexAttribute(gl, program, "aPosition", clipSpacePositions, 2);
+export function uploadClipSpacePositions(gl, program, buffer, clipSpacePositions) {
+  _uploadVertexAttribute(gl, program, buffer, "aPosition", clipSpacePositions, 2);
 }
 
-export function uploadVertexGlow(gl, program, glowValues) {
-  _uploadVertexAttribute(gl, program, "aGlow", glowValues, 1);
+export function uploadVertexGlow(gl, program, buffer, glowValues) {
+  _uploadVertexAttribute(gl, program, buffer, "aGlow", glowValues, 1);
 }
 
 export function setColorUniform(gl, program, color) {

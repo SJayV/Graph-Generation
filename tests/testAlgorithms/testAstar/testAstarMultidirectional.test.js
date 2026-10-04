@@ -4,8 +4,12 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as astar from "../../../algorithms/parametrization/astar.js";
-import * as dijkstra from "../../../algorithms/parametrization/dijkstra.js";
+import {
+  growEdgesMultidirectionalStepwise as growAstarMultidirectionalStepwise,
+} from "../../../algorithms/parametrization/astar.js";
+import {
+  growEdgesMultidirectionalStepwise as growDijkstraMultidirectionalStepwise,
+} from "../../../algorithms/parametrization/dijkstra.js";
 import { drainEdges } from "../../../algorithms/skeleton/greedyAlgorithm.js";
 
 const ZERO_HEURISTIC = () => 0;
@@ -72,8 +76,8 @@ describe("astarMultidirectional", () => {
       ];
       const special = [allVertices[0], allVertices[3]];
 
-      const { edges: astarEdges } = drainEdges(astar.growEdgesMultidirectionalStepwise(allVertices, special));
-      const { edges: dijkstraEdges } = drainEdges(dijkstra.growEdgesMultidirectionalStepwise(allVertices, special));
+      const { edges: astarEdges } = drainEdges(growAstarMultidirectionalStepwise(allVertices, special));
+      const { edges: dijkstraEdges } = drainEdges(growDijkstraMultidirectionalStepwise(allVertices, special));
 
       const astarDistance = shortestPathInSubgraph(astarEdges, special[0], special[1]);
       const dijkstraDistance = shortestPathInSubgraph(dijkstraEdges, special[0], special[1]);
@@ -89,8 +93,8 @@ describe("astarMultidirectional", () => {
       ];
       const special = [allVertices[0], allVertices[3], allVertices[6]];
 
-      const { edges: astarEdges } = drainEdges(astar.growEdgesMultidirectionalStepwise(allVertices, special, ZERO_HEURISTIC));
-      const { edges: dijkstraEdges } = drainEdges(dijkstra.growEdgesMultidirectionalStepwise(allVertices, special));
+      const { edges: astarEdges } = drainEdges(growAstarMultidirectionalStepwise(allVertices, special, ZERO_HEURISTIC));
+      const { edges: dijkstraEdges } = drainEdges(growDijkstraMultidirectionalStepwise(allVertices, special));
 
       for (let i = 0; i < special.length; i += 1) {
         for (let j = i + 1; j < special.length; j += 1) {
@@ -108,13 +112,13 @@ describe("astarMultidirectional", () => {
   describe("vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...astar.growEdgesMultidirectionalStepwise(allVertices, [])];
+      const edges = [...growAstarMultidirectionalStepwise(allVertices, [])];
       expect(edges).toEqual([]);
     });
 
     it("yields no edges for exactly one special vertex", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...astar.growEdgesMultidirectionalStepwise(allVertices, [allVertices[0]])];
+      const edges = [...growAstarMultidirectionalStepwise(allVertices, [allVertices[0]])];
       expect(edges).toEqual([]);
     });
   });

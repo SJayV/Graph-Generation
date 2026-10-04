@@ -1,6 +1,6 @@
 /** Shared shortest-path search providing common functionality. */
 import { distance } from "../../logic/computation/distance.js";
-import { edgeKey, vertexKey } from "../../logic/randomness/vertices.js";
+import { edgeKey, vertexKey } from "../../logic/construction/vertices.js";
 import { incidentPairs } from "./greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - EDGE-SET RESTRICTION

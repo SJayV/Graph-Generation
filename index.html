@@ -19,28 +19,29 @@
       position: fixed;
       top: 16px;
       left: 16px;
-      font-family: "Bahnschrift", sans-serif;
+      font-family: "Courier New", monospace;
       color: #add8e6;
-      font-size: 18px;
+      font-size: 22px;
       pointer-events: none;
     }
     #parameterPanel {
       position: fixed;
       inset: 0;
       display: none;
-      flex-wrap: wrap;
-      align-content: center;
+      grid-template-columns: auto;
       justify-content: center;
-      gap: 16px 32px;
+      align-content: center;
+      gap: 12px;
+      overflow-y: auto;
       padding: 32px;
       box-sizing: border-box;
       background: rgba(0, 0, 0, 0.92);
-      font-family: "Bahnschrift", sans-serif;
+      font-family: "Courier New", monospace;
       color: #add8e6;
-      font-size: 18px;
+      font-size: 14px;
     }
     #parameterPanel.open {
-      display: flex;
+      display: grid;
     }
     #parameterPanel label {
       display: flex;
@@ -48,8 +49,8 @@
       gap: 4px;
     }
     #parameterPanel input {
-      width: 160px;
-      padding: 4px 8px;
+      width: 200px;
+      padding: 2px 2px;
       font: inherit;
       color: #add8e6;
       background: #000;

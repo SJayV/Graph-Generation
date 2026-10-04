@@ -1,4 +1,5 @@
 /** Pure render-state helper; single source of truth for what is rendered at a given step. */
+import { computeGlow } from "./glow.js";
 
 // HELPER FUNCTIONS
 
@@ -7,30 +8,27 @@ function _buildVertices(vertices) {
 }
 
 function _buildBackgroundEdges(edgeSet) {
-  return (edgeSet ?? []).map(([startIndex, endIndex]) => ({ startIndex, endIndex, category: "background" }));
+  return edgeSet.map(([startIndex, endIndex]) => ({ startIndex, endIndex, category: "background" }));
 }
 
-function _buildNormalEdges(edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds, specialStartIndex) {
+function _buildNormalEdges(edgeSequence, stepIndex, currentTime, edgePacingMilliseconds, specialStartIndex) {
   return edgeSequence.slice(0, stepIndex).map(([startIndex, endIndex], edgeIndex) => {
     const category = edgeIndex >= specialStartIndex ? "special" : "normal";
-    const edge = { startIndex, endIndex, category };
-    if (currentTime === undefined) {
-      return edge;
-    }
     const becameVisibleAt = edgeIndex * edgePacingMilliseconds;
     const glow = computeGlow(currentTime - becameVisibleAt, edgePacingMilliseconds);
-    return { ...edge, becameVisibleAt, glow };
+    return { startIndex, endIndex, category, glow };
   });
 }
 
 // PUBLIC INTERFACE
 
-export function computeRenderState(vertices, edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds, edgeSet, specialStartIndex = Infinity) {
+export function computeRenderState(renderData, stepIndex, currentTime, edgePacingMilliseconds) {
+  const { vertices, edgeSequence, edgeSet, specialStartIndex } = renderData;
   return {
     vertices: _buildVertices(vertices),
     edges: [
       ..._buildBackgroundEdges(edgeSet),
-      ..._buildNormalEdges(edgeSequence, stepIndex, currentTime, computeGlow, edgePacingMilliseconds, specialStartIndex),
+      ..._buildNormalEdges(edgeSequence, stepIndex, currentTime, edgePacingMilliseconds, specialStartIndex),
     ],
   };
 }

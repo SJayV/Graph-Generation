@@ -36,8 +36,4 @@ export function getParameters() {
   };
 }
 
-export function sigma(vertexCount = VERTEX_COUNT, gridSize = GRID_SIZE) {
-  return gridSize / Math.sqrt(vertexCount);
-}
-
 setParameters();

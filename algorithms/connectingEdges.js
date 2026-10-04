@@ -1,5 +1,5 @@
 /** Identifies which accepted edges lie on a path connecting two special vertices. */
-import { edgeKey, vertexKey } from "../logic/randomness/vertices.js";
+import { edgeKey, vertexKey } from "../logic/construction/vertices.js";
 
 // HELPER FUNCTIONS - ADJACENCY
 

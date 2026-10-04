@@ -3,20 +3,10 @@ import { growEdgesStepwise as growGenerationStepwise } from "./algorithms/parame
 import { growEdgesUnidirectionalStepwise as growDijkstraUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growDijkstraMultidirectionalStepwise } from "./algorithms/parametrization/dijkstra.js";
 import { growEdgesUnidirectionalStepwise as growAstarUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growAstarMultidirectionalStepwise } from "./algorithms/parametrization/astar.js";
 import { drainEdges } from "./algorithms/skeleton/greedyAlgorithm.js";
-import { SPARSITY, sigma as computeSigma } from "./parameters.js";
+import { sigma as computeSigma } from "./logic/computation/field.js";
+import { DAMPENING_FACTOR, GRID_SIZE, SPARSITY, STRENGTHENING_FACTOR } from "./parameters.js";
 
-// HELPER FUNCTIONS - PER-ALGORITHM RUNNERS
-
-function _runGeneration(allVertices, specialSubset) {
-  const sigma = computeSigma(allVertices.length);
-  const { edges, dsu } = drainEdges(growGenerationStepwise(allVertices, specialSubset, SPARSITY, sigma));
-  return { edges, dsu, edgeSet: undefined };
-}
-
-function _runShortestPath(growEdgesStepwise, allVertices, specialSubset, edgeSet) {
-  const { edges, dsu } = drainEdges(growEdgesStepwise(allVertices, specialSubset, undefined, edgeSet));
-  return { edges, dsu, edgeSet };
-}
+// CONSTANTS
 
 const ALGORITHMS = {
   generation: {
@@ -40,6 +30,23 @@ const ALGORITHMS = {
     run: (allVertices, specialSubset, edgeSet) => _runShortestPath(growAstarMultidirectionalStepwise, allVertices, specialSubset, edgeSet)
   },
 };
+
+// HELPER FUNCTIONS - PER-ALGORITHM RUNNERS
+
+function _runGeneration(allVertices, specialSubset) {
+  const fieldShape = {
+    sigma: computeSigma(allVertices.length, GRID_SIZE),
+    dampeningFactor: DAMPENING_FACTOR,
+    strengtheningFactor: STRENGTHENING_FACTOR,
+  };
+  const { edges, dsu } = drainEdges(growGenerationStepwise(allVertices, specialSubset, SPARSITY, fieldShape));
+  return { edges, dsu, edgeSet: undefined };
+}
+
+function _runShortestPath(growEdgesStepwise, allVertices, specialSubset, edgeSet) {
+  const { edges, dsu } = drainEdges(growEdgesStepwise(allVertices, specialSubset, undefined, edgeSet));
+  return { edges, dsu, edgeSet };
+}
 
 // PUBLIC INTERFACE
 

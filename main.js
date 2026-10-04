@@ -3,12 +3,13 @@ import { ALGORITHM_NAMES, nextAlgorithmName, runAlgorithm } from "./dispatcher.j
 import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
 import { createGraph, markSpecial, toIndexEdges } from "./graph.js";
 import { createPanel } from "./panel.js";
-import { drawRenderState } from "./rendering/gl/draw.js";
+import { EDGE_PACING_MILLISECONDS, SCREEN_MARGIN_FRACTION } from "./parameters.js";
+import { createDrawResources, drawRenderState } from "./rendering/gl/draw.js";
 import { createRenderer } from "./rendering/state/renderer.js";
 
 // CONSTANTS
 
-const CONTROL_KEYS = ["Tab", "Enter", " "];
+const PANEL_KEY = " ";
 
 // HELPER FUNCTIONS - RENDER-STATE CONVERSION
 
@@ -20,16 +21,16 @@ function _buildRenderData(algorithmName, allVertices, specialSubset, edgeSet, di
   return {
     vertices: markSpecial(allVertices, specialSubset),
     edgeSequence: toIndexEdges(allVertices, vertexPairs),
-    edgeSet: appliedEdgeSet === undefined ? undefined : toIndexEdges(allVertices, appliedEdgeSet),
+    edgeSet: toIndexEdges(allVertices, appliedEdgeSet ?? []),
     specialStartIndex: edges.length,
   };
 }
 
 // HELPER FUNCTIONS - RENDER LOOP
 
-function _runRenderLoop(gl, getRenderer) {
+function _runRenderLoop(gl, drawResources, getRenderer) {
   function frame() {
-    drawRenderState(gl, getRenderer().getDisplayedState());
+    drawRenderState(gl, drawResources, getRenderer().getDisplayedState(), SCREEN_MARGIN_FRACTION);
     requestAnimationFrame(frame);
   }
   requestAnimationFrame(frame);
@@ -37,34 +38,33 @@ function _runRenderLoop(gl, getRenderer) {
 
 // HELPER FUNCTIONS - KEYBOARD
 
-function _handleOpenPanelKey(key, panel, regenerate) {
-  if (key === " " && panel.tryApply()) {
+function _createKeyActions(panel, advanceAlgorithm, regenerate) {
+  return {
+    [PANEL_KEY]: () => panel.open(),
+    Enter: regenerate,
+    Tab: () => {advanceAlgorithm(); regenerate();}
+  };
+}
+
+function _applyPanel(panel, regenerate) {
+  if (panel.tryApply()) {
     regenerate();
   }
 }
 
-function _handleClosedPanelKey(key, panel, advanceAlgorithm, regenerate) {
-  if (key === " ") {
-    panel.open();
+function _handleKeydown(event, keyActions, panel, regenerate) {
+  const action = keyActions[event.key];
+  if (action === undefined) {
     return;
   }
-  if (key === "Tab") {
-    advanceAlgorithm();
-  }
-  if (key === "Tab" || key === "Enter") {
-    regenerate();
-  }
-}
-
-function _handleKeydown(event, panel, advanceAlgorithm, regenerate) {
-  if (CONTROL_KEYS.includes(event.key)) {
-    event.preventDefault();
-  }
-  if (panel.isOpen()) {
-    _handleOpenPanelKey(event.key, panel, regenerate);
+  event.preventDefault();
+  if (!panel.isOpen()) {
+    action();
     return;
   }
-  _handleClosedPanelKey(event.key, panel, advanceAlgorithm, regenerate);
+  if (event.key === PANEL_KEY) {
+    _applyPanel(panel, regenerate);
+  }
 }
 
 // PUBLIC INTERFACE
@@ -83,8 +83,8 @@ export function startDemo(canvasElement, displayTarget, panelElement) {
       renderer.stop();
     }
     const { allVertices, specialSubset, edgeSet: candidateEdgeSet } = createGraph();
-    const { vertices, edgeSequence, edgeSet, specialStartIndex } = _buildRenderData(algorithmName, allVertices, specialSubset, candidateEdgeSet, displayTarget);
-    renderer = createRenderer(vertices, edgeSequence, edgeSet, specialStartIndex);
+    const renderData = _buildRenderData(algorithmName, allVertices, specialSubset, candidateEdgeSet, displayTarget);
+    renderer = createRenderer(renderData, EDGE_PACING_MILLISECONDS);
     renderer.start();
   }
 
@@ -92,9 +92,11 @@ export function startDemo(canvasElement, displayTarget, panelElement) {
     algorithmName = nextAlgorithmName(algorithmName);
   }
 
+  const drawResources = createDrawResources(gl);
   regenerate();
-  _runRenderLoop(gl, () => renderer);
+  _runRenderLoop(gl, drawResources, () => renderer);
 
   const panel = createPanel(panelElement);
-  window.addEventListener("keydown", (event) => _handleKeydown(event, panel, advanceAlgorithm, regenerate));
+  const keyActions = _createKeyActions(panel, advanceAlgorithm, regenerate);
+  window.addEventListener("keydown", (event) => _handleKeydown(event, keyActions, panel, regenerate));
 }

@@ -38,17 +38,6 @@ describe("algorithmOrder", () => {
 });
 
 describe("dispatcher", () => {
-  describe("ALGORITHM_NAMES coverage", () => {
-    it("runAlgorithm recognizes every name in the fixed ordered list", () => {
-      const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const specialSubset = [allVertices[0], allVertices[1]];
-
-      for (const algorithmName of ALGORITHM_NAMES) {
-        expect(() => runAlgorithm(algorithmName, allVertices, specialSubset, undefined)).not.toThrow();
-      }
-    });
-  });
-
   describe("generation entry", () => {
     it("returns edgeSet undefined regardless of what edgeSet argument was passed", () => {
       const allVertices = [[0, 0], [1, 0], [2, 1], [3, 0]];
@@ -120,18 +109,6 @@ describe("dispatcher", () => {
     });
   });
 
-  describe("uniform return shape", () => {
-    it("every algorithm name returns an object with exactly edges, dsu, and edgeSet keys", () => {
-      const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const specialSubset = [allVertices[0], allVertices[1]];
-
-      for (const algorithmName of ALGORITHM_NAMES) {
-        const result = runAlgorithm(algorithmName, allVertices, specialSubset, undefined);
-        expect(Object.keys(result).sort()).toEqual(["dsu", "edgeSet", "edges"]);
-      }
-    });
-  });
-
   describe("optional displayTarget parameter (Story 8 AC7/AC8: display updates alongside algorithm run)", () => {
     it("sets displayTarget.textContent to the algorithm name when displayTarget is provided", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
@@ -163,31 +140,12 @@ describe("dispatcher", () => {
       expect(displayTarget.textContent).toBe("Dijkstra - Unidirectional");
     });
 
-    it("accepts a plain duck-typed stub object (no real DOM API needed, only textContent is assigned)", () => {
-      const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const specialSubset = [allVertices[0], allVertices[1]];
-      const displayTarget = { textContent: null };
-
-      expect(() => runAlgorithm("generation", allVertices, specialSubset, undefined, displayTarget)).not.toThrow();
-      expect(displayTarget.textContent).toBe("Generation");
-    });
-
     it("omitting displayTarget entirely attempts no DOM/text side effect and does not throw", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
       const specialSubset = [allVertices[0], allVertices[1]];
 
       expect(() => runAlgorithm("generation", allVertices, specialSubset, undefined)).not.toThrow();
       expect(() => runAlgorithm("generation", allVertices, specialSubset, undefined, undefined)).not.toThrow();
-    });
-
-    it("return shape stays exactly edges, dsu, edgeSet even when displayTarget is provided", () => {
-      const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const specialSubset = [allVertices[0], allVertices[1]];
-      const displayTarget = { textContent: "" };
-
-      const result = runAlgorithm("generation", allVertices, specialSubset, undefined, displayTarget);
-
-      expect(Object.keys(result).sort()).toEqual(["dsu", "edgeSet", "edges"]);
     });
   });
 

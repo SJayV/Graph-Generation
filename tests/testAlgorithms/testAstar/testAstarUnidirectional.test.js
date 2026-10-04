@@ -3,8 +3,12 @@
  */
 import { describe, expect, it } from "vitest";
 
-import * as astar from "../../../algorithms/parametrization/astar.js";
-import * as dijkstra from "../../../algorithms/parametrization/dijkstra.js";
+import {
+  growEdgesUnidirectionalStepwise as growAstarUnidirectionalStepwise,
+} from "../../../algorithms/parametrization/astar.js";
+import {
+  growEdgesUnidirectionalStepwise as growDijkstraUnidirectionalStepwise,
+} from "../../../algorithms/parametrization/dijkstra.js";
 import { drainEdges } from "../../../algorithms/skeleton/greedyAlgorithm.js";
 
 const ZERO_HEURISTIC = () => 0;
@@ -71,8 +75,8 @@ describe("astarUnidirectional", () => {
       ];
       const special = [allVertices[0], allVertices[3], allVertices[6]];
 
-      const astarEdges = [...astar.growEdgesUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC)];
-      const dijkstraEdges = [...dijkstra.growEdgesUnidirectionalStepwise(allVertices, special)];
+      const astarEdges = [...growAstarUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC)];
+      const dijkstraEdges = [...growDijkstraUnidirectionalStepwise(allVertices, special)];
 
       expect(astarEdges.map((e) => e.map(vertexKey))).toEqual(dijkstraEdges.map((e) => e.map(vertexKey)));
     });
@@ -81,13 +85,13 @@ describe("astarUnidirectional", () => {
   describe("AC10: vacuous termination for fewer than 2 specials", () => {
     it("yields no edges for zero special vertices", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...astar.growEdgesUnidirectionalStepwise(allVertices, [])];
+      const edges = [...growAstarUnidirectionalStepwise(allVertices, [])];
       expect(edges).toEqual([]);
     });
 
     it("yields no edges for exactly one special vertex", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const edges = [...astar.growEdgesUnidirectionalStepwise(allVertices, [allVertices[0]])];
+      const edges = [...growAstarUnidirectionalStepwise(allVertices, [allVertices[0]])];
       expect(edges).toEqual([]);
     });
   });
@@ -100,8 +104,8 @@ describe("astarUnidirectional", () => {
       const special = [allVertices[0], allVertices[5], allVertices[7]];
       const misleadingHeuristic = (vertex) => (vertex[1] > 0 ? 0 : 1000);
 
-      const zeroEdges = [...astar.growEdgesUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC)];
-      const misledEdges = [...astar.growEdgesUnidirectionalStepwise(allVertices, special, misleadingHeuristic)];
+      const zeroEdges = [...growAstarUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC)];
+      const misledEdges = [...growAstarUnidirectionalStepwise(allVertices, special, misleadingHeuristic)];
 
       expect(misledEdges.map((e) => e.map(vertexKey))).not.toEqual(zeroEdges.map((e) => e.map(vertexKey)));
     });
@@ -112,7 +116,7 @@ describe("astarUnidirectional", () => {
       const allVertices = [[0, 0], [10, 0], [0, 3], [10, 3]];
       const special = [allVertices[0], allVertices[1]];
 
-      const { edges } = drainEdges(astar.growEdgesUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC));
+      const { edges } = drainEdges(growAstarUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC));
       const found = shortestPathInSubgraph(edges, special[0], special[1]);
 
       expect(found).toBeCloseTo(10, 9);
@@ -124,7 +128,7 @@ describe("astarUnidirectional", () => {
       const special = [a, b];
       const edgeSet = [[a, c], [c, d], [d, b]]; // excludes direct a-b edge (weight 10)
 
-      const { edges, dsu } = drainEdges(astar.growEdgesUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC, edgeSet));
+      const { edges, dsu } = drainEdges(growAstarUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC, edgeSet));
 
       expect(dsu.connected(a, b)).toBe(true);
       const found = shortestPathInSubgraph(edges, a, b);
@@ -137,7 +141,7 @@ describe("astarUnidirectional", () => {
       const special = [a, b];
       const edgeSet = [[a, c]]; // never reaches b
 
-      const { dsu } = drainEdges(astar.growEdgesUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC, edgeSet));
+      const { dsu } = drainEdges(growAstarUnidirectionalStepwise(allVertices, special, ZERO_HEURISTIC, edgeSet));
 
       expect(dsu.connected(a, b)).toBe(false);
       expect(dsu.componentCount()).toBeGreaterThan(1);
