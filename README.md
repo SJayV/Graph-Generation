@@ -95,9 +95,11 @@ $$\text{str}(v,x) = \sqrt{\lambda(v,x)\cdot|C(v)|}$$
 
 - **Field value**
   - Gaussian bump around vertex, scaled with amount of connected special members
-  - $\sigma$ scaled to $L$, fixed per run
+  - $\sigma$ as derivation from grid size and vertex count, fixed per run
   - $\mu_v$ = $v$'s fixed grid position
   - $F_{\rho(v)}(x)\ge 0$ always
+
+$$\sigma(n,L) = L/\sqrt n$$
 
 ```math
 \kappa(v) = \begin{cases}
