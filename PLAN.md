@@ -59,16 +59,24 @@ since each story has a distinct concern even though they share one feature.
     toward both vertices as a function of the normalized position along the
     edge — so a longer edge has the same maximum width but builds up to it
     more slowly.
-  - **Soft, translucent sides:** brightness/opacity falls off from the
-    centerline toward the sides.
-  - **Distorted, moving silhouette:** the width boundary is pushed in and out
-    by a time-varying noise field.
-  - **Lighter and darker / more translucent bands:** brightness/opacity is
-    modulated by the same noise field. The bands shimmer in place (blend in
-    and out), with no direction of flow.
-  - **One global noise field:** sampled at each fragment's screen position
-    plus time, so every edge — background and growing — shows the same field
-    wherever they overlap.
+  - **Magic band, not a lens (revised with the user):** the band flares and
+    pinches along its length, and its centerline meanders sideways; both are
+    anchored at the vertices (no displacement at either end).
+  - **Soft, translucent sides:** a soft core fading toward the sides, plus a
+    faint halo around it.
+  - **Turbulence field:** a domain-warped fractal noise field drives the
+    flare and meander; it evolves with time and swirls in place.
+  - **Lengthwise color stripes (revised with the user):** soft stripes,
+    independent of the noise, run parallel to the edge's length (not across
+    it), following the band's meandering, flaring shape, and drift slowly
+    sideways over time, blending softly between a darker, more translucent
+    shade and the plain category color. The whole edge is translucent.
+  - **Local noise field per edge (revised with the user):** each edge
+    samples its own field in its own coordinates (pixels along and across the
+    edge), offset per edge so neighboring edges don't move in lockstep —
+    not one field shared across the screen.
+  - **Recency glow over the whole edge:** the existing glow keeps blending
+    the entire edge toward white uniformly, unmodulated by the noise.
   - **Blending:** normal alpha blending (not additive).
   - **Time source:** the per-frame `currentTime` already flows into
     `computeRenderState`; the render state carries it on as one time value
@@ -116,22 +124,20 @@ since each story has a distinct concern even though they share one feature.
   deliberate visual difference in the noise mechanism between layers.
 - FR21. The existing `glow` value itself (as computed by `computeGlow`,
   including its decay-over-time behavior) shall continue to be computed
-  exactly as today. The new noise-driven effect shall modulate how that glow
-  value is visually distributed across an edge's fragments — the modulation's
-  exact visual character is intentionally left open for hand-tuning, but it
-  shall be observably different from today's distribution (pure linear
-  interpolation between the edge's two endpoint `aGlow` values, with no other
-  spatial variation).
+  exactly as today, and shall blend the entire edge toward white uniformly,
+  not modulated by the noise.
 - FR22. No new `parameters.js` export, and no new keybinding, shall control
   vertex or edge shape/shading selection (static, not user-configurable).
-- FR23. Edges shall be drawn with width: a fixed maximum width in pixels at
-  the middle, narrowing toward both vertices as a function of the normalized
-  position along the edge.
-- FR24. An edge's cross-section shall be soft and translucent toward its
-  sides, and its boundary shall be distorted by a time-varying noise field.
-- FR25. An edge's brightness/opacity shall vary in lighter and darker bands
-  taken from a single time-varying noise field over screen position, shared
-  by all edges; the bands shimmer in place without a direction of flow.
+- FR23. Edges shall be drawn with width: at both vertices exactly as wide as
+  a vertex is drawn, broadening toward the middle as a function of the
+  normalized position along the edge.
+- FR24. An edge shall flare and pinch along its length and its centerline
+  shall meander sideways, both driven by a time-varying noise field and both
+  anchored at the vertices; its sides shall be soft and translucent with a
+  faint halo.
+- FR25. An edge shall be translucent overall, and its color and opacity
+  shall vary in soft stripes, independent of the noise, running parallel to
+  the edge's length, following its shape and drifting slowly over time.
 - FR26. Overlapping edges shall combine with normal alpha blending.
 
 ### Story
@@ -150,10 +156,10 @@ and glow convey.
 6. Accepted when `computeRenderState` is called twice with different `currentTime` values, that time-derived value differs between the two calls.
 7. Accepted when edges of every category are drawn in the same frame, the same time-derived value and the same shader program are used for all three.
 8. Accepted when an edge carries a `glow` value from the existing recency-glow-decay mechanism, the new noise-driven shading is present in addition to that glow blending.
-9. Accepted when an edge is drawn, the rendered glow's distribution across the edge's fragments differs from today's pure linear interpolation between its two endpoint `aGlow` values; the new noise-driven effect visibly modulates that distribution.
-10. Accepted when an edge is drawn, it is narrow at both vertices and widest in the middle, with the same maximum width regardless of the edge's length.
-11. Accepted when an edge is drawn, its sides are soft and translucent, and its outline wobbles over time.
-12. Accepted when edges are drawn, lighter and darker bands appear along them and shimmer in place without travelling, and edges overlapping at the same screen position show the same banding.
+9. Accepted when an edge glows from the recency mechanism, the glow brightens the entire edge uniformly, unmodulated by the noise.
+10. Accepted when an edge is drawn, it is exactly as wide as a vertex where it meets each vertex, and broadens toward the middle.
+11. Accepted when an edge is drawn, it flares, pinches and meanders sideways over time while staying attached to both vertices, with soft translucent sides and a faint halo.
+12. Accepted when edges are drawn, they are translucent, and soft darker and lighter color stripes run lengthwise along each edge, following its shape and drifting slowly over time.
 13. Accepted when edges overlap, they combine with normal alpha blending.
 
 No open questions remain for this story.

@@ -1,7 +1,7 @@
 /** Top-level draw orchestrator: wires shader programs and dot/edge drawing into one frame. */
-import { computeAxisBounds } from "./glPrimitives.js";
+import { computeAxisBounds, setFloatUniform } from "./glPrimitives.js";
 import { drawEdges, drawVertices } from "./drawPrimitives.js";
-import { createCircleProgram, createColorProgram } from "./shaderProgram.js";
+import { createBeamProgram, createCircleProgram } from "./shaderProgram.js";
 
 // CONSTANTS
 
@@ -33,14 +33,20 @@ function _drawPrimitiveCategory(gl, program, buffers, drawFunction, field, rende
   drawFunction(gl, program, buffers, _inCategory(renderState[field], category), renderState.vertices, axisBounds, COLOR_BY_CATEGORY[category]);
 }
 
+function _enableAlphaBlending(gl) {
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+}
+
 // PUBLIC INTERFACE
 
-/** Compiles the shader programs and allocates the vertex buffers once; reuse the result across frames. */
+/** Compiles the shader programs, allocates the vertex buffers and enables blending once; reuse the result across frames. */
 export function createDrawResources(gl) {
+  _enableAlphaBlending(gl);
   return {
-    edgeProgram: createColorProgram(gl),
+    edgeProgram: createBeamProgram(gl),
     circleProgram: createCircleProgram(gl),
-    buffers: { position: gl.createBuffer(), glow: gl.createBuffer() },
+    buffers: { position: gl.createBuffer(), edgeCoordinate: gl.createBuffer(), noiseCoordinate: gl.createBuffer(), glow: gl.createBuffer() },
   };
 }
 
@@ -49,6 +55,8 @@ export function drawRenderState(gl, resources, renderState, screenMarginFraction
   const axisBounds = computeAxisBounds(renderState.vertices, screenMarginFraction);
 
   _clear(gl);
+  gl.useProgram(edgeProgram);
+  setFloatUniform(gl, edgeProgram, "uTime", renderState.time);
   EDGE_CATEGORIES.forEach((category) => _drawPrimitiveCategory(gl, edgeProgram, buffers, drawEdges, "edges", renderState, axisBounds, category));
   VERTEX_CATEGORIES.forEach((category) => _drawPrimitiveCategory(gl, circleProgram, buffers, drawVertices, "vertices", renderState, axisBounds, category));
 }

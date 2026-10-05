@@ -25,6 +25,7 @@ function _buildNormalEdges(edgeSequence, stepIndex, currentTime, edgePacingMilli
 export function computeRenderState(renderData, stepIndex, currentTime, edgePacingMilliseconds) {
   const { vertices, edgeSequence, edgeSet, specialStartIndex } = renderData;
   return {
+    time: currentTime,
     vertices: _buildVertices(vertices),
     edges: [
       ..._buildBackgroundEdges(edgeSet),

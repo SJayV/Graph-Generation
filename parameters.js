@@ -10,7 +10,7 @@ export let SCREEN_MARGIN_FRACTION;
 
 // PUBLIC INTERFACE
 
-export function setParameters({vertexCount = 400, gridSize = 1000, specialSubsetSize = 5, nearestNeighborCount = 4, sparsity = 1.5, dampeningFactor = 0.1, strengtheningFactor = 10.0, edgePacingMilliseconds = 30, screenMarginFraction = 0.15} = {}) {
+export function setParameters({vertexCount = 400, gridSize = 1000, specialSubsetSize = 5, nearestNeighborCount = 4, sparsity = 1.5, dampeningFactor = 0.1, strengtheningFactor = 10.0, edgePacingMilliseconds = 80, screenMarginFraction = 0.15} = {}) {
   VERTEX_COUNT = vertexCount;
   GRID_SIZE = gridSize;
   SPECIAL_SUBSET_SIZE = specialSubsetSize;

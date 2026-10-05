@@ -46,6 +46,19 @@ export function uploadVertexGlow(gl, program, buffer, glowValues) {
   _uploadVertexAttribute(gl, program, buffer, "aGlow", glowValues, 1);
 }
 
+export function uploadEdgeCoordinates(gl, program, buffer, edgeCoordinates) {
+  _uploadVertexAttribute(gl, program, buffer, "aEdgeCoordinate", edgeCoordinates, 2);
+}
+
+export function uploadNoiseCoordinates(gl, program, buffer, noiseCoordinates) {
+  _uploadVertexAttribute(gl, program, buffer, "aNoiseCoordinate", noiseCoordinates, 2);
+}
+
+export function setFloatUniform(gl, program, uniformName, value) {
+  const uniformLocation = gl.getUniformLocation(program, uniformName);
+  gl.uniform1f(uniformLocation, value);
+}
+
 export function setColorUniform(gl, program, color) {
   const colorUniformLocation = gl.getUniformLocation(program, "uColor");
   gl.uniform4fv(colorUniformLocation, color);

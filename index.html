@@ -75,8 +75,8 @@
     const parameterPanelElement = document.getElementById("parameterPanel");
 
     function resizeCanvasToWindow() {
-      canvasElement.width = window.innerWidth;
-      canvasElement.height = window.innerHeight;
+      canvasElement.width = Math.round(window.innerWidth * window.devicePixelRatio);
+      canvasElement.height = Math.round(window.innerHeight * window.devicePixelRatio);
     }
 
     resizeCanvasToWindow();

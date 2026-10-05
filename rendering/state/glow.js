@@ -1,7 +1,7 @@
 // CONSTANTS
 
 const GAMMA_RATE = 2;
-const SCALE = 25.0;
+const SCALE = 8.0;
 
 // HELPER FUNCTIONS
 
