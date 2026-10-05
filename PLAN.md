@@ -50,17 +50,33 @@ since each story has a distinct concern even though they share one feature.
   circular discard cutoff and per-category color system
   (`COLOR_BY_CATEGORY`/`VERTEX_CATEGORIES`) are unchanged; only the
   per-fragment color ramp from center to rim is new.
-- **Edges**: a noise-driven dynamic/animated visual perturbation (the user's
-  explicit choice, over dash-flow, pulsing width, and static-gradient
-  alternatives that were considered and rejected). The existing per-frame
-  `currentTime` already flows into `computeRenderState` (used today only to
-  derive `glow`); the same time value is extended into a render-state-level,
-  time-derived field that the edge shader consumes to drive the noise, so the
-  effect is "assertable without visual inspection" per AGENTS.md's rendering
-  interface rule: the *driving value* is a plain testable number, even though
-  the resulting per-pixel noise pattern itself is a GLSL implementation
-  detail left to the implementer (Perlin/simplex/hashed noise are all
-  acceptable choices, not mandated here).
+- **Edges as connections of light (confirmed with the user):** not straight
+  1-pixel lines but soft beams.
+  - **Shape:** each edge is drawn as a thin quad instead of a `gl.LINES`
+    line, so the fragment shader knows each pixel's normalized position along
+    the edge (0 at one vertex, 1 at the other) and across it (centerline to
+    side). Width is a fixed maximum in pixels, reached mid-edge, and narrows
+    toward both vertices as a function of the normalized position along the
+    edge — so a longer edge has the same maximum width but builds up to it
+    more slowly.
+  - **Soft, translucent sides:** brightness/opacity falls off from the
+    centerline toward the sides.
+  - **Distorted, moving silhouette:** the width boundary is pushed in and out
+    by a time-varying noise field.
+  - **Lighter and darker / more translucent bands:** brightness/opacity is
+    modulated by the same noise field. The bands shimmer in place (blend in
+    and out), with no direction of flow.
+  - **One global noise field:** sampled at each fragment's screen position
+    plus time, so every edge — background and growing — shows the same field
+    wherever they overlap.
+  - **Blending:** normal alpha blending (not additive).
+  - **Time source:** the per-frame `currentTime` already flows into
+    `computeRenderState`; the render state carries it on as one time value
+    that the edge shader receives as a uniform.
+  - **Tuning:** maximum width, noise scale/speed and band strength are
+    hand-tuned constants in the rendering code, not `parameters.js` values.
+  - The exact noise function (Perlin/simplex/hashed value noise) is the
+    implementer's choice.
 - **One shader for all edge categories, one shader for all vertex
   categories (resolved):** today, `drawRenderState` already applies a single
   shared `edgeProgram` across all three `EDGE_CATEGORIES`
@@ -108,23 +124,36 @@ since each story has a distinct concern even though they share one feature.
   spatial variation).
 - FR22. No new `parameters.js` export, and no new keybinding, shall control
   vertex or edge shape/shading selection (static, not user-configurable).
+- FR23. Edges shall be drawn with width: a fixed maximum width in pixels at
+  the middle, narrowing toward both vertices as a function of the normalized
+  position along the edge.
+- FR24. An edge's cross-section shall be soft and translucent toward its
+  sides, and its boundary shall be distorted by a time-varying noise field.
+- FR25. An edge's brightness/opacity shall vary in lighter and darker bands
+  taken from a single time-varying noise field over screen position, shared
+  by all edges; the bands shimmer in place without a direction of flow.
+- FR26. Overlapping edges shall combine with normal alpha blending.
 
 ### Story
 
 As a viewer of the demo, I want vertices rendered with a soft radial glow and
-edges rendered with a continuously-varying noise-driven shading, so that the
-graph's appearance feels more alive without changing which information each
-color and glow convey.
+edges rendered as soft, shimmering connections of light, so that the graph's
+appearance feels more alive without changing which information each color
+and glow convey.
 
 **Acceptance criteria**
 1. Accepted when a vertex is drawn, the fragment color at its sprite's center is a brightened version of its category's assigned base color, and the fragment color at its sprite's rim equals its unmodified category base color.
 2. Accepted when fragments lie outside the circular sprite radius, they are discarded exactly as today.
-3. Accepted when `computeRenderState` is called twice with identical vertex and category inputs but different `currentTime` values, the rendered vertex color at a given distance from center is identical in both calls.
+3. Accepted when the vertex glow is drawn, it is independent from time.
 4. Accepted when both "normal" and "special" category vertices are drawn, each radial glow brightens from its own distinct base color.
 5. Accepted when `computeRenderState` is called with a defined `currentTime`, the returned render state carries one time-derived value usable to drive edge noise.
 6. Accepted when `computeRenderState` is called twice with different `currentTime` values, that time-derived value differs between the two calls.
 7. Accepted when edges of every category are drawn in the same frame, the same time-derived value and the same shader program are used for all three.
 8. Accepted when an edge carries a `glow` value from the existing recency-glow-decay mechanism, the new noise-driven shading is present in addition to that glow blending.
 9. Accepted when an edge is drawn, the rendered glow's distribution across the edge's fragments differs from today's pure linear interpolation between its two endpoint `aGlow` values; the new noise-driven effect visibly modulates that distribution.
+10. Accepted when an edge is drawn, it is narrow at both vertices and widest in the middle, with the same maximum width regardless of the edge's length.
+11. Accepted when an edge is drawn, its sides are soft and translucent, and its outline wobbles over time.
+12. Accepted when edges are drawn, lighter and darker bands appear along them and shimmer in place without travelling, and edges overlapping at the same screen position show the same banding.
+13. Accepted when edges overlap, they combine with normal alpha blending.
 
 No open questions remain for this story.
