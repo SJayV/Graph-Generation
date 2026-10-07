@@ -130,6 +130,7 @@ $$\text{key}(\{u,v\}) = F_{\rho(v)}(u) + F_{\rho(u)}(v)$$
 - **Edges**
   - one at a time
   - in greedy-acceptance order
+  - noise-driven bands of light
 - **Recency glow**
   - glow of newly-appeared edges
   - fade over time to the same steady baseline appearance
