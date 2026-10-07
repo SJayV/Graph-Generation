@@ -38,6 +38,8 @@ An application to randomly create graphs parametrized in node count and sparsity
     - dispatcher.js (root-level algorithm dispatch)
     - graph.js (root-level graph sampling)
     - parameters.js (root-level single source of truth)
+        - only read by root-files
+        - passed as arguments to lower layers
     - panel.js (root-level UI for editing parameters)
 - rng
     - seedable PRNG utility
