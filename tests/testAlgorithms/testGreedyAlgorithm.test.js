@@ -5,7 +5,7 @@
  */
 import { describe, expect, it } from "vitest";
 
-import { growEdgesStepwise } from "../../algorithms/skeleton/greedyAlgorithm.js";
+import { growGreedyEdgesStepwise } from "../../algorithms/skeleton/greedyAlgorithm.js";
 
 function makeVertices(n) {
   return Array.from({ length: n }, (_, i) => [i, 0]);
@@ -29,7 +29,7 @@ describe("greedyAlgorithm", () => {
       const terminationFn = terminationAfterUnions(allVertices, 4);
 
       const priorities = [];
-      for (const [u, v] of growEdgesStepwise(allVertices, [], priorityFn, terminationFn)) {
+      for (const [u, v] of growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn)) {
         priorities.push(priorityFn(u, v));
       }
 
@@ -43,7 +43,7 @@ describe("greedyAlgorithm", () => {
       const priorityFn = (u, v) => u[0] + v[0];
       const terminationFn = terminationAfterUnions(allVertices, 3);
 
-      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn)];
+      const edges = [...growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn)];
 
       expect(edges.length).toBe(3);
     });
@@ -52,7 +52,7 @@ describe("greedyAlgorithm", () => {
       const allVertices = makeVertices(4);
       const priorityFn = (u, v) => u[0] + v[0];
 
-      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, () => true)];
+      const edges = [...growGreedyEdgesStepwise(allVertices, [], priorityFn, () => true)];
 
       expect(edges).toEqual([]);
     });
@@ -65,7 +65,7 @@ describe("greedyAlgorithm", () => {
       const terminationFn = terminationAfterUnions(allVertices, allVertices.length - 1);
 
       const seen = new Set();
-      for (const edge of growEdgesStepwise(allVertices, [], priorityFn, terminationFn)) {
+      for (const edge of growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn)) {
         const key = edgeKey(edge);
         expect(seen.has(key)).toBe(false);
         seen.add(key);
@@ -82,7 +82,7 @@ describe("greedyAlgorithm", () => {
       const priorityFn = (u, v) => (reachable.has(u[0]) ? u[0] + v[0] : Infinity);
       const terminationFn = terminationAfterUnions(allVertices, 2);
 
-      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn)];
+      const edges = [...growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn)];
       const touched = new Set(edges.flatMap(([u, v]) => [u[0], v[0]]));
 
       expect(touched.has(0)).toBe(false);
@@ -100,7 +100,7 @@ describe("greedyAlgorithm", () => {
       };
       const terminationFn = terminationAfterUnions(allVertices, 4);
 
-      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept)];
+      const edges = [...growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept)];
       const touched = new Set(edges.flatMap(([u, v]) => [u[0], v[0]]));
 
       expect(touched.size).toBe(5);
@@ -142,7 +142,7 @@ describe("greedyAlgorithm", () => {
     it("a candidate reported stale by isStale is never yielded", () => {
       const { allVertices, priorityFn, terminationFn, onAccept, isStale } = makeStaleScenario();
 
-      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept, isStale)];
+      const edges = [...growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept, isStale)];
       const keys = new Set(edges.map(edgeKey));
 
       // (1,2) and (2,3) pop after v=2/v=3 are already settled - must be discarded
@@ -153,7 +153,7 @@ describe("greedyAlgorithm", () => {
     it("keeps popping and accepting valid candidates after a stale discard", () => {
       const { allVertices, priorityFn, terminationFn, onAccept, isStale } = makeStaleScenario();
 
-      const edges = [...growEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept, isStale)];
+      const edges = [...growGreedyEdgesStepwise(allVertices, [], priorityFn, terminationFn, onAccept, isStale)];
       const keys = new Set(edges.map(edgeKey));
 
       // exactly the 4 star edges accepted; discards did not stall or end the run early

@@ -1,5 +1,6 @@
-/** Vertex sampling, canonical keying, and special-subset selection on a discrete grid. */
-import { gaussian, sampleWithoutReplacement, weightedSampleWithoutReplacement } from "./rng.js";
+/** Vertex sampling and special-subset selection on a discrete grid. */
+import { gaussian } from "../computation/field.js";
+import { sampleWithoutReplacement, weightedSampleWithoutReplacement } from "./rng.js";
 
 // CONSTANTS
 
@@ -25,16 +26,6 @@ export function fitsGridCapacity(n, L) {
 
 export function isValidVertexSelection(k, n) {
   return k >= 0 && k <= n;
-}
-
-export function vertexKey(vertex) {
-  return `${vertex[0]},${vertex[1]}`;
-}
-
-/** Canonical, order-independent key for an unordered vertex pair. */
-export function edgeKey(u, v) {
-  const [a, b] = [vertexKey(u), vertexKey(v)].sort();
-  return `${a}|${b}`;
 }
 
 /**

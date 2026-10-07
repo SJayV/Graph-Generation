@@ -7,7 +7,7 @@
  */
 import { DSU } from "../../logic/dataStructures/dsu.js";
 import { MinHeap } from "../../logic/dataStructures/minHeap.js";
-import { edgeKey } from "../../logic/construction/vertices.js";
+import { edgeKey } from "../../logic/dataStructures/keys.js";
 
 // HELPER FUNCTIONS - CANDIDATE POOL
 
@@ -50,7 +50,7 @@ export function incidentPairs(vertex, allVertices) {
 }
 
 /** Yields accepted [u, v] edges one at a time, in acceptance order. */
-export function* growEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept = _noReactivation, isStale = _neverStale) {
+export function* growGreedyEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept = _noReactivation, isStale = _neverStale) {
   const dsu = new DSU(allVertices, specialSubset);
   const heap = _initializeHeap(allVertices, priorityFunction, dsu);
   const acceptedPairs = new Set();

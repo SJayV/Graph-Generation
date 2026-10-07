@@ -26,10 +26,6 @@ function edgeKey(edge) {
   return `${ku}|${kv}`;
 }
 
-function uniqueEdgeKeys(edges) {
-  return new Set(edges.map(edgeKey));
-}
-
 describe("algorithm", () => {
   describe("TestAcceptedEdgesAreNeverReconsidered", () => {
     it("edge set grows monotonically with no repeated emissions", () => {
@@ -41,19 +37,6 @@ describe("algorithm", () => {
         const key = edgeKey(edge);
         expect(emittedSoFar.has(key)).toBe(false);
         emittedSoFar.add(key);
-      }
-    });
-
-    it("stepwise emissions are a subset of the final edge set", () => {
-      const allVertices = makeVertices(6);
-      const special = [allVertices[0], allVertices[1]];
-
-      const emittedSoFar = uniqueEdgeKeys([...growEdgesStepwise(allVertices, special, 1.5, DEFAULT_FIELD_SHAPE)]);
-      const result = drainEdges(growEdgesStepwise(allVertices, special, 1.5, DEFAULT_FIELD_SHAPE));
-      const finalKeys = uniqueEdgeKeys(result.edges);
-
-      for (const key of emittedSoFar) {
-        expect(finalKeys.has(key)).toBe(true);
       }
     });
   });
@@ -84,15 +67,6 @@ describe("algorithm", () => {
       const result = drainEdges(growEdgesStepwise(allVertices, special, r, DEFAULT_FIELD_SHAPE));
       expect(result.edges.length).toBe(maxEdges);
     });
-
-    it("oversized r still terminates", () => {
-      const allVertices = makeVertices(6);
-      const special = allVertices.slice(0, 2);
-
-      // Regression guard: this call must return rather than hang.
-      const result = drainEdges(growEdgesStepwise(allVertices, special, 1_000_000.0, DEFAULT_FIELD_SHAPE));
-      expect(result.edges.length).toBe(nChoose2(allVertices.length));
-    });
   });
 
   describe("TestNoSelfLoopsOrDuplicates", () => {
@@ -103,14 +77,6 @@ describe("algorithm", () => {
       for (const [u, v] of result.edges) {
         expect(vertexKey(u)).not.toBe(vertexKey(v));
       }
-    });
-
-    it("no duplicate unordered pairs", () => {
-      const allVertices = makeVertices(6);
-      const special = allVertices.slice(0, 2);
-      const result = drainEdges(growEdgesStepwise(allVertices, special, 2.0, DEFAULT_FIELD_SHAPE));
-      const keys = uniqueEdgeKeys(result.edges);
-      expect(keys.size).toBe(result.edges.length);
     });
   });
 

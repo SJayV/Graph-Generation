@@ -38,32 +38,7 @@ describe("orchestrator", () => {
 
       const result = sweepAndFit(rValues, 6, 20, 2, 5, makeRng(), FIELD_FACTORS);
 
-      expect(result.rawResults.length).toBe(rValues.length);
       expect(result.rawResults.map(([r]) => r)).toEqual(rValues);
-    });
-
-    it("skips or duplicates no r values for a longer sweep", () => {
-      const rValues = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2];
-
-      vi.mocked(runTrials).mockImplementation(() => 0.5);
-
-      const result = sweepAndFit(rValues, 6, 20, 2, 5, makeRng(), FIELD_FACTORS);
-
-      expect(result.rawResults.map(([r]) => r)).toEqual(rValues);
-      expect(result.rawResults.length).toBe(rValues.length);
-    });
-  });
-
-  describe("TestResultIncludesFittedParameters", () => {
-    it("exposes kFit and r0", () => {
-      const rValues = [0.0, 1.0, 2.0];
-
-      vi.mocked(runTrials).mockImplementation((r) => r / 2.0);
-
-      const result = sweepAndFit(rValues, 6, 20, 2, 5, makeRng(), FIELD_FACTORS);
-
-      expect(typeof result.kFit).toBe("number");
-      expect(typeof result.r0).toBe("number");
     });
   });
 

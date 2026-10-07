@@ -38,7 +38,7 @@ export function fitSigmoid(dataPoints) {
   let r0 = (Math.min(...rValues) + Math.max(...rValues)) / 2.0;
   let k = 1.0;
 
-  const pointCount = dataPoints.length;
+  const stepScale = LEARNING_RATE / dataPoints.length;
 
   for (let iteration = 0; iteration < MAX_ITERATIONS; iteration += 1) {
     const [gradientWithRespectToK, gradientWithRespectToR0] = _gradient(dataPoints, k, r0);
@@ -47,7 +47,6 @@ export function fitSigmoid(dataPoints) {
       break;
     }
 
-    const stepScale = LEARNING_RATE / pointCount;
     k -= stepScale * gradientWithRespectToK;
     r0 -= stepScale * gradientWithRespectToR0;
   }

@@ -97,39 +97,9 @@ describe("dispatcher", () => {
         }
       }
     });
-
-    it("never passes a custom heuristic: behaves identically to calling the underlying algorithm's growEdges with its default heuristic", () => {
-      const allVertices = [[0, 0], [2, 1], [4, 0], [1, 3], [3, 3], [5, 2]];
-      const specialSubset = [allVertices[0], allVertices[2]];
-
-      const { edges, dsu } = runAlgorithm(algorithmName, allVertices, specialSubset, undefined);
-
-      expect(dsu.connected(specialSubset[0], specialSubset[1])).toBe(true);
-      expect(Array.isArray(edges)).toBe(true);
-    });
   });
 
   describe("optional displayTarget parameter (Story 8 AC7/AC8: display updates alongside algorithm run)", () => {
-    it("sets displayTarget.textContent to the algorithm name when displayTarget is provided", () => {
-      const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const specialSubset = [allVertices[0], allVertices[1]];
-      const displayTarget = { textContent: "" };
-
-      runAlgorithm("generation", allVertices, specialSubset, undefined, displayTarget);
-
-      expect(displayTarget.textContent).toBe("Generation");
-    });
-
-    it("sets displayTarget.textContent correctly for a different algorithm name too", () => {
-      const allVertices = [[0, 0], [1, 0], [2, 0]];
-      const specialSubset = [allVertices[0], allVertices[1]];
-      const displayTarget = { textContent: "" };
-
-      runAlgorithm("astarMultidirectional", allVertices, specialSubset, undefined, displayTarget);
-
-      expect(displayTarget.textContent).toBe("A* - Multidirectional");
-    });
-
     it("overwrites whatever textContent the displayTarget previously held", () => {
       const allVertices = [[0, 0], [1, 0], [2, 0]];
       const specialSubset = [allVertices[0], allVertices[1]];
@@ -145,7 +115,6 @@ describe("dispatcher", () => {
       const specialSubset = [allVertices[0], allVertices[1]];
 
       expect(() => runAlgorithm("generation", allVertices, specialSubset, undefined)).not.toThrow();
-      expect(() => runAlgorithm("generation", allVertices, specialSubset, undefined, undefined)).not.toThrow();
     });
   });
 

@@ -1,7 +1,7 @@
 /** Repeated trials of the edge-growth algorithm. */
-import { growEdgesStepwise as growGenerationStepwise } from "../algorithms/parametrization/generation.js";
+import { growEdgesStepwise } from "../algorithms/parametrization/generation.js";
 import { drainEdges } from "../algorithms/skeleton/greedyAlgorithm.js";
-import { sigma as computeSigma } from "../logic/computation/field.js";
+import { sigma } from "../logic/computation/field.js";
 import { sampleVertices, selectSpecialSubset } from "../logic/construction/vertices.js";
 
 // HELPER FUNCTIONS
@@ -9,8 +9,8 @@ import { sampleVertices, selectSpecialSubset } from "../logic/construction/verti
 function _trialOutcome(r, n, L, k, rngSource, fieldFactors) {
   const allVertices = sampleVertices(n, L, rngSource);
   const specialSubset = selectSpecialSubset(allVertices, k, rngSource);
-  const fieldShape = { sigma: computeSigma(n, L), ...fieldFactors };
-  const { dsu } = drainEdges(growGenerationStepwise(allVertices, specialSubset, r, fieldShape));
+  const fieldShape = { sigma: sigma(n, L), ...fieldFactors };
+  const { dsu } = drainEdges(growEdgesStepwise(allVertices, specialSubset, r, fieldShape));
 
   return dsu.allConnected(specialSubset);
 }

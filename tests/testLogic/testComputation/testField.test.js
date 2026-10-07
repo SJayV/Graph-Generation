@@ -33,19 +33,6 @@ describe("field", () => {
       const second = key(structure, [0, 0], [5, 5], fieldShape);
       expect(first).toBe(second);
     });
-
-    it("key is unchanged when recomputed without state change", () => {
-      const allVertices = [
-        [0, 0],
-        [1, 1],
-      ];
-      const structure = buildDsu(allVertices, [[0, 0]]);
-      const fieldShape = makeFieldShape(1.5);
-
-      const before = key(structure, [0, 0], [1, 1], fieldShape);
-      const after = key(structure, [0, 0], [1, 1], fieldShape);
-      expect(before).toBe(after);
-    });
   });
 
   describe("TestFieldNonNegativity", () => {

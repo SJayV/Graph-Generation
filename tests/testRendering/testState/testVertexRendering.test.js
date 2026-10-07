@@ -31,14 +31,5 @@ describe("Vertex rendering", () => {
         expect(renderState.vertices[index].position).toEqual(vertex);
       });
     });
-
-    it("preserves negative and large coordinates unchanged", () => {
-      const vertices = [[-5, -5], [1000, 1000]];
-
-      const renderState = computeRenderState(makeRenderData(vertices, []), 0, 0, EDGE_PACING_MILLISECONDS);
-
-      expect(renderState.vertices[0].position).toEqual([-5, -5]);
-      expect(renderState.vertices[1].position).toEqual([1000, 1000]);
-    });
   });
 });

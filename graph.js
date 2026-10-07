@@ -1,6 +1,8 @@
+/** Root-level graph sampling from parameters.js, plus conversions of the sampled graph for rendering. */
 import { buildNearestNeighborEdges } from "./logic/construction/edges.js";
 import { createSeededRng } from "./logic/construction/rng.js";
-import { sampleVertices, selectSpecialSubset, vertexKey } from "./logic/construction/vertices.js";
+import { sampleVertices, selectSpecialSubset } from "./logic/construction/vertices.js";
+import { vertexKey } from "./logic/dataStructures/keys.js";
 import { GRID_SIZE, NEAREST_NEIGHBOR_COUNT, SPECIAL_SUBSET_SIZE, VERTEX_COUNT } from "./parameters.js";
 
 // HELPER FUNCTIONS

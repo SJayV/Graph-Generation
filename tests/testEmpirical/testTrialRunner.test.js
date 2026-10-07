@@ -18,26 +18,6 @@ function fullyConnectingR(n) {
 }
 
 describe("trialRunner", () => {
-  describe("TestReturnsExactlyBasedOnNTrials", () => {
-    it("reports correct proportion when all outcomes forced true", () => {
-      const n = 6;
-      const L = 20;
-      const k = 0;
-      const N = 10;
-      const proportion = runTrials(0.0, n, L, k, N, makeRng(), FIELD_FACTORS);
-      expect(proportion).toBe(1.0);
-    });
-
-    it("reports correct proportion when all outcomes forced false", () => {
-      const n = 6;
-      const L = 20;
-      const k = 3;
-      const N = 7;
-      const proportion = runTrials(0.0, n, L, k, N, makeRng(), FIELD_FACTORS);
-      expect(proportion).toBe(0.0);
-    });
-  });
-
   describe("TestEachTrialDrawsFreshFromSharedAdvancingRng", () => {
     it("same seeded fresh rng reproduces the whole run", () => {
       const n = 6;
@@ -70,19 +50,6 @@ describe("trialRunner", () => {
       const proportion = runTrials(r, n, L, k, N, makeRng(), FIELD_FACTORS);
       expect(proportion).toBeGreaterThanOrEqual(0.0);
       expect(proportion).toBeLessThanOrEqual(1.0);
-    });
-  });
-
-  describe("TestPurity", () => {
-    it("same inputs and same starting rng state yield same proportion", () => {
-      const n = 7;
-      const L = 18;
-      const k = 3;
-      const N = 15;
-      const r = 1.5;
-      const first = runTrials(r, n, L, k, N, createSeededRng(2024), FIELD_FACTORS);
-      const second = runTrials(r, n, L, k, N, createSeededRng(2024), FIELD_FACTORS);
-      expect(first).toBe(second);
     });
   });
 

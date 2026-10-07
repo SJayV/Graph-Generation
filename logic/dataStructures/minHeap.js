@@ -18,21 +18,16 @@ export class MinHeap {
   }
 
   pop() {
-    return this._removeAt(0);
-  }
-
-  _removeAt(index) {
-    if (index >= this._items.length) {
+    if (this._items.length === 0) {
       return undefined;
     }
-    const removed = this._items[index];
+    const top = this._items[0];
     const last = this._items.pop();
-    if (index < this._items.length) {
-      this._items[index] = last;
-      this._siftDown(index);
-      this._siftUp(index);
+    if (this._items.length > 0) {
+      this._items[0] = last;
+      this._siftDown(0);
     }
-    return removed;
+    return top;
   }
 
   _siftUp(index) {

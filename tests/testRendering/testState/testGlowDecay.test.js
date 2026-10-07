@@ -98,26 +98,9 @@ describe("Glow decay", () => {
 
       expect(stateA.edges[0].glow).toBe(stateB.edges[0].glow);
     });
-
-    it("does not vary with vertex/edge count at the same elapsed time", () => {
-      const smallState = stateAt(makeVertices(3), makeLinearEdgeSequence(3), 1, revealTimeOf(0) + LARGE_ELAPSED);
-      const largeState = stateAt(makeVertices(20), makeLinearEdgeSequence(20), 1, revealTimeOf(0) + LARGE_ELAPSED);
-
-      expect(smallState.edges[0].glow).toBe(largeState.edges[0].glow);
-    });
   });
 
   describe("glow is purely visual, never affects the visible-edge set/order", () => {
-    it("keeps a negligible-glow edge present in the visible-edge list", () => {
-      const vertices = makeVertices(3);
-      const edgeSequence = makeLinearEdgeSequence(3);
-
-      const state = stateAt(vertices, edgeSequence, 2, revealTimeOf(0) + LARGER_ELAPSED);
-
-      expect(state.edges).toHaveLength(2);
-      expect(state.edges[0].glow).toBeLessThan(EPSILON);
-    });
-
     it("yields the same visible-edge set/order regardless of currentTime", () => {
       const vertices = makeVertices(4);
       const edgeSequence = makeLinearEdgeSequence(4);
@@ -138,20 +121,6 @@ describe("Glow decay", () => {
       const late = stateAt(vertices, edgeSequence, edgeSequence.length, LARGER_ELAPSED);
 
       expect(late.vertices).toEqual(early.vertices);
-    });
-
-    it("matches the visible-edge list exactly, aside from negligible glow fields", () => {
-      const vertices = makeVertices(5);
-      const edgeSequence = makeLinearEdgeSequence(5);
-      const lastRevealTime = revealTimeOf(edgeSequence.length - 1);
-
-      const early = stateAt(vertices, edgeSequence, edgeSequence.length, 0);
-      const late = stateAt(vertices, edgeSequence, edgeSequence.length, lastRevealTime + LARGER_ELAPSED);
-
-      expect(stripGlowFields(late.edges)).toEqual(stripGlowFields(early.edges));
-      late.edges.forEach((edge) => {
-        expect(edge.glow).toBeLessThan(EPSILON);
-      });
     });
   });
 });

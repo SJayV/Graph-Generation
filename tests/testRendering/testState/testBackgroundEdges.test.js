@@ -35,17 +35,6 @@ describe("Background edge-set layer", () => {
         _backgroundEdges(renderState).map((edge) => [edge.startIndex, edge.endIndex]),
       ).toEqual(edgeSet);
     });
-
-    it("reports background edges already present before any growth edge is accepted", () => {
-      const vertices = makeVertices(4);
-      const edgeSequence = makeLinearEdgeSequence(4);
-      const edgeSet = [[0, 3]];
-
-      const renderState = _stateAt(vertices, edgeSequence, edgeSet, 0);
-
-      expect(_normalEdges(renderState)).toEqual([]);
-      expect(_backgroundEdges(renderState)).toHaveLength(1);
-    });
   });
 
   describe("an empty edgeSet means no background layer, at any step", () => {

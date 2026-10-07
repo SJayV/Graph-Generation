@@ -2,7 +2,7 @@
 import { distance } from "../../logic/computation/distance.js";
 import { createShortestPathSearch } from "../skeleton/shortestPathSearch.js";
 import { createDirectionalVariants } from "../skeleton/directionalSeeding.js";
-import { growEdgesStepwise as _growEdgesStepwise } from "../skeleton/greedyAlgorithm.js";
+import { growGreedyEdgesStepwise } from "../skeleton/greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - PRIORITY
 
@@ -28,7 +28,7 @@ function* _generalGrowEdgesStepwise(allVertices, specialSubset, initialSources, 
 
   const { priorityFunction, isStale, onAccept, terminationFunction } = createShortestPathSearch(allVertices, specialSubset, edgeSet, initialSources, extraPriority);
 
-  return yield* _growEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept, isStale);
+  return yield* growGreedyEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept, isStale);
 }
 
 // PUBLIC INTERFACE

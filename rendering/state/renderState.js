@@ -11,7 +11,7 @@ function _buildBackgroundEdges(edgeSet) {
   return edgeSet.map(([startIndex, endIndex]) => ({ startIndex, endIndex, category: "background" }));
 }
 
-function _buildNormalEdges(edgeSequence, stepIndex, currentTime, edgePacingMilliseconds, specialStartIndex) {
+function _buildRevealedEdges(edgeSequence, stepIndex, currentTime, edgePacingMilliseconds, specialStartIndex) {
   return edgeSequence.slice(0, stepIndex).map(([startIndex, endIndex], edgeIndex) => {
     const category = edgeIndex >= specialStartIndex ? "special" : "normal";
     const becameVisibleAt = edgeIndex * edgePacingMilliseconds;
@@ -29,7 +29,7 @@ export function computeRenderState(renderData, stepIndex, currentTime, edgePacin
     vertices: _buildVertices(vertices),
     edges: [
       ..._buildBackgroundEdges(edgeSet),
-      ..._buildNormalEdges(edgeSequence, stepIndex, currentTime, edgePacingMilliseconds, specialStartIndex),
+      ..._buildRevealedEdges(edgeSequence, stepIndex, currentTime, edgePacingMilliseconds, specialStartIndex),
     ],
   };
 }

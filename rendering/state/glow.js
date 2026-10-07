@@ -13,6 +13,5 @@ function _gammaSurvival(x) {
 // PUBLIC INTERFACE
 
 export function computeGlow(elapsedTime, referenceInterval) {
-  elapsedTime /= referenceInterval * SCALE;
-  return _gammaSurvival(elapsedTime);
+  return _gammaSurvival(elapsedTime / (referenceInterval * SCALE));
 }

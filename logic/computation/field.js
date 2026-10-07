@@ -1,5 +1,4 @@
 /** Gaussian-field priority score used by the greedy edge-growth algorithm. */
-import { gaussian } from "../construction/rng.js";
 
 // HELPER FUNCTIONS - STRENGTH CALCULATION
 
@@ -16,6 +15,12 @@ function _fieldValue(dsu, vertex, x, fieldShape) {
 }
 
 // PUBLIC INTERFACE
+
+/** Unnormalized isotropic 2D Gaussian bump centred at mu. */
+export function gaussian(x, mu, sigma) {
+  const squaredDistance = (x[0] - mu[0]) ** 2 + (x[1] - mu[1]) ** 2;
+  return Math.exp(-squaredDistance / (2 * sigma * sigma));
+}
 
 export function sigma(vertexCount, gridSize) {
   return gridSize / Math.sqrt(vertexCount);

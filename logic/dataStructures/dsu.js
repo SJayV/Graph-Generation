@@ -1,8 +1,5 @@
-/**
- * Disjoint-set union (union-find) over vertices, tracking special-subset
- * membership per vertex.
- */
-import { vertexKey } from "../construction/vertices.js";
+/** Disjoint-set union (union-find) over vertices, tracking special-subset membership per vertex. */
+import { vertexKey } from "./keys.js";
 
 // PUBLIC INTERFACE
 
@@ -49,7 +46,7 @@ export class DSU {
     const rootAKey = vertexKey(rootA);
     const rootBKey = vertexKey(rootB);
     if (rootAKey === rootBKey) {
-      return rootA;
+      return;
     }
 
     const [smallerKey, largerKey] =
@@ -59,7 +56,6 @@ export class DSU {
     this._size.set(largerKey, this._size.get(largerKey) + this._size.get(smallerKey));
     this._size.delete(smallerKey);
     this._componentCount -= 1;
-    return this._representative.get(largerKey);
   }
 
   componentSize(vertex) {

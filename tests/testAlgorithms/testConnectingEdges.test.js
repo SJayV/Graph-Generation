@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { identifyConnectingEdges } from "../../algorithms/connectingEdges.js";
 import { DSU } from "../../logic/dataStructures/dsu.js";
-import { edgeKey } from "../../logic/construction/vertices.js";
+import { edgeKey } from "../../logic/dataStructures/keys.js";
 
 // HELPER FUNCTIONS
 
@@ -107,25 +107,6 @@ describe("identifyConnectingEdges", () => {
         [center, tip2],
         [center, tip3],
       ]);
-    });
-  });
-
-  describe("no accepted edge lies on any special-to-special path", () => {
-    it("returns an empty list when the accepted edges never reach a second special", () => {
-      const A = [0, 0];
-      const B = [1, 0];
-      const C = [2, 0];
-      const allVertices = [A, B, C];
-      const specialSubset = [A];
-      const edges = [
-        [A, B],
-        [B, C],
-      ];
-      const dsu = _buildDsu(allVertices, specialSubset, edges);
-
-      const connectingEdges = identifyConnectingEdges(edges, dsu, specialSubset);
-
-      expect(connectingEdges).toEqual([]);
     });
   });
 

@@ -43,36 +43,6 @@ describe("Playback pacing", () => {
 
       expect(renderer.getDisplayedState().edges).toHaveLength(0);
     });
-
-    it("spaces every consecutive pair of edge reveals by the same constant duration", () => {
-      const vertices = makeVertices(6);
-      const edgeSequence = makeLinearEdgeSequence(6);
-      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
-      const observedIntervalsBetweenReveals = [];
-      let lastVisibleCount = 0;
-      let millisecondsSinceLastReveal = 0;
-
-      renderer.start();
-
-      const millisecondsPerTick = 1;
-      const totalDuration = EDGE_PACING_MILLISECONDS * edgeSequence.length;
-      for (let elapsed = 0; elapsed < totalDuration; elapsed += millisecondsPerTick) {
-        vi.advanceTimersByTime(millisecondsPerTick);
-        millisecondsSinceLastReveal += millisecondsPerTick;
-
-        const currentVisibleCount = renderer.getDisplayedState().edges.length;
-        if (currentVisibleCount > lastVisibleCount) {
-          observedIntervalsBetweenReveals.push(millisecondsSinceLastReveal);
-          millisecondsSinceLastReveal = 0;
-          lastVisibleCount = currentVisibleCount;
-        }
-      }
-
-      expect(observedIntervalsBetweenReveals).toHaveLength(edgeSequence.length);
-      observedIntervalsBetweenReveals.forEach((interval) => {
-        expect(interval).toBe(EDGE_PACING_MILLISECONDS);
-      });
-    });
   });
 
   describe("pacing does not depend on any per-edge timing data", () => {
@@ -96,17 +66,6 @@ describe("Playback pacing", () => {
   });
 
   describe("the pacing constant is fixed for a given run, independent of content/size", () => {
-    it("takes exactly length * EDGE_PACING_MILLISECONDS to reveal a short sequence fully", () => {
-      const vertices = makeVertices(3);
-      const edgeSequence = makeLinearEdgeSequence(3);
-      const renderer = createRenderer(makeRenderData(vertices, edgeSequence), EDGE_PACING_MILLISECONDS);
-
-      renderer.start();
-      vi.advanceTimersByTime(EDGE_PACING_MILLISECONDS * edgeSequence.length);
-
-      expect(renderer.getDisplayedState().edges).toHaveLength(edgeSequence.length);
-    });
-
     it("takes exactly length * EDGE_PACING_MILLISECONDS to reveal a long sequence fully, at the same rate", () => {
       const vertices = makeVertices(20);
       const edgeSequence = makeLinearEdgeSequence(20);

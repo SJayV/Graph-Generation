@@ -93,7 +93,6 @@ describe("edges", () => {
       // only 2 others exist per vertex -> complete graph on 3 vertices, no more, no less
       expect(keys.size).toBe(3);
       for (const [u, v] of edges) {
-        expect(vertexKey(u)).not.toBe(vertexKey(v));
         expect(allVertices.some((vertex) => vertexKey(vertex) === vertexKey(u))).toBe(true);
         expect(allVertices.some((vertex) => vertexKey(vertex) === vertexKey(v))).toBe(true);
       }

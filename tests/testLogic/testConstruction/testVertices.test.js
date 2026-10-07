@@ -31,12 +31,6 @@ describe("sampleVertices", () => {
 
       expect(result).toHaveLength(n);
     });
-
-    it("with minimal n returns one vertex", () => {
-      const result = sampleVertices(1, 5, rng);
-
-      expect(result).toHaveLength(1);
-    });
   });
 
   describe("TestGridCapacity", () => {

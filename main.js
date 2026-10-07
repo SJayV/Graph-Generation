@@ -4,7 +4,7 @@ import { identifyConnectingEdges } from "./algorithms/connectingEdges.js";
 import { createGraph, markSpecial, toIndexEdges } from "./graph.js";
 import { createPanel } from "./panel.js";
 import { EDGE_PACING_MILLISECONDS, SCREEN_MARGIN_FRACTION } from "./parameters.js";
-import { createDrawResources, drawRenderState } from "./rendering/gl/draw.js";
+import { createDrawResources, drawRenderState } from "./rendering/gl/drawing/draw.js";
 import { createRenderer } from "./rendering/state/renderer.js";
 
 // CONSTANTS

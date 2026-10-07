@@ -3,7 +3,7 @@ import { growEdgesStepwise as growGenerationStepwise } from "./algorithms/parame
 import { growEdgesUnidirectionalStepwise as growDijkstraUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growDijkstraMultidirectionalStepwise } from "./algorithms/parametrization/dijkstra.js";
 import { growEdgesUnidirectionalStepwise as growAstarUnidirectionalStepwise, growEdgesMultidirectionalStepwise as growAstarMultidirectionalStepwise } from "./algorithms/parametrization/astar.js";
 import { drainEdges } from "./algorithms/skeleton/greedyAlgorithm.js";
-import { sigma as computeSigma } from "./logic/computation/field.js";
+import { sigma } from "./logic/computation/field.js";
 import { DAMPENING_FACTOR, GRID_SIZE, SPARSITY, STRENGTHENING_FACTOR } from "./parameters.js";
 
 // CONSTANTS
@@ -35,7 +35,7 @@ const ALGORITHMS = {
 
 function _runGeneration(allVertices, specialSubset) {
   const fieldShape = {
-    sigma: computeSigma(allVertices.length, GRID_SIZE),
+    sigma: sigma(allVertices.length, GRID_SIZE),
     dampeningFactor: DAMPENING_FACTOR,
     strengtheningFactor: STRENGTHENING_FACTOR,
   };
@@ -46,6 +46,15 @@ function _runGeneration(allVertices, specialSubset) {
 function _runShortestPath(growEdgesStepwise, allVertices, specialSubset, edgeSet) {
   const { edges, dsu } = drainEdges(growEdgesStepwise(allVertices, specialSubset, undefined, edgeSet));
   return { edges, dsu, edgeSet };
+}
+
+// HELPER FUNCTIONS - PAGE CONFIGURATION
+
+function _configurePage(displayTarget, displayName) {
+  if (displayTarget === undefined) {
+    return;
+  }
+  displayTarget.textContent = displayName;
 }
 
 // PUBLIC INTERFACE
@@ -59,12 +68,9 @@ export function nextAlgorithmName(currentName) {
   return ALGORITHM_NAMES[nextIndex];
 }
 
-/** Runs the named algorithm with only the parameters it actually needs; optionally reflects its display name in displayTarget. */
+/** Configures the page for the named algorithm (its display name in displayTarget, if given), then runs it with only the parameters it needs. */
 export function runAlgorithm(algorithmName, allVertices, specialSubset, edgeSet, displayTarget) {
   const { run, displayName } = ALGORITHMS[algorithmName];
-  const result = run(allVertices, specialSubset, edgeSet);
-  if (displayTarget !== undefined) {
-    displayTarget.textContent = displayName;
-  }
-  return result;
+  _configurePage(displayTarget, displayName);
+  return run(allVertices, specialSubset, edgeSet);
 }

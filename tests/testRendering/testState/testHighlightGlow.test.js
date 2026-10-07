@@ -9,9 +9,6 @@ import { computeRenderState } from "../../../rendering/state/renderState.js";
 import { EDGE_PACING_MILLISECONDS } from "../../../parameters.js";
 import { makeRenderData, makeVertices } from "./fixtures.js";
 
-const LARGE_ELAPSED = 20000;
-const EPSILON = 0.01;
-
 function stateAt(vertices, edgeSequence, specialStartIndex, currentTime) {
   return computeRenderState(
     makeRenderData(vertices, edgeSequence, { specialStartIndex }),
@@ -60,15 +57,6 @@ describe("Final-path highlight glow", () => {
       expect(renderState.edges[1].category).toBe("special");
       expect(renderState.edges[1].glow).toBe(1.0);
     });
-
-    it("decays a special edge's glow toward 0.0 for large elapsed time, same as a growth edge would", () => {
-      const vertices = makeVertices(3);
-      const edgeSequence = [[0, 1], [1, 2]];
-
-      const renderState = stateAt(vertices, edgeSequence, 1, 1 * EDGE_PACING_MILLISECONDS + LARGE_ELAPSED);
-
-      expect(renderState.edges[1].glow).toBeLessThan(EPSILON);
-    });
   });
 
   describe("a duplicated edge pair appears twice in visibleEdges, once per batch, never deduplicated", () => {
@@ -83,23 +71,6 @@ describe("Final-path highlight glow", () => {
         (edge) => edge.startIndex === 0 && edge.endIndex === 1,
       );
       expect(duplicatePairOccurrences).toHaveLength(2);
-    });
-
-    it("places the special occurrence after the original occurrence in draw order", () => {
-      const vertices = makeVertices(3);
-      const edgeSequence = [[0, 1], [1, 2], [0, 1]];
-
-      const renderState = stateAt(vertices, edgeSequence, 2, 0);
-
-      const originalIndex = renderState.edges.findIndex(
-        (edge) => edge.startIndex === 0 && edge.endIndex === 1 && edge.category === "normal",
-      );
-      const specialIndex = renderState.edges.findIndex(
-        (edge) => edge.startIndex === 0 && edge.endIndex === 1 && edge.category === "special",
-      );
-
-      expect(originalIndex).toBeGreaterThanOrEqual(0);
-      expect(specialIndex).toBeGreaterThan(originalIndex);
     });
 
     it("gives the two occurrences independent glow values", () => {

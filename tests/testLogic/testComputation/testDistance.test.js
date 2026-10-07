@@ -21,10 +21,6 @@ describe("distance", () => {
       expect(distance([2, 3], [2, 3])).toBe(0);
     });
 
-    it("returns 0 for distinct references with equal coordinates", () => {
-      expect(distance([1, 1], [1, 1])).toBe(0);
-    });
-
     it("returns a positive value for any distinct position", () => {
       expect(distance([0, 0], [0, 1])).toBeGreaterThan(0);
       expect(distance([0, 0], [1, 0])).toBeGreaterThan(0);

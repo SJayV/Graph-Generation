@@ -1,6 +1,6 @@
 /** Greedy, field-priority-driven edge growth over a fixed vertex set. */
-import { key as fieldKey } from "../../logic/computation/field.js";
-import { growEdgesStepwise as _growEdgesStepwise, incidentPairs } from "../skeleton/greedyAlgorithm.js";
+import { key } from "../../logic/computation/field.js";
+import { growGreedyEdgesStepwise, incidentPairs } from "../skeleton/greedyAlgorithm.js";
 
 // HELPER FUNCTIONS - EDGE GROWTH
 
@@ -17,7 +17,7 @@ export function* growEdgesStepwise(allVertices, specialSubset, r, fieldShape) {
   let acceptedCount = 0;
 
   function priorityFunction(u, v, dsu) {
-    return -fieldKey(dsu, u, v, fieldShape);
+    return -key(dsu, u, v, fieldShape);
   }
 
   function terminationFunction() {
@@ -29,5 +29,5 @@ export function* growEdgesStepwise(allVertices, specialSubset, r, fieldShape) {
     return [...incidentPairs(u, allVertices), ...incidentPairs(v, allVertices)];
   }
 
-  return yield* _growEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept);
+  return yield* growGreedyEdgesStepwise(allVertices, specialSubset, priorityFunction, terminationFunction, onAccept);
 }
